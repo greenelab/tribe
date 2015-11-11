@@ -1,0 +1,11 @@
+<li ng-if="!userObj" class="dropdown" ui-route="/accounts/login/.*" ng-class="{active:$uiRoute}">
+    <a href='#' class="dropdown-toggle" data-toggle="dropdown"> Login <b class="caret"></b></a>
+    <ul class="dropdown-menu">
+    	<li><a href="/accounts/signup/">Create a Tribe account</a></li>
+        <li><a href="/accounts/login/">Log in with existing account</a></li>
+        <li class="divider"></li>
+        <li><a href="/accounts/create_temporary/">Create a temporary anonymous account <br> (No email address required)</a></li>
+    </ul>
+
+</li>
+

@@ -1,0 +1,13 @@
+<div class="col-md-3">
+    <form class="form">
+        <textarea name="genes" rows="7" ng-model="genesToAdd.query" placeholder="Search genes by symbol or Entrez ID"></textarea>
+    <span class="error">{{ errors.name }}</span>
+    <button class="btn btn-primary" ng-click="searchGenes()"> Search Genes <i class="fa fa-search"></i>
+    </button>
+    </form>
+</div>
+<div class="col-md-9">	
+    <h4>Gene Results</h4>
+    <search-result-table></search-result-table>
+    </div>
+</div>

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block head_title %} New Version Commit {% endblock %}
+
+{% block content %}
+<br>
+<h4>Create a new version</h4>
+Hello - on this page you will be able to create and commit a new version of your set. <br><br>
+
+<div ng-app="gs_handler"> 
+    <div ng-controller="VersionController" ng-init="loadVersion('{{ version.pk }}')" >  
+    <div ng-init="thisVersion('{{version.pk}}')">  
+    <table class="table table-bordered" border="2">
+	<tr>
+	<th> Gene Set Title       </th>
+	<th> Version              </th>
+	<th> Organism             </th>
+	<th> Description          </th>
+	</tr>
+	<tr><td>{[{ version.geneset.title }]}</td><td>{[{ version.ver_hash }]}</td><td>{[{ version.organism.scientific_name }]}</td><td>{[{ version.description }]}</td></tr>
+  
+    </table>
+
+    <br>
+    <br>
+
+    <form>
+	{% csrf_token %}
+	<table class="table-bordered" border="2" > 
+	    <tr><th> Genes in This Version</th><th> Delete?</th></tr>
+	    <tr ng-repeat="gene in geneList"> <td><span class="delete-{[{ gene.chosen }]}">{[{ gene.symbol }]}</span></td><td align="center"><input type="checkbox" ng-model="gene.chosen"></td></tr>
+	</table>
+	<br><br><br>
+
+	Version Description: <br>
+	<textarea name="description" rows="5" cols="31" ng-model="newVersion.description"></textarea>
+	<br><br>
+
+        <div style="position:absolute;left:550px;top:320px;">
+	    <h4>Add genes? </h4>
+	    <textarea name="genes" rows="15" cols="20" ng-model="genesToAdd.query" placeholder="Enter genes here"></textarea>
+	    <br>
+	    <button class="btn btn-primary" ng-click="searchGenes()"> Search Genes&nbsp;&nbsp;<i class="icon-search icon-white"></i>
+	    </button> 
+        </div>
+	<div style="position:absolute;left:850px;top:320px;">
+	    <h4>Gene Results</h4>
+	    <table class="table table-striped" name="searchResults">
+	        <tr ng-repeat="geneKey in geneKeys | startFrom:currentPage*genesPerPage | limitTo:genesPerPage">
+		    <td>{[{ geneKey }]}</td>
+		    <td><div class="btn-group">
+		    <button class="btn" ng-repeat="gene in results[geneKey]" ng-model="selectedGenes[geneKey]" btn-radio="gene.pk">
+			{[{ gene.systematic_name }]}
+		    </button></div></td>
+		</tr>
+	    </table><br><br>
+
+		<button ng-disabled="currentPage == 0 || currentPage<0" ng-click="currentPage=currentPage-1">Previous</button>
+	        {[{ currentPage+1 }]}/{[{ numPages }]}
+	        <button ng-disabled="currentPage == numPages -1 || numPages == 0" ng-click="currentPage=currentPage+1">Next</button>
+		<br><br>
+                &nbsp;&nbsp;<button class="btn btn-info" ng-disabled="" ng-click="clearSelections()">Clear selections</button>
+	    
+	</div>
+	<br><br><br><br><br>
+	<button class="btn btn-large btn-success" ng-click="saveNewVersion()"><i class="icon-circle-arrow-right"></i>  Commit New Version</button>
+
+    </form>
+<br><br><br>
+<hr/><pre> 
+	</pre>
+    </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+

@@ -1,0 +1,43 @@
+{% extends "account/base.html" %}
+
+{% block head_title %}Create Temporary Account{% endblock %}
+
+{% block content %}
+<h2 style="color:black">Create a Temporary Account</h2>
+
+<p>Already have an account? Then please <a href="/accounts/login/">sign in</a>.</p>
+
+<p>A temporary anonymous account will allow you to create, edit and delete your own collections. You do not
+need an email address or password to create a temporary anonymous account. You will only be able to access 
+this temporary account from the computer and Internet browser you are currently using to view this page.
+You will be able to access your account for 1 year from the date you create it, until you erase the cookies 
+from this browser, or until you log out of the account from this browser.</p>
+
+<p>Before your account expires, 
+you will have the option to upgrade your temporary anonymous account into a full, regular Tribe account by entering
+an email address and a password. A full Tribe account will allow you to share collections and invite collaborators.</p>
+
+<br>
+
+    {% if form.errors %}
+        <p style="color: red;">
+            Please correct the error{{ form.errors|pluralize }} below.
+        </p>
+    {% endif %}
+
+<form class="signup" method="post" action="{% url 'create_temporary' %}">
+  {% csrf_token %}
+
+    <div class="fieldWrapper">
+        {{ form.accepted }}&nbsp;&nbsp;<label for="id_accepted">Make a new anonymous, temporary account which will remain active on this browser for 1 year, until you log out, or until you clear your browser's cookies.</label>
+        {{ form.accepted.errors }}
+        
+    </div>
+
+    <br>
+
+    <button type="submit" class="btn btn-success">Create &raquo;</button>
+
+</form>
+
+{% endblock %}

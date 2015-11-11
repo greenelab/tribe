@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head_title %} Version List {% endblock %}
+
+{% block content %}
+<br><h4>Gene Set: {{ geneset }}</h4>
+<br>
+These are the versions you have made in this Gene Set. <br><br>
+
+<div ng-app="gs_handler"> 
+
+    <div ng-controller="VersionListController" ng-init="loadVersions( '{{gs_creator.username}}', '{{ geneset.URL_slug }}' )" >
+
+    <table class="table table-bordered" border="2">
+	<tr>
+	<th> User           </th>
+	<th> Organism       </th>
+	<th> Version        </th>
+	<th> Description    </th> 
+	<th> Commit Date/Time    </th>
+	</tr>
+     
+	<tr ng-repeat="ver in versions"><td>{[{ ver.user.username }]}</td><td>{[{ ver.organism.scientific_name }]}</td><td><a href="/versions/{[{ ver.user.username }]}/{[{ ver.geneset.URL_slug }]}/detail/{[{ ver.ver_hash }]}/">{[{ ver.ver_hash }]}</a></td><td>{[{ ver.description }]}</td><td>{[{ ver.commit_date | date:'short' }]}</td></tr>
+    </table>
+    </div>
+    <br>
+    <br>
+
+</div>
+
+{% endblock %}
+
+

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block head_title %} Gene Detail {% endblock %}
+
+{% block content %}
+<br>
+<table border="2">
+    <tr>
+    <th> Entrez ID   </th>
+    <th> Gene Symbol </th>
+    <th> Description </th>
+    <th> Aliases     </th>
+    </tr>
+    <tr><td>{{gene.entrezid}}</td><td>{{ gene }}</td><td>{{ gene.description }}</td><td>{{ aliases }}</td></tr>
+
+</table>
+{% endblock %}
+
+
