@@ -1,0 +1,567 @@
+"""
+Geneset tests
+"""
+
+from django.test import TestCase
+from django.test.utils import override_settings
+from django.core.management import call_command
+from django.contrib.auth.models import User
+
+from fixtureless import Factory
+
+from tastypie.test import ResourceTestCase, TestApiClient
+import haystack
+
+from organisms.models import Organism
+from genes.models import Gene, CrossRef, CrossRefDB
+from genesets.models import Geneset
+from versions.models import Version
+from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
+
+factory = Factory()
+
+# REQUIRES ELASTICSEARCH TO BE SETUP AS THE HAYSTACK PROVIDER.
+TEST_INDEX = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'TIMEOUT': 60 * 10,
+        'INDEX_NAME': 'test_index',
+    },
+}
+
+class GenesetTipTestCase(TestCase):
+
+    def setUp(self):
+        org1 = factory.create(Organism)
+        user1 = factory.create(User)
+        geneset1 = Geneset.objects.create(
+            creator=user1, title='TestGeneset1', organism=org1, abstract='Testing genes.', public=False)
+        geneset2 = Geneset.objects.create(
+            creator=user1, title='TestGeneset2', organism=org1, abstract='Testing no versions.', public=False)
+
+        # Try all combinations I can think of with genes and publications
+        gene_frozenset1 = frozenset([(5860, 1)])
+        gene_frozenset2 = frozenset(
+            [(5860, 1), (11672, 2), (11672, 3), (7489, None), (5576, None), (5576, 3), (5576, 3), (5576, 4)])
+        version1 = Version.objects.create(
+            geneset=geneset1, creator=user1, description="First version.", annotations=gene_frozenset1)
+        version2 = Version.objects.create(
+            geneset=geneset1, creator=user1, description="Tip version.", 
+            annotations=gene_frozenset2, parent=version1)
+
+    def testGetTip(self):
+        """
+        Tests the Geneset model's get_tip method. This should return 'version2' (not 'version1'),
+        which was created above
+        """
+        geneset1 = Geneset.objects.get(title='TestGeneset1')
+        tip_version = geneset1.get_tip()
+        self.assertEqual(tip_version.description, "Tip version.")
+
+    def testGetTipIsNone(self):
+        """
+        Tests that the Geneset model's get_tip method returns None for geneset2 created above (which has no versions).
+        """
+        geneset2 = Geneset.objects.get(title='TestGeneset2')
+        tip_version = geneset2.get_tip()
+        self.assertEqual(tip_version, None)
+
+    def testTipItemCount(self):
+        """
+        For the geneset1 object, the tip_item_count attribute should return 4 - the total number of different
+        genes (regardless of publications associated with them) present in the tip version (version1).
+        """
+        geneset1 = Geneset.objects.get(title='TestGeneset1')
+        self.assertEqual(geneset1.tip_item_count, 4)
+
+
+    def testNoParentVersionSpecified(self):
+        """
+        Testing that the Version save() method correctly raises a
+        'NoParentVersionSpecified' exception if the user tries to create
+        a version of a geneset that already has versions, but without
+        specifying a parent version.
+        """
+
+        geneset1 = Geneset.objects.get(title='TestGeneset1')
+        none_gene_frozenset = frozenset([(5576, 2), (5860, 1)])
+
+        # This is the correct way to test for exceptions. See:
+        # https://docs.djangoproject.com/en/dev/topics/testing/tools/#exceptions
+        with self.assertRaises(NoParentVersionSpecified):
+            Version.objects.create(geneset=geneset1, creator=geneset1.creator,
+                                   description="Testing None gene.", 
+                                   annotations=none_gene_frozenset)
+
+
+    def testNoneGenes(self):
+        """
+        Testing that the Version save() method correctly returns a
+        'VersionContainsNoneGene' exception when trying to pass 'None'
+        instead of a gene ID.
+        """
+        # Try to save 'None' as a gene in a version.
+        geneset1 = Geneset.objects.get(title='TestGeneset1')
+        none_gene_frozenset = frozenset([(None, 1), (None, 2), (5860, 1)])
+
+        with self.assertRaises(VersionContainsNoneGene):
+            Version.objects.create(geneset=geneset1, creator=geneset1.creator,
+                                   description="Testing None gene.", 
+                                   annotations=none_gene_frozenset,
+                                   parent=geneset1.get_tip())
+
+
+    def testNoneGenesPublications(self):
+        """
+        Testing that the Version save() method correctly returns a
+        'VersionContainsNoneGene' exception when passing both
+        'None' for both a gene and a publication.
+        """
+        # Try to save 'None' as both gene AND publication:
+        geneset1 = Geneset.objects.get(title='TestGeneset1')
+        none_gene_publication = frozenset([(None, None)])
+
+        with self.assertRaises(VersionContainsNoneGene):
+            Version.objects.create(geneset=geneset1, creator=geneset1.creator,
+                                   description="Testing None gene AND publication.",
+                                   annotations=none_gene_publication,
+                                   parent=geneset1.get_tip())
+
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Organism.objects.all().delete()
+        Geneset.objects.all().delete()
+        Version.objects.all().delete()
+
+
+class TestKEGGLoaderMethods(TestCase):
+    KEGG_URL_BASE = 'http://rest.kegg.jp'
+
+    def test_version_loads_something(self):
+        """
+        Test that get_kegg_version at least gets a string starting with Release.
+        """
+        from genesets.management.commands import genesets_load_kegg
+        version = genesets_load_kegg.get_kegg_version(self.KEGG_URL_BASE)
+        self.assertIsNotNone(version)
+        self.assertTrue(version.startswith('Release'))
+
+    def test_pathway_gene_loads_hsa00010_gene_10327(self):
+        """
+        Test that get_kegg_members creates a dictionary where the key hsa00010 contains 10327.
+        This is the first line from link/hsa/pathway.
+        """
+        from genesets.management.commands import genesets_load_kegg
+        result = genesets_load_kegg.get_kegg_members(
+            self.KEGG_URL_BASE, 'hsa', 'Pathway')
+        self.assertTrue('hsa00010' in result)
+        self.assertTrue('10327' in result['hsa00010'])
+
+    def test_pathway_info_loads_hsa00010(self):
+        """
+        Test that get_kegg_info creates a dictionary with the title, abstract, etc..
+        """
+        from genesets.management.commands import genesets_load_kegg
+        result = genesets_load_kegg.get_kegg_info(
+            self.KEGG_URL_BASE, 'hsa00010')
+        self.assertTrue('title' in result)
+        self.assertEqual(
+            result['title'], 'Glycolysis / Gluconeogenesis - Homo sapiens (human)')
+        self.assertTrue('abstract' in result)
+
+    def test_info_loads_no_description(self):
+        """
+        Test that get_kegg_info works when there is no description. This occurs sometimes
+        (e.g. http://rest.kegg.jp/get/hsa03010). The returned abstract should be empty in this case.
+        """
+        from genesets.management.commands import genesets_load_kegg
+        result = genesets_load_kegg.get_kegg_info(
+            self.KEGG_URL_BASE, 'hsa03010')
+        self.assertTrue('title' in result)
+        self.assertEqual(result['title'], 'Ribosome - Homo sapiens (human)')
+        self.assertTrue('abstract' in result)
+        self.assertEqual(result['abstract'], '')
+
+    def test_module_info_loads_M00001(self):
+        """
+        Test that get_kegg_info creates a dictionary with the title, abstract, etc..
+        """
+        from genesets.management.commands import genesets_load_kegg
+        result = genesets_load_kegg.get_kegg_info(self.KEGG_URL_BASE, 'M00001')
+        self.assertTrue('title' in result)
+        self.assertEqual(
+            result['title'], 'Glycolysis (Embden-Meyerhof pathway), glucose => pyruvate')
+        self.assertTrue('abstract' in result)
+
+    def test_disease_info_loads_M00001(self):
+        """
+        Test that get_kegg_info creates a dictionary with the title, abstract, etc..
+        """
+        from genesets.management.commands import genesets_load_kegg
+        result = genesets_load_kegg.get_kegg_info(self.KEGG_URL_BASE, 'H00001')
+        self.assertTrue('title' in result)
+        self.assertEqual(result['title'],
+                         'Acute lymphoblastic leukemia (ALL) (precursor B lymphoblastic leukemia)')
+        self.assertTrue('abstract' in result)
+
+
+@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX)
+class GenesetUnregisteredTestCase(ResourceTestCase):
+
+    def setUp(self):
+        haystack.connections.reload('default')
+        super(GenesetUnregisteredTestCase, self).setUp()
+        self.org1 = factory.create(Organism)
+        self.user1 = factory.create(User)
+        self.user2 = factory.create(User)
+        self.geneset1 = Geneset.objects.create(creator=self.user1, title='Test Geneset 1',
+                                               organism=self.org1, deleted=False,
+                                               abstract='Testing for BRCA AURKB.', public=False)
+        self.geneset2 = Geneset.objects.create(creator=self.user2, title='GO-BP:Test Geneset 2',
+                                               organism=self.org1, deleted=False,
+                                               abstract='Testing BRCA AURKA.', public=False)
+        self.geneset3 = Geneset.objects.create(creator=self.user2, title='GO-BP:Test Geneset 3',
+                                               organism=self.org1, deleted=False,
+                                               abstract='Testing BRCA AURKA.', public=True)
+        call_command('update_index', interactive=False, verbosity=0)
+
+    def testEmptyQuery(self):
+        """
+        Test public genesets w/o search.
+
+        Tests that an empty query from a non-registered user returns only public results.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json")
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 1)
+        self.assertEqual(self.deserialize(resp)['objects'][0]['title'], "GO-BP:Test Geneset 3")
+
+    def testGOBPQuery(self):
+        """
+        Tests string query.
+
+        Uses "GO-BP:" as a query. Should return the public object.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'GO-BP'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 1)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set(["GO-BP:Test Geneset 3", ])
+        self.assertEqual(titles, exp_set)
+
+    def testAbstractQuery(self):
+        """
+        Tests query for item in abstract.
+
+        Uses "AURKB" as a query. Should return nothing.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'AURKB'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 0)
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Organism.objects.all().delete()
+        Geneset.objects.all().delete()
+        call_command('clear_index', interactive=False, verbosity=0)
+
+
+@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX)
+class GenesetRegisteredTestCase(ResourceTestCase):
+
+    def setUp(self):
+        haystack.connections.reload('default')
+        super(GenesetRegisteredTestCase, self).setUp()
+        self.org1 = factory.create(Organism)
+        self.username = "asdf"
+        self.email = "asdf@example.com"
+        self.password = "qwerty"
+        self.user1 = User.objects.create_user(self.username, self.email, self.password)
+
+        # log in user 1
+        self.api_client.client.login(username=self.username, password=self.password)
+
+        # create other objects.
+        self.user2 = factory.create(User)
+        self.geneset1 = Geneset.objects.create(creator=self.user1, title='Test Geneset 1',
+                                               organism=self.org1, deleted=False,
+                                               abstract='Testing for BRCA AURKB.', public=False)
+        self.geneset2 = Geneset.objects.create(creator=self.user2, title='GO-BP:Test Geneset 2',
+                                               organism=self.org1, deleted=False,
+                                               abstract='Testing BRCA AURKA.', public=False)
+        self.geneset3 = Geneset.objects.create(creator=self.user2, title='GO-BP:Test Geneset 3',
+                                               organism=self.org1, deleted=False,
+                                               abstract='Testing BRCA AURKA.', public=True)
+
+        # Make Tags For Testing
+        self.geneset1.tags.add("asdf")
+        self.geneset2.tags.add("asdf")
+        self.geneset1.tags.add("qwerty")
+        self.geneset3.tags.add("qwerty")
+        call_command('update_index', interactive=False, verbosity=0)
+
+    def testEmptyQuery(self):
+        """
+        Test private genesets w/o search.
+
+        Tests that an empty query from a registered user returns public and private results.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json")
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 2)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset1.title, self.geneset3.title])
+        self.assertEqual(titles, exp_set)
+
+    def testGOBPQuery(self):
+        """
+        Test string query.
+
+        Uses "GO-BP:" as a query. Should return the public object.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'GO-BP'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 1)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset3.title, ])
+        self.assertEqual(titles, exp_set)
+
+    def testAbstractQuery(self):
+        """
+        Test query for item in abstract.
+
+        Uses "AURKB" as a query. Should return the private object that has AURKB in the abstract.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'AURKB'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 1)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset1.title, ])
+        self.assertEqual(titles, exp_set)
+
+    def testTagWithoutSearchRestricted(self):
+        """
+        Test tag filtering; no search; no matching public result.
+
+        Uses "asdf" to check that only geneset1 is returned.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'filter_tags': 'asdf'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 1)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset1.title, ])
+        self.assertEqual(titles, exp_set)
+
+    def testTagWithoutSearchRestrictedPublic(self):
+        """
+        Test tag filtering; no search; also matching public result.
+
+        Uses "qwerty" to check that genesets 1 and 3 are returned.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'filter_tags': 'qwerty'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 2)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset1.title, self.geneset3.title])
+        self.assertEqual(titles, exp_set)
+
+    def testTagWithSearchRestricted(self):
+        """
+        Test tag filtering; search matching all genesets; no matching public result.
+
+        Uses "asdf" to check that only geneset1 is returned.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'BRCA', 'filter_tags': 'asdf'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 1)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset1.title, ])
+        self.assertEqual(titles, exp_set)
+
+    def testTagWithSearchRestrictedPublic(self):
+        """
+        Test tag filtering; search matching all genesets; also matching public result.
+
+        Uses "qwerty" to check that genesets 1 and 3 are returned.
+        """
+        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'BRCA', 'filter_tags': 'qwerty'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 2)
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set([self.geneset1.title, self.geneset3.title])
+        self.assertEqual(titles, exp_set)
+
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Organism.objects.all().delete()
+        Geneset.objects.all().delete()
+        call_command('clear_index', interactive=False, verbosity=0)
+
+
+class CreatingRemoteGenesetTestCase(ResourceTestCase):
+
+    def setUp(self):
+        super(CreatingRemoteGenesetTestCase, self).setUp() # This part is important
+
+        self.org1 = Organism.objects.create(common_name="Mouse", scientific_name="Mus musculus", taxonomy_id=10090)
+
+        self.username = "hjkl"
+        self.email = "hjkl@example.com"
+        self.password = "1234"
+        self.user1 = User.objects.create_user(self.username, self.email, self.password)
+
+        #Create some genes, crossrefdb's and crossrefs
+        xrdb1 = CrossRefDB.objects.create(name="ASDF", url="http://www.example.com")
+        xrdb2 = CrossRefDB.objects.create(name="XRDB2", url="http://www.example.com/2")
+
+        self.g1 = Gene.objects.create(entrezid=55982, systematic_name="g1", standard_name="Paxip1", description="asdf", organism=self.org1, aliases="gee1 GEE1")
+        self.g2 = Gene.objects.create(entrezid=18091, systematic_name="g2", standard_name="Nkx2-5", description="asdf", organism=self.org1, aliases="gee2 GEE2")
+        self.g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc", standard_name="Ctnnbip1", description="asdf", organism=self.org1, aliases="gee3 GEE3")
+        self.g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc", standard_name="Wnt10b", description="asdf", organism=self.org1, aliases="gee4 GEE4")
+        self.gene_entrezid_set = set([55982, 18091, 67087, 22410])
+
+        xref1 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRID1")
+        xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=self.g2, xrid="XRID1")
+        xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRRID1")
+        xref4 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g2, xrid="XRID2")
+
+
+    def testSimpleGenesetCreationNoGenes(self):
+        """
+        Simple test to create a new geneset with some genes, using an organism queried in the API
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org1.scientific_name
+        org_resp = self.api_client.get('/api/v1/organism', format="json", data={'scientific_name': org_scientific_name})
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'Sample RNA polymerase II geneset - created remotely'
+        geneset_data['abstract'] = 'Any process that modulates the rate, frequency or extent of a process involved in starting transcription from an RNA polymerase II promoter.'
+        geneset_data['public'] = True
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+        self.assertHttpCreated(resp)
+
+    def testGenesetCreationWithGenePKs(self):
+        """
+        Test to create a new geneset, with passed genes AND publications
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org1.scientific_name
+        org_resp = self.api_client.get('/api/v1/organism', format="json", data={'scientific_name': org_scientific_name})
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'Sample RNA polymerase II geneset - created remotely'
+        geneset_data['abstract'] = 'Any process that modulates the rate, frequency or extent of a process involved in starting transcription from an RNA polymerase II promoter.'
+        geneset_data['public'] = True
+        geneset_data['annotations'] = {self.g1.pk: [20671152, 19583951], self.g2.pk: [8887666], self.g3.pk: [], self.g4.pk:[]}
+        # Do not pass a 'xrdb' gene identifier
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+        self.assertHttpCreated(resp)
+        gsresp = self.api_client.get('/api/v1/geneset', format="json", data={'show_tip': 'true', 'full_annotations': 'true'})
+        self.assertValidJSONResponse(gsresp)
+
+        # Check some of the data that has been hydrated/dehydrated for this geneset
+        self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
+        self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']))
+        self.assertEqual(set(self.deserialize(gsresp)['objects'][0]['tip']['genes']), self.gene_entrezid_set)
+
+
+    def testGenesetCreationWithGenesAndPublications(self):
+        """
+        Test to create a new geneset, with passed genes AND publications
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org1.scientific_name
+        org_resp = self.api_client.get('/api/v1/organism', format="json", data={'scientific_name': org_scientific_name})
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'Sample RNA polymerase II geneset - created remotely'
+        geneset_data['abstract'] = 'Any process that modulates the rate, frequency or extent of a process involved in starting transcription from an RNA polymerase II promoter.'
+        geneset_data['public'] = True
+        geneset_data['annotations'] = {55982: [20671152, 19583951], 18091: [8887666], 67087: [], 22410:[]}
+        geneset_data['xrdb'] = 'Entrez'
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+        self.assertHttpCreated(resp)
+        gsresp = self.api_client.get('/api/v1/geneset', format="json", data={'show_tip': 'true', 'full_annotations': 'true'})
+        self.assertValidJSONResponse(gsresp)
+
+        # Check some of the data that has been hydrated/dehydrated for this geneset
+        self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
+        self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']))
+
+    def testGenesetCreateGenesNotFound(self):
+        """
+        Test to create a new geneset where some of the genes passed are not found
+        in the database. Check for response with warning stating those genes where
+        not found.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org1.scientific_name
+        org_resp = self.api_client.get('/api/v1/organism', format="json", data={'scientific_name': org_scientific_name})
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'Sample RNA polymerase II geneset - created remotely'
+        geneset_data['abstract'] = 'Any process that modulates the rate, frequency or extent of a process involved in starting transcription from an RNA polymerase II promoter.'
+        geneset_data['public'] = True
+        geneset_data['xrdb'] = 'Entrez'
+
+        geneset_data['annotations'] = {55982: [20671152, 19583951], 
+                                       18091: [8887666], 67087: [], 22410:[]}
+
+        not_in_db_genes = set([7915, 57494, 64902])  # These three do not exist in the database
+
+        for geneid in not_in_db_genes:  # Add these to the 'annotations' in geneset_data
+            geneset_data['annotations'][geneid] = []
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+        self.assertHttpCreated(resp)
+
+        warning_response = self.deserialize(resp)["Warning - The following genes were not found in our database"]
+        genes_not_found = set()
+        for not_found in warning_response:
+            genes_not_found.add(int(not_found))
+        self.assertEqual(genes_not_found, not_in_db_genes)
+
+        gsresp = self.api_client.get('/api/v1/geneset', format="json", data={'show_tip': 'true', 'full_annotations': 'true'})
+        self.assertValidJSONResponse(gsresp)
+
+        # Check some of the data that has been hydrated/dehydrated for this geneset, 
+        # check the length of the annotations that were actually found and got saved
+        self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
+        self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']) - len(not_in_db_genes))
+
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Organism.objects.all().delete()
+        Geneset.objects.all().delete()

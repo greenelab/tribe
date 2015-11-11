@@ -1,0 +1,6 @@
+{{object.entrezid}}
+{{object.systematic_name}}
+{{object.standard_name}}
+{{object.description}}
+{{object.wall_of_name}}
+{{object.aliases}}

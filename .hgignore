@@ -1,0 +1,28 @@
+syntax: regexp
+local_settings\.py$
+^\.proj
+^\.pydev
+^sqlite\.db$
+^static\/
+~$
+^data/
+^old_files/
+.sublime-project$
+.sublime-workspace$
+secrets.ini$
+
+syntax: glob
+*.pyc
+imp.r*.js
+imp.r*.css
+whoosh_index
+imppy
+tribeenv
+yuicompressor*
+pickles
+*.sw*
+interface/build/
+interface/bin/
+interface/node_modules/
+interface/vendor/
+docs/build/

@@ -1,0 +1,29 @@
+{% extends "account/base.html" %}
+
+{% block head_title %}Upgrade to Full Account{% endblock %}
+
+{% block content %}
+<h2 style="color:black">Upgrade to Full Account</h2>
+
+<p>To upgrade your temporary account to a full permanent account, fill out the following fields. The collections you have built using this temporary account will then show up under this newly-upgraded account.</p>
+
+    {% if form.errors %}
+        <p style="color: red;">
+            Please correct the error{{ form.errors|pluralize }} below.
+        </p>
+    {% endif %}
+
+<form class="signup" method="post" action="{% url 'convert_to_full_acct' %}">
+    {% csrf_token %}
+
+    <table>
+        {{ form.as_table }}
+    </table>
+
+    <br>
+
+    <button type="submit">Upgrade to full account &raquo;</button>
+
+</form>
+
+{% endblock %}
