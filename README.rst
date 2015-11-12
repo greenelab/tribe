@@ -1,7 +1,7 @@
 Tribe
 =======
 
-Welcome to the Tribe documentation!
+Welcome to Tribe!
 ------------------------------------
 Tribe is an open-source webserver that allows for easy, reproducible genomics analyses between different webservers. It allows for web-browser access via our web interface or programatic access via our API. You can visit Tribe at https://tribe.greenelab.com
 
