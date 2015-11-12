@@ -6,7 +6,7 @@ Tribe makes it easy to programatically retrieve many genesets and collections (a
 
 Tribe's API
 ---------------
-Tribe's API can be accessed at http://tribe.greenelab.com/api/v1/?format=json.
+Tribe's API can be accessed at https://tribe.greenelab.com/api/v1/?format=json.
 
 
 .. note:: The '?format=json' querystring allows most web browsers to decode Tribe's API json response. You can append it to the end of any of the following API endpoints.
@@ -21,7 +21,7 @@ __________________
 
 API URL:: 
 
-	http://tribe.greenelab.com/api/v1/geneset
+	https://tribe.greenelab.com/api/v1/geneset
 
 
 
@@ -32,7 +32,7 @@ This python example uses the requests library to get public genesets from Tribe.
 	import requests
 
 	# Define where Tribe is located
-	TRIBE_URL = "http://tribe.greenelab.com"
+	TRIBE_URL = "https://tribe.greenelab.com"
 
 	# Make an initial request to the root.
 	r = requests.get(TRIBE_URL + '/api/v1/geneset/')
@@ -73,10 +73,10 @@ Tribe supports full text search of genesets through the query parameter.
 	import requests
 
 	# Define where Tribe is located
-	TRIBE_URL = "http://tribe.greenelab.com"
+	TRIBE_URL = "https://tribe.greenelab.com"
 
 	# Define the Tribe geneset endpoint
-	GENESET_URL = "http://tribe.greenelab.com/api/v1/geneset"
+	GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
 
 	# Use the search parameter to perform a full
 	# text search.
@@ -111,7 +111,7 @@ When retrieving collections, getting gene identifiers in the most convenient for
 	import requests
 
 	# Code from the code examples to get a collection
-	GENESET_URL = "http://tribe.greenelab.com/api/v1/geneset"
+	GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
 
 	# 'show_tip' includes the most recent version and its
 	# genes with the payload.
@@ -152,7 +152,7 @@ ___________________
 
 API URL:: 
 
-	http://tribe.greenelab.com/api/v1/version
+	https://tribe.greenelab.com/api/v1/version
 
 You can get the full version history from any Tribe collection you have access to 
 
@@ -161,7 +161,7 @@ You can get the full version history from any Tribe collection you have access t
     import requests
 
     # Define the Tribe version endpoint
-    VERSION_URL = "http://tribe.greenelab.com/api/v1/version"
+    VERSION_URL = "https://tribe.greenelab.com/api/v1/version"
 
     # We get the versions for the geneset that matches the title we want:
     parameters = {'geneset__slug': 'go0060260-homo-sapiens-regulation-of-transcription',
@@ -186,7 +186,7 @@ ___________________
 
 API URL::
 
-	http://tribe.greenelab.com/api/v1/gene
+	https://tribe.greenelab.com/api/v1/gene
 
 
 Tribe supports most common gene identifiers. Currently that means we support Symbol, Ensembl, Entrez, HGNC, HPRD, MGI, MIM, SGD, UniProtKB, TAIR, WormBase, RGD, FLYBASE, ZFIN, Vega, IMGT/GENE-DB, and miRBase. If there's something that we don't support that you'd like to see, please contact us. We'd be happy to help.
@@ -201,7 +201,7 @@ Tribe also offers a service that lets you translate gene IDs between different g
 	import requests
 
 	# Define the Tribe gene translate endpoint
-	GENE_TRANSLATE_URL = "http://tribe.greenelab.com/api/v1/gene/xrid_translate"
+	GENE_TRANSLATE_URL = "https://tribe.greenelab.com/api/v1/gene/xrid_translate"
 
 	# Enter the type of gene IDs you are translating to and from and fill up
 	# the 'gene_list' list with the genes you want translated in the payload parameters.
