@@ -3,11 +3,8 @@ Glossary of Tribe terms
 
 .. glossary::
 
-    Geneset
-        A geneset is a collection of genes
-
-    Collection
-        Like a geneset, a collection is a set of elements created in Tribe 
-
+    Geneset/Collection
+        We use the terms Geneset and Collection interchangeably. A geneset/collection is a group of genes that are connected (optionally through publications) to user defined processes and pathways.
+ 
     Version
-        A version is 
+        Genesets/Collections are version-controlled in Tribe, meaning that users can update them as many times as they want (changing the contained genes/publications), and Tribe will keep a history of all of the versions a user saves. This allows for reproducible science, as users can go back and run an analysis using any previous saved version of their geneset/collection.

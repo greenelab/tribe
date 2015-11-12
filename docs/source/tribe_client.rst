@@ -44,7 +44,7 @@ Quick Start
     )
 
 
-3. Register your client server at http://tribe.greenelab.com/oauth2/applications/. Make sure to:
+3. Register your client server at https://tribe.greenelab.com/oauth2/applications/. Make sure to:
 
   a. Be logged-in using your Tribe account
   b. Select "Confidential" under ``Client type`` and
