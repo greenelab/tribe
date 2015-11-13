@@ -280,12 +280,8 @@ class UserResource(ModelResource):
         if method is None:
             raise ImmediateHttpResponse(response=http.HttpNotImplemented())
 
-        # ***Comment out authentication if request_method == post!***
-        if (request_method == 'post'):
-            #self.is_authenticated(request)
-            pass
-        else:
-            self.is_authenticated(request)
+        # ***Comment out authentication!!!***
+        #self.is_authenticated(request)
         self.throttle_check(request)
 
         # All clear. Process the request.

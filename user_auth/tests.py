@@ -8,8 +8,8 @@ from genesets.models import Geneset
 from fixtureless import Factory
 from tastypie.test import ResourceTestCase, TestApiClient
 from oauth2_provider.models import Application
-from django.test import Client
-import json
+
+factory = Factory()
 
 
 class UserBasicLoginTestCase(ResourceTestCase):
@@ -389,15 +389,9 @@ class UserLoginLogoutTestCase(ResourceTestCase):
 
 
 class OAuthTokenTestCase(ResourceTestCase):
-
     """
-    Test authentication using OAuth token.
-    For these tests, we will use the django test client, since for some
-    reason, the /oauth2/token/ endpoint does not like Tastypie's TestApiClient.
-    This Clientis imported top of this file (from django.test import Client).
-    import json
+    Test authentication using OAuth token
     """
-
 
     def setUp(self):
         super(OAuthTokenTestCase, self).setUp()
@@ -424,54 +418,13 @@ class OAuthTokenTestCase(ResourceTestCase):
             redirect_uris='', user=self.user1)
 
 
-    def testGettingUserWithNoOAuthToken(self):
-        client = Client()
-
-        # Try to get the user object with no OAuth token
-        r1 = client.get('/api/v1/user',
-                         content_type="application/json")
-
-        # Check that we don't get an Unauthorized response, just
-        # an empty list.
-        self.assertValidJSONResponse(r1)
-        self.assertEqual(self.deserialize(r1)['objects'], [])
-
-
-    def testGettingUserWithWrongOAuthToken(self):
-        client = Client()
-
-        # Try to get the user object with wrong OAuth token
-        r1 = client.get('/api/v1/user',
-                         content_type="application/json",
-                         Authorization='OAuth BadTokenblablaaaaaaaaaaaaaaaaa')
-
-        self.assertHttpUnauthorized(r1)
-
-
-    def testGettingUserWithCorrectOAuthToken(self):
-        client = Client()
-
-        payload = {'grant_type': 'password', 'username': self.username,
-                   'password': self.password, 'client_id': self.client_application.client_id, 
-                   'client_secret': self.client_application.client_secret}
-
-        r1 = client.post('/oauth2/token/', payload)
-        r1 = self.deserialize(r1)
-
-        # Note - this must be converted to a string (from unicode)
-        # for OAuth authentication to work.
-        access_token = str(r1["access_token"])
-
-        # Get the user using the OAuth token in the Authorization header
-        r2 = client.get('/api/v1/user', content_type="application/json",
-                         Authorization='OAuth ' + access_token)
-
-        self.assertValidJSONResponse(r2)
-        self.assertEqual(self.deserialize(r2)['objects'][0]['username'], 
-                         self.username)
-
-
     def testCreatingGenesetWithOAuthToken(self):
+        from django.test import Client
+        import json
+
+        # For this one, we will use the django test client, since for some
+        # reason, the oauth2/token/ url does not like the format of the other
+        # requests.
         client = Client()
 
         payload = {'grant_type': 'password', 'username': self.username,
@@ -479,11 +432,11 @@ class OAuthTokenTestCase(ResourceTestCase):
                    'client_secret': self.client_application.client_secret}
 
         r1 = client.post('/oauth2/token/', payload)
-        r1 = self.deserialize(r1)
+        response = json.loads(r1.content)
 
         # Note - this must be converted to a string (from unicode)
         # for OAuth authentication to work.
-        access_token = str(r1["access_token"])
+        access_token = str(response["access_token"])
 
         post_geneset_data = {
             'title': 'TestGeneset3',
@@ -498,17 +451,17 @@ class OAuthTokenTestCase(ResourceTestCase):
 
         # Create a geneset, check for '201 Created' response
         # The 'json.dumps' part for json format is important!!!
-        r2 = client.post('/api/v1/geneset', json.dumps(post_geneset_data),
+        r1 = client.post('/api/v1/geneset', json.dumps(post_geneset_data),
                          content_type="application/json",
                          Authorization='OAuth ' + access_token)
 
-        self.assertHttpCreated(r2)
+        self.assertHttpCreated(r1)
 
         # Check that the we have access to the geneset we just created with
         # OAuth token and check that title of geneset we created matches.
-        r3 = client.get('/api/v1/geneset', Authorization='OAuth ' + access_token)
-        self.assertValidJSONResponse(r3)
-        self.assertEqual(self.deserialize(r3)['objects'][0]['title'], 
+        r2 = client.get('/api/v1/geneset', Authorization='OAuth ' + access_token)
+        self.assertValidJSONResponse(r2)
+        self.assertEqual(self.deserialize(r2)['objects'][0]['title'], 
                         post_geneset_data['title'])
 
 
@@ -517,7 +470,12 @@ class OAuthTokenTestCase(ResourceTestCase):
         Testing that Tribe returns an Unauthorized response if type of
         authorization grant has no user associated with it.
         """
+        from django.test import Client
+        import json
 
+        # For this one, we will use the django test client, since for some
+        # reason, the oauth2/token/ url does not like the format of the other
+        # requests.
         client = Client()
 
         payload = {'grant_type': 'client_credentials', 'username': self.username,
@@ -525,11 +483,11 @@ class OAuthTokenTestCase(ResourceTestCase):
                    'client_secret': self.bad_application.client_secret}
 
         r1 = client.post('/oauth2/token/', payload)
-        r1 = self.deserialize(r1)
+        response = json.loads(r1.content)
 
         # Note - this must be converted to a string (from unicode)
         # for OAuth authentication to work.
-        access_token = str(r1["access_token"])
+        access_token = str(response["access_token"])
 
         post_geneset_data = {
             'title': 'TestGeneset3',
@@ -544,11 +502,11 @@ class OAuthTokenTestCase(ResourceTestCase):
 
         # Create a geneset, check for '201 Created' response
         # The 'json.dumps' part for json format is important!!!
-        r2 = client.post('/api/v1/geneset', json.dumps(post_geneset_data),
+        r1 = client.post('/api/v1/geneset', json.dumps(post_geneset_data),
                          content_type="application/json",
                          Authorization='OAuth ' + access_token)
 
-        self.assertHttpUnauthorized(r2)
+        self.assertHttpUnauthorized(r1)
 
         # Check that no genesets were created
         self.assertEqual(list(Geneset.objects.all()), [])
@@ -559,6 +517,9 @@ class OAuthTokenTestCase(ResourceTestCase):
         Try to create a geneset with a false OAuth token - receive a 401-
         Unauthorized response.
         """
+        from django.test import Client
+        import json
+
         client = Client()
 
         post_geneset_data = {
