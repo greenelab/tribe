@@ -293,10 +293,7 @@ class UserResource(ModelResource):
         # unlikely). If we comment out authentication for GET requests as well,
         # then the API returns an empty list '[]' when requesting the user
         # object with a correct OAuth token.
-        if (request_method == 'post'):
-            #self.is_authenticated(request)
-            pass
-        else:
+        if not (request_method == 'post'):
             self.is_authenticated(request)
         self.throttle_check(request)
 
