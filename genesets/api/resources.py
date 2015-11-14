@@ -255,10 +255,13 @@ class UserResource(ModelResource):
 
 
     def dispatch(self, request_type, request, **kwargs):
-        #***RAZ: Removing line that does authentication***
-        # This is so that end-users can create user objects
-        # and login without being authenticated. However,
-        # CSRF token checking must still happen
+        """
+        *** RAZ: Overriding this Tastypie method to remove
+        authentication when users do a POST request
+        to create a user through the API.
+        This is so that end-users can create user objects
+        and login without being authenticated.
+        """
 
         # Need to import the following methods:
         from tastypie.resources import convert_post_to_put
@@ -280,7 +283,16 @@ class UserResource(ModelResource):
         if method is None:
             raise ImmediateHttpResponse(response=http.HttpNotImplemented())
 
-        # ***Comment out authentication if request_method == post!***
+        # *** Do not authenticate if request_method == post!***
+        # The Tastypie dispatch method checks for authentication for any type
+        # of request out of the box, but we do not want to check authentication
+        # if the user isn't logged in and wants to login (or create a user account)
+        # via a POST request to the API. If we check for authentication all the
+        # time, users would have to be logged in to be able to log in
+        # (a contradiction) or to create a new user account (highly
+        # unlikely). If we comment out authentication for GET requests as well,
+        # then the API returns an empty list '[]' when requesting the user
+        # object with a correct OAuth token.
         if (request_method == 'post'):
             #self.is_authenticated(request)
             pass
