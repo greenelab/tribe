@@ -232,3 +232,88 @@ Tribe also offers a service that lets you translate gene IDs between different g
 
 	# As you can see, Tribe returns a results list for each gene that is queried,
 	# as well as a list of gene IDs that were entered but were not found.
+
+
+
+Creating new resources through Tribe's API
+---------------------------------------------
+Creating new genesets and versions of these genesets is easy through Tribe's API using the OAuth2 protocol. 
+
+If you have a server built using Django, you can follow the steps under the tribe_client section.
+
+If you are looking to create resources via some other application or tool, you can follow these steps:
+
+1. First, you must register your client application/tool at https://tribe.greenelab.com/oauth2/applications/. Make sure to:
+
+  a. Be logged-in using your Tribe account
+  b. Select "Confidential" under ``Client type`` and
+  c. Select "Resource owner password-based" under ``Authorization grant type``
+
+  .. note:: Currently, Tribe supports the following ``Authorization grant types``:
+
+      * Authorization code
+      * Resource owner password-based
+
+    and does not support the following:
+
+      * Implicit
+      * Client credentials
+
+
+2. Write down and save the Client ID and the Client secret that are assigned to you. Your application/tool will need these when requesting an OAuth token from Tribe to create resources.
+
+3. Now you can create new genesets using the Client ID, secret, and your username and password. The following code is an example of how you might go about doing this:
+
+.. code-block:: python
+
+    # Sample code to remotely create a new geneset/collection on Tribe.
+    # This sample geneset is based on this GO term collection:
+    # https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-mus-musculus-regulation-of-transcription
+
+    # This script uses the 'requests' python library: http://docs.python-requests.org/en/latest/
+    import requests
+    import json
+
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
+
+    # Function to get access_token
+    def obtain_token_using_credentials(username, password, client_id, client_secret):
+    	oauth_url = TRIBE_URL + '/oauth2/token/'
+    	payload = {'grant_type': 'password', 'username': username, 'password': password, 'client_id': client_id, 'client_secret': client_secret}
+    	r = requests.post(oauth_url, data=payload)
+    	tribe_response = r.json()
+    	print(tribe_response)
+    	return tribe_response['access_token']
+
+    # Start by defining a dictionary of our geneset payload
+    geneset = {}
+
+    # The API requires the organism to be the organism's URI, which is just '/api/v1/organism/' plus the url-friendly version of the species name
+    geneset['organism'] = "/api/v1/organism/mus-musculus"
+
+    geneset['title'] = 'Sample RNA polymerase II geneset - created remotely'
+    geneset['abstract'] = 'Any process that modulates the rate, frequency or extent of a process involved in starting transcription from an RNA polymerase II promoter.'
+    geneset['public'] = False # You will want to make this True  if you want anybody to be able to see your geneset
+
+    # For this geneset's annotations, we will use the Entrez IDs for four of
+    # the genes in the GO term (Paxip1, Nkx2-5, Ctnnbip1, and Wnt10b), and
+    # the pubmed IDs of related publications for each gene. (The whole 
+    # list of the annotations for the original collection can also be found at:
+    # https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-mus-musculus-regulation-of-transcription)
+    geneset['annotations'] = {55982: [20671152, 19583951], 18091: [8887666], 67087: [], 22410:[]}
+    geneset['xrdb'] = 'Entrez'
+    geneset['description'] = 'First version' # Description for the first version - this is optional
+
+    # Get our access_token
+    # ****MUST FILL OUT username, password, client_id and client_secret!!!! *********
+    access_token = obtain_token_using_credentials(username, password, client_id, client_secret)
+
+    # This next part creates the post request
+    headers = {'Authorization': 'OAuth ' + access_token, 'Content-Type': 'application/json'}
+    payload = json.dumps(geneset)
+    genesets_url = TRIBE_URL + '/api/v1/geneset'
+    r = requests.post(genesets_url, data=payload, headers=headers)
+    print(r.status)
+    response = r.json()
+    print(response)
