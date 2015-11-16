@@ -12,3 +12,8 @@ Video Tutorials:
 -----------------
 You can check out our video tutorials on our YouTube page: https://www.youtube.com/channel/UCuR7hyPD76JyuqEHmJetUjA
 
+
+Full Tribe documentation:
+--------------------------
+Tribe's full documentation is hosted at Read the Docs, and you can check it out here:  
+tribe-the-collaborative-platform-for-mining-big-data-in-biology.readthedocs.org
