@@ -16,4 +16,4 @@ You can check out our video tutorials on our YouTube page: https://www.youtube.c
 Full Tribe documentation:
 --------------------------
 Tribe's full documentation is hosted at Read the Docs, and you can check it out here:  
-http://http://tribe-greenelab.readthedocs.org
+http://tribe-greenelab.readthedocs.org
