@@ -239,7 +239,7 @@ Creating new resources through Tribe's API
 ---------------------------------------------
 Creating new genesets and versions of these genesets is easy through Tribe's API using the `OAuth2 <http://oauth.net/2/>`_ protocol. 
 
-If you have a server built using `Django <https://docs.djangoproject.com/en/dev/>`_, you can follow the steps in the :ref:`tribe_client package <tribe_client>` section.
+If you have a server built using `Django <https://docs.djangoproject.com/en/dev/>`_, you can follow the steps in the :ref:`tribe_client package<tribe_client-quickstart>` section.
 
 If you are looking to create resources via some other application or tool, you can follow these steps:
 
