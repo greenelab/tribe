@@ -262,7 +262,7 @@ If you are looking to create resources via some other application or tool, you c
 
 2. Write down and save the Client ID and the Client secret that are assigned to you. Your application/tool will need these when requesting an OAuth token from Tribe to create resources.
 
-3. Now you can create new genesets using the Client ID, secret, and your username and password. The following code is an example of how you might go about doing this. This code also uses `requests <http://docs.python-requests.org/en/latest/>`_.
+3. Now you can create new genesets and versions using the Client ID, secret, and your username and password. The following code is an example of how you might go about doing this. This code also uses `requests <http://docs.python-requests.org/en/latest/>`_.
 
 .. code-block:: python
 
@@ -314,6 +314,37 @@ If you are looking to create resources via some other application or tool, you c
     payload = json.dumps(geneset)
     genesets_url = TRIBE_URL + '/api/v1/geneset'
     r = requests.post(genesets_url, data=payload, headers=headers)
-    print(r.status)
+    print(r)
+    response = r.json()
+    print(response)
+
+    # Once you have created a geneset, you can new versions of it at will.
+
+    # First, we get this new geneset's resource_uri from the response we just got:
+    geneset_uri = response['resource_uri']
+
+    # We just created the first version of our geneset, so we will get the resource_uri
+    # for it to assign it as the parent of the new version we are about to create.
+    headers = {'Authorization': 'OAuth ' + access_token, 'Content-Type': 'application/json'}
+    r = requests.get(TRIBE_URL + geneset_uri, params={'show_tip': 'true'}, headers=headers)
+    print(r)
+    response = r.json()
+    print(response)
+    parent_uri = response['tip']['resource_uri']
+
+    # Say we want our new annotations to be the following (say we want to remove
+    # gene Ctnnbip1):
+    new_annotation_dict = {55982: [20671152, 19583951],
+                           18091: [8887666], 22410:[]}
+
+    version = {"geneset": geneset_uri, "parent": parent_uri,
+    "annotations": new_annotation_dict, "xrdb": "Entrez",
+    "description": "Removing gene Ctnnbip1"}
+
+    headers = {'Authorization': 'OAuth ' + access_token, 'Content-Type': 'application/json'}
+    payload = json.dumps(version)
+    versions_url = TRIBE_URL + '/api/v1/version'
+    r = requests.post(versions_url, data=payload, headers=headers)
+    print(r)
     response = r.json()
     print(response)
