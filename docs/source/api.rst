@@ -306,7 +306,7 @@ If you are looking to create resources via some other application or tool, you c
     geneset['description'] = 'First version' # Description for the first version - this is optional
 
     # Get our access_token
-    # ****MUST FILL OUT username, password, client_id and client_secret!!!! *********
+    # ***** MUST FILL OUT username, password, client_id and client_secret!!!! *****
     access_token = obtain_token_using_credentials(username, password, client_id, client_secret)
 
     # This next part creates the post request
