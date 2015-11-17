@@ -1,7 +1,7 @@
 The tribe_client package
 =================================
 
-This python package allows web servers created using django to connect directly to Tribe and make use of its resources. Users of the client web server can login to access their Tribe resources via Tribe OAuth 2.0 authentication.
+This python package allows web servers created using the `Django <https://docs.djangoproject.com/en/dev/>`_ web framework to connect directly to Tribe and make use of its resources. Users of the client web server can login to access their Tribe resources via Tribe OAuth 2.0 authentication.
 
 Download and Install
 ---------------------
@@ -16,6 +16,9 @@ Source
 ---------------------
 
 The source for tribe-client can be found here: https://bitbucket.org/greenelab/tribe-client
+
+
+.. _tribe_client-quickstart:
 
 
 Quick Start
@@ -39,7 +42,7 @@ Quick Start
     from django.conf.urls import url, patterns, include
 
     urlpatterns = patterns('',
-      # Other URLs in your project,
+      ...
       (r'^tribe_client/', include('tribe_client.urls')),
     )
 
@@ -88,7 +91,7 @@ A Closer Look
 
 Under the hood, tribe-client has functions that:
 
-1) Get an access token (via the OAuth 2.0 protocol) that allows users to access and create resources in Tribe.
+1) Get an access token (via the `OAuth2 <http://oauth.net/2/>`_ protocol) that allows users to access and create resources in Tribe.
 
 2) Retrieves public and private collections (and their versions) and displays them on the client server using views and templates included in the package.
 
