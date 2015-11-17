@@ -189,7 +189,7 @@ API URL::
 	https://tribe.greenelab.com/api/v1/gene
 
 
-Tribe supports most common gene identifiers. Currently that means we support Symbol, Ensembl, Entrez, HGNC, HPRD, MGI, MIM, SGD, UniProtKB, TAIR, WormBase, RGD, FLYBASE, ZFIN, Vega, IMGT/GENE-DB, and miRBase. If there's something that we don't support that you'd like to see, please contact us. We'd be happy to help.
+Tribe supports most common gene identifiers. Currently that means we support Symbol, Ensembl, Entrez, HGNC, HPRD, MGI, MIM, SGD, UniProtKB, TAIR, WormBase, RGD, FLYBASE, ZFIN, Vega, IMGT/GENE-DB, and miRBase. If there's something that we don't support that you'd like to see, please `contact us <tribe.greenelab@gmail.com>`_. We'd be happy to help.
 
 **Tribe Translate**
 ***********************
@@ -237,9 +237,9 @@ Tribe also offers a service that lets you translate gene IDs between different g
 
 Creating new resources through Tribe's API
 ---------------------------------------------
-Creating new genesets and versions of these genesets is easy through Tribe's API using the OAuth2 protocol. 
+Creating new genesets and versions of these genesets is easy through Tribe's API using the `OAuth2 <http://oauth.net/2/>`_ protocol. 
 
-If you have a server built using Django, you can follow the steps under the tribe_client section.
+If you have a server built using `Django <https://docs.djangoproject.com/en/dev/>`_, you can follow the steps in the :ref:`tribe_client package <tribe_client>` section.
 
 If you are looking to create resources via some other application or tool, you can follow these steps:
 
