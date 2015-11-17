@@ -25,7 +25,7 @@ API URL::
 
 
 
-This python example uses the requests library to get public genesets from Tribe.
+This python example uses the `requests <http://docs.python-requests.org/en/latest/>`_ library to get public genesets from Tribe.
 
 .. code-block:: python
 
@@ -194,7 +194,7 @@ Tribe supports most common gene identifiers. Currently that means we support Sym
 **Tribe Translate**
 ***********************
 
-Tribe also offers a service that lets you translate gene IDs between different gene identifiers programmatically. This example uses the same requests library as the examples above to do this.
+Tribe also offers a service that lets you translate gene IDs between different gene identifiers programmatically. This example uses the same `requests <http://docs.python-requests.org/en/latest/>`_ library as the examples above to do this.
 
 .. code-block:: python
 
@@ -262,7 +262,7 @@ If you are looking to create resources via some other application or tool, you c
 
 2. Write down and save the Client ID and the Client secret that are assigned to you. Your application/tool will need these when requesting an OAuth token from Tribe to create resources.
 
-3. Now you can create new genesets using the Client ID, secret, and your username and password. The following code is an example of how you might go about doing this:
+3. Now you can create new genesets using the Client ID, secret, and your username and password. The following code is an example of how you might go about doing this. This code also uses `requests <http://docs.python-requests.org/en/latest/>`_.
 
 .. code-block:: python
 
