@@ -1,7 +1,8 @@
 Accessing Tribe through its API
 ===================================
 
-Tribe makes it easy to programatically retrieve many genesets and collections (and all their versions) at a time, using the gene identifier of preference.
+Tribe makes it easy to programatically retrieve many genesets and collections
+(and all their versions) at a time, using the gene identifier of preference.
 
 
 Tribe's API
@@ -9,7 +10,11 @@ Tribe's API
 Tribe's API can be accessed at https://tribe.greenelab.com/api/v1/?format=json.
 
 
-.. note:: The '?format=json' querystring allows most web browsers to decode Tribe's API json response. You can append it to the end of any of the following API endpoints.
+.. note:: 
+
+    The '?format=json' querystring allows most web browsers to decode
+    Tribe's API json response. You can append it to the end of any of the
+    following API endpoints.
 
 
 API Endpoints
@@ -24,8 +29,9 @@ API URL::
 	https://tribe.greenelab.com/api/v1/geneset
 
 
-
-This python example uses the `requests <http://docs.python-requests.org/en/latest/>`_ library to get public genesets from Tribe.
+This python example uses the 
+`requests <http://docs.python-requests.org/en/latest/>`_ library to get public
+genesets from Tribe.
 
 .. code-block:: python
 
@@ -44,7 +50,8 @@ This python example uses the `requests <http://docs.python-requests.org/en/lates
 
 	# Find out how many public collections are 
 	# in tribe through 'meta'
-	print("Tribe contains " + str(result['meta']['total_count']) + " public collections.")
+	print("Tribe contains " + str(result['meta']['total_count']) +
+          " public collections.")
 
 	# 'meta' also supports pagination (providing 
 	# api links to next and previous) so that
@@ -104,7 +111,8 @@ Tribe supports full text search of genesets through the query parameter.
 	# Title: GO-BP-1901676:positive regulation of histone H3-K27 acetylation
 
 
-When retrieving collections, getting gene identifiers in the most convenient format is easy with Tribe:
+When retrieving collections, getting gene identifiers in the most convenient
+format is easy with Tribe:
 
 .. code-block:: python
 
@@ -154,7 +162,8 @@ API URL::
 
 	https://tribe.greenelab.com/api/v1/version
 
-You can get the full version history from any Tribe collection you have access to 
+You can get the full version history from any Tribe collection you have access
+to
 
 .. code-block:: python
 
@@ -164,8 +173,11 @@ You can get the full version history from any Tribe collection you have access t
     VERSION_URL = "https://tribe.greenelab.com/api/v1/version"
 
     # We get the versions for the geneset that matches the title we want:
-    parameters = {'geneset__slug': 'go0060260-homo-sapiens-regulation-of-transcription',
-                  'xrdb': 'Ensembl'}
+    parameters = {
+        'geneset__slug': 'go0060260-homo-sapiens-regulation-of-transcription',
+        'xrdb': 'Ensembl'
+        }
+
     r = requests.get(VERSION_URL, params=parameters)
      
     # The response from tribe is a json object.
@@ -179,8 +191,6 @@ You can get the full version history from any Tribe collection you have access t
 
 
 
-
-
 Genes Endpoint
 ___________________
 
@@ -189,12 +199,19 @@ API URL::
 	https://tribe.greenelab.com/api/v1/gene
 
 
-Tribe supports most common gene identifiers. Currently that means we support Symbol, Ensembl, Entrez, HGNC, HPRD, MGI, MIM, SGD, UniProtKB, TAIR, WormBase, RGD, FLYBASE, ZFIN, Vega, IMGT/GENE-DB, and miRBase. If there's something that we don't support that you'd like to see, please `contact us <tribe.greenelab@gmail.com>`_. We'd be happy to help.
+Tribe supports most common gene identifiers. Currently that means we support
+Symbol, Ensembl, Entrez, HGNC, HPRD, MGI, MIM, SGD, UniProtKB, TAIR, WormBase,
+RGD, FLYBASE, ZFIN, Vega, IMGT/GENE-DB, and miRBase. If there's something that
+we don't support that you'd like to see, please
+`contact us <tribe.greenelab@gmail.com>`_. We'd be happy to help.
 
 **Tribe Translate**
 ***********************
 
-Tribe also offers a service that lets you translate gene IDs between different gene identifiers programmatically. This example uses the same `requests <http://docs.python-requests.org/en/latest/>`_ library as the examples above to do this.
+Tribe also offers a service that lets you translate gene IDs between different
+gene identifiers programmatically. This example uses the same
+`requests <http://docs.python-requests.org/en/latest/>`_ library as the
+examples above to do this.
 
 .. code-block:: python
 
@@ -204,14 +221,16 @@ Tribe also offers a service that lets you translate gene IDs between different g
 	GENE_TRANSLATE_URL = "https://tribe.greenelab.com/api/v1/gene/xrid_translate"
 
 	# Enter the type of gene IDs you are translating to and from and fill up
-	# the 'gene_list' list with the genes you want translated in the payload parameters.
-	# In this case, we will use the following 3 Entrez IDs to translate to Symbols, 
-	# but 'from_id' and 'to_id' parameters could be any identifier we support.
-	# We can also include an 'organism' parameter and the name of the species we want
-	# (this is useful when giving Tribe gene symbols that could belong to different species). 
+	# the 'gene_list' list with the genes you want translated in the payload
+    # parameters. In this case, we will use the following 3 Entrez IDs to 
+	# translate to Symbols, but 'from_id' and 'to_id' parameters could be any
+	# identifier we support. We can also include an 'organism' parameter and
+	# the name of the species we want (this is useful when giving Tribe gene
+    # symbols that could belong to different species). 
 
 	gene_list = [6279, 1363, 56892]
-	payload = {'from_id': 'Entrez', 'to_id': 'Symbol', 'gene_list': gene_list, 'organism': 'Homo sapiens'} 
+	payload = {'from_id': 'Entrez', 'to_id': 'Symbol', 'gene_list': gene_list,
+               'organism': 'Homo sapiens'}
 
 	r = requests.post(GENE_TRANSLATE_URL, data=payload)
 
@@ -230,26 +249,33 @@ Tribe also offers a service that lets you translate gene IDs between different g
 	# 1363: [u'CPE']
 	# 56892: [u'C8orf4']
 
-	# As you can see, Tribe returns a results list for each gene that is queried,
+	# As shown, Tribe returns a results list for each gene that is queried,
 	# as well as a list of gene IDs that were entered but were not found.
 
 
 
 Creating new resources through Tribe's API
 ---------------------------------------------
-Creating new genesets and versions of these genesets is easy through Tribe's API using the `OAuth2 <http://oauth.net/2/>`_ protocol. 
+Creating new genesets and versions of these genesets is easy through Tribe's
+API using the `OAuth2 <http://oauth.net/2/>`_ protocol. 
 
-If you have a server built using `Django <https://docs.djangoproject.com/en/dev/>`_, you can follow the steps in the :ref:`tribe_client<tribe_client-quickstart>` package section.
+If you have a server built using
+`Django <https://docs.djangoproject.com/en/dev/>`_, you can follow the steps in
+the :ref:`tribe_client<tribe_client-quickstart>` package section.
 
-If you are looking to create resources via some other application or tool, you can follow these steps:
+If you are looking to create resources via some other application or tool, you
+can follow these steps:
 
-1. First, you must register your client application/tool at https://tribe.greenelab.com/oauth2/applications/. Make sure to:
+1. First, you must register your client application/tool at
+https://tribe.greenelab.com/oauth2/applications/. Make sure to:
 
   a. Be logged-in using your Tribe account
   b. Select "Confidential" under ``Client type`` and
   c. Select "Resource owner password-based" under ``Authorization grant type``
 
-  .. note:: Currently, Tribe supports the following ``Authorization grant types``:
+  .. note:: 
+
+    Currently, Tribe supports the following ``Authorization grant types``:
 
       * Authorization code
       * Resource owner password-based
@@ -260,9 +286,14 @@ If you are looking to create resources via some other application or tool, you c
       * Client credentials
 
 
-2. Write down and save the Client ID and the Client secret that are assigned to you. Your application/tool will need these when requesting an OAuth token from Tribe to create resources.
+2. Write down and save the Client ID and the Client secret that are assigned
+to you. Your application/tool will need these when requesting an OAuth token
+from Tribe to create resources.
 
-3. Now you can create new genesets and versions using the Client ID, secret, and your username and password. The following code is an example of how you might go about doing this. This code also uses `requests <http://docs.python-requests.org/en/latest/>`_.
+3. Now you can create new genesets and versions using the Client ID, secret,
+and your username and password. The following code is an example of how you
+might go about doing this. This code also uses
+`requests <http://docs.python-requests.org/en/latest/>`_.
 
 .. code-block:: python
 
@@ -270,7 +301,8 @@ If you are looking to create resources via some other application or tool, you c
     # This sample geneset is based on this GO term collection:
     # https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-mus-musculus-regulation-of-transcription
 
-    # This script uses the 'requests' python library: http://docs.python-requests.org/en/latest/
+    # This script uses the 'requests' python library:
+    # http://docs.python-requests.org/en/latest/
     import requests
     import json
 
