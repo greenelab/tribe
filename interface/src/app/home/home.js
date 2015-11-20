@@ -53,6 +53,16 @@ angular.module( 'tribe.home', [
         }     
       },
       data: { pageTitle: "Tutorials"}
+    })
+    .state( 'contact-us', {
+      url: '/contact-us',
+      views: {
+        "main": {
+          controller: 'HomeCtrl',
+          templateUrl: 'home/contact-us.tpl.html'
+        }
+      },
+      data:{ pageTitle: 'Contact Us' }
     });
 
 })
