@@ -21,7 +21,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   tribe_overview
    web_interface
    api
    tribe_client
