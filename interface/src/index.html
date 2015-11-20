@@ -38,10 +38,20 @@
                         Use Collection
                       </a>
                     </li>
-                    <li ui-route="/tutorials" ng-class="{active:$uiRoute}">
-                      <a href="/#/tutorials">
-                          Tutorials
+                    <li class="dropdown" ui-route="/tutorials" ng-class="{active:$uiRoute}">
+                      <a href='#' class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="fa fa-book"></i>
+                        Docs &amp; Tutorials
+                        <b class="caret"></b>
                       </a>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <a href="http://tribe-greenelab.readthedocs.org" target="TribeDocs">
+                            Full Documentation
+                          </a>
+                        </li>
+                        <li><a href="/#/tutorials">Tutorials</a></li>
+                      </ul>
                     </li>
                   </ul>
                   <ul class="nav navbar-nav navbar-right">
@@ -69,6 +79,7 @@
                     <ul class="nav nav-pills nav-justified">
                         <li><a href="/#/citetribe">Cite</a></li>
                         <li><a href="/oauth2/applications/">Register Server</a></li>
+                        <li><a href="/#/contact-us">Contact Us</a></li>
                     </ul>
                 </small>
             </div>
