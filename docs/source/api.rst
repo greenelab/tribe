@@ -215,42 +215,42 @@ examples above to do this.
 
 .. code-block:: python
 
-	import requests
+    import requests
 
-	# Define the Tribe gene translate endpoint
-	GENE_TRANSLATE_URL = "https://tribe.greenelab.com/api/v1/gene/xrid_translate"
+    # Define the Tribe gene translate endpoint
+    GENE_TRANSLATE_URL = "https://tribe.greenelab.com/api/v1/gene/xrid_translate"
 
-	# Enter the type of gene IDs you are translating to and from and fill up
-	# the 'gene_list' list with the genes you want translated in the payload
+    # Enter the type of gene IDs you are translating to and from and fill up
+    # the 'gene_list' list with the genes you want translated in the payload
     # parameters. In this case, we will use the following 3 Entrez IDs to 
-	# translate to Symbols, but 'from_id' and 'to_id' parameters could be any
-	# identifier we support. We can also include an 'organism' parameter and
-	# the name of the species we want (this is useful when giving Tribe gene
+    # translate to Symbols, but 'from_id' and 'to_id' parameters could be any
+    # identifier we support. We can also include an 'organism' parameter and
+    # the name of the species we want (this is useful when giving Tribe gene
     # symbols that could belong to different species). 
 
-	gene_list = [6279, 1363, 56892]
-	payload = {'from_id': 'Entrez', 'to_id': 'Symbol', 'gene_list': gene_list,
+    gene_list = [6279, 1363, 56892]
+    payload = {'from_id': 'Entrez', 'to_id': 'Symbol', 'gene_list': gene_list,
                'organism': 'Homo sapiens'}
 
-	r = requests.post(GENE_TRANSLATE_URL, data=payload)
+    r = requests.post(GENE_TRANSLATE_URL, data=payload)
 
-	# The response from tribe is a json object.
-	# The requests library can convert this to
-	# a python dictionary.
-	result_dictionary = r.json()
+    # The response from tribe is a json object.
+    # The requests library can convert this to
+    # a python dictionary.
+    result_dictionary = r.json()
 
-	# Print the results of this request:
-	for gene_query, search_result in result_dictionary.iteritems():
-	    print(gene_query + ": " + str(search_result))
+    # Print the results of this request:
+    for gene_query, search_result in result_dictionary.iteritems():
+        print(gene_query + ": " + str(search_result))
 
-	# Running the above code prints:
-	# 6279: [u'S100A8']
-	# not_found: []
-	# 1363: [u'CPE']
-	# 56892: [u'C8orf4']
+    # Running the above code prints:
+    # 6279: [u'S100A8']
+    # not_found: []
+    # 1363: [u'CPE']
+    # 56892: [u'C8orf4']
 
-	# As shown, Tribe returns a results list for each gene that is queried,
-	# as well as a list of gene IDs that were entered but were not found.
+    # As shown, Tribe returns a results list for each gene that is queried,
+    # as well as a list of gene IDs that were entered but were not found.
 
 
 
