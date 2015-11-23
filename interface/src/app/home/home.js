@@ -44,15 +44,15 @@ angular.module( 'tribe.home', [
       },
       data:{ pageTitle: 'Cite Tribe' }
     })
-    .state( 'tutorials', {
-      url: '/tutorials',
+    .state( 'help', {
+      url: '/help',
       views: {
         "main": {
           controller: 'HomeCtrl',
-          templateUrl: 'home/tutorials.tpl.html'
+          templateUrl: 'home/help.tpl.html'
         }     
       },
-      data: { pageTitle: "Tutorials"}
+      data: { pageTitle: "Help"}
     })
     .state( 'contact-us', {
       url: '/contact-us',
