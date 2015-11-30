@@ -160,7 +160,7 @@ ___________________
 
 API URL:: 
 
-	https://tribe.greenelab.com/api/v1/version
+    https://tribe.greenelab.com/api/v1/version
 
 You can get the full version history from any Tribe collection you have access
 to
@@ -196,7 +196,7 @@ ___________________
 
 API URL::
 
-	https://tribe.greenelab.com/api/v1/gene
+    https://tribe.greenelab.com/api/v1/gene
 
 
 Tribe supports most common gene identifiers. Currently that means we support
