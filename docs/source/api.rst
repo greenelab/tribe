@@ -40,7 +40,7 @@ genesets from Tribe.
     # Define where Tribe is located
     TRIBE_URL = "https://tribe.greenelab.com"
 
-    # Make an initial request to the root.
+    # Make an initial request to the root geneset endpoint
     r = requests.get(TRIBE_URL + '/api/v1/geneset/')
 
     # The response from tribe is a json object.
@@ -82,13 +82,12 @@ Tribe supports full text search of genesets through the query parameter.
     # Define where Tribe is located
     TRIBE_URL = "https://tribe.greenelab.com"
 
-    # Define the Tribe geneset endpoint
-    GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
-
     # Use the search parameter to perform a full
-    # text search.
+    # text search through all genesets in Tribe.
     parameters = {'query': 'histone acetylation K27'}
-    r = requests.get(GENESET_URL, params=parameters)
+
+    # Make a GET request to the geneset endpoint
+    r = requests.get(TRIBE_URL + '/api/v1/geneset/', params=parameters)
 
     # The response from tribe is a json object.
     # The requests library can convert this to
@@ -112,20 +111,23 @@ Tribe supports full text search of genesets through the query parameter.
 
 
 When retrieving collections, getting gene identifiers in the most convenient
-format is easy with Tribe:
+format is easy with Tribe. We use the ``'show_tip'`` parameter to retrieve the
+most recent collection version and all of its genes, using whatever gene
+identifier we want.
 
 .. code-block:: python
 
     import requests
 
-    # Code from the code examples to get a collection
-    GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
 
     # 'show_tip' includes the most recent version and its
     # genes with the payload.
     parameters = {'show_tip': 'true'}
 
-    r = requests.get(GENESET_URL, params=parameters)
+    # Make a GET request to the geneset endpoint
+    r = requests.get(TRIBE_URL + '/api/v1/geneset/', params=parameters)
     result = r.json()
 
     # Get the first collection
@@ -134,15 +136,16 @@ format is easy with Tribe:
     # The most recently saved version of a collection is the 'tip'
     tip = collection['tip']
 
-    # This prints the list of Entrez identifiers.
+    # Print all genes in this 'tip' version. By default, Tribe returns genes
+    # using Entrez identifiers.
     print(tip['genes'])
 
     # If instead we wanted symbols, we would we would add
     # 'xrdb' to the parameters:
     parameters['xrdb'] = 'Symbol'
 
-    # Then with the same code from before
-    r = requests.get(GENESET_URL, params=parameters)
+    # Then use the same code as before
+    r = requests.get(TRIBE_URL + '/api/v1/geneset/', params=parameters)
     result = r.json()
     collection = result['objects'][0]
     tip = collection['tip']
@@ -150,8 +153,10 @@ format is easy with Tribe:
     # This now prints a list of symbols.
     print(tip['genes'])
 
-    # In addition to 'Symbol' any database that Tribe knows about
-    # can be passed.
+
+In addition to 'Symbol', any database that Tribe knows about can be passed.
+Click :ref:`here<supported_organisms_and_identifiers>` for a full list of
+supported gene identifiers/databases.
 
 
 
@@ -169,8 +174,8 @@ to
 
     import requests
 
-    # Define the Tribe version endpoint
-    VERSION_URL = "https://tribe.greenelab.com/api/v1/version"
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
 
     # We get the versions for the geneset that matches the title we want:
     parameters = {
@@ -178,7 +183,8 @@ to
         'xrdb': 'Ensembl'
         }
 
-    r = requests.get(VERSION_URL, params=parameters)
+    # Make a GET request to the versions endpoint
+    r = requests.get(TRIBE_URL + '/api/v1/version', params=parameters)
      
     # The response from tribe is a json object.
     # The requests library can convert this to
@@ -209,16 +215,23 @@ we don't support that you'd like to see, please
 ***********************
 
 Tribe also offers a service that lets you translate gene IDs between different
-gene identifiers programmatically. This example uses the same
+gene identifiers programmatically. The URL for Tribe's gene translate endpoint
+is::
+
+    https://tribe.greenelab.com/api/v1/gene/xrid_translate
+
+
+The following example uses the same
 `requests <http://docs.python-requests.org/en/latest/>`_ library as the
-examples above to do this.
+examples above to translate 3 genes from Entrez identifiers to Symbols.
+However, you can use Tribe Translate to translate hundreds of genes at a time.
 
 .. code-block:: python
 
     import requests
 
     # Define the Tribe gene translate endpoint
-    GENE_TRANSLATE_URL = "https://tribe.greenelab.com/api/v1/gene/xrid_translate"
+    TRIBE_URL = "https://tribe.greenelab.com"
 
     # Enter the type of gene IDs you are translating to and from and fill up
     # the 'gene_list' list with the genes you want translated in the payload
@@ -232,7 +245,8 @@ examples above to do this.
     payload = {'from_id': 'Entrez', 'to_id': 'Symbol', 'gene_list': gene_list,
                'organism': 'Homo sapiens'}
 
-    r = requests.post(GENE_TRANSLATE_URL, data=payload)
+    # Make a POST request to the gene translation endpoint
+    r = requests.post(TRIBE_URL + '/api/v1/gene/xrid_translate', data=payload)
 
     # The response from tribe is a json object.
     # The requests library can convert this to
