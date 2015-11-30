@@ -26,7 +26,7 @@ __________________
 
 API URL:: 
 
-	https://tribe.greenelab.com/api/v1/geneset
+    https://tribe.greenelab.com/api/v1/geneset
 
 
 This python example uses the 
@@ -35,80 +35,80 @@ genesets from Tribe.
 
 .. code-block:: python
 
-	import requests
+    import requests
 
-	# Define where Tribe is located
-	TRIBE_URL = "https://tribe.greenelab.com"
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
 
-	# Make an initial request to the root.
-	r = requests.get(TRIBE_URL + '/api/v1/geneset/')
+    # Make an initial request to the root.
+    r = requests.get(TRIBE_URL + '/api/v1/geneset/')
 
-	# The response from tribe is a json object.
-	# The requests library can convert this to
-	# a python dictionary.
-	result = r.json()
+    # The response from tribe is a json object.
+    # The requests library can convert this to
+    # a python dictionary.
+    result = r.json()
 
-	# Find out how many public collections are 
-	# in tribe through 'meta'
-	print("Tribe contains " + str(result['meta']['total_count']) +
+    # Find out how many public collections are 
+    # in tribe through 'meta'
+    print("Tribe contains " + str(result['meta']['total_count']) +
           " public collections.")
 
-	# 'meta' also supports pagination (providing 
-	# api links to next and previous) so that
-	# one can easily iterate through all collections.
-	# 'meta' contains information about the request 
-	# for requests that return a set of objects. 
+    # 'meta' also supports pagination (providing 
+    # api links to next and previous) so that
+    # one can easily iterate through all collections.
+    # 'meta' contains information about the request 
+    # for requests that return a set of objects. 
 
-	collections = []
-	# Objects themselves are provided through 'objects'
-	collections.extend(result['objects'])
+    collections = []
+    # Objects themselves are provided through 'objects'
+    collections.extend(result['objects'])
 
-	# Iterate over every collection and extend
-	# the collections array. This example uses
-	# 'next' from 'meta' to iterate over all
-	# pages of results.
-	while result['meta']['next'] is not None:
-	    r = requests.get(TRIBE_URL + result['meta']['next'])
-	    result = r.json()
-	    collections.extend(result['objects'])
+    # Iterate over every collection and extend
+    # the collections array. This example uses
+    # 'next' from 'meta' to iterate over all
+    # pages of results.
+    while result['meta']['next'] is not None:
+        r = requests.get(TRIBE_URL + result['meta']['next'])
+        result = r.json()
+        collections.extend(result['objects'])
 
 
 Tribe supports full text search of genesets through the query parameter.
 
 .. code-block:: python
 
-	import requests
+    import requests
 
-	# Define where Tribe is located
-	TRIBE_URL = "https://tribe.greenelab.com"
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
 
-	# Define the Tribe geneset endpoint
-	GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
+    # Define the Tribe geneset endpoint
+    GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
 
-	# Use the search parameter to perform a full
-	# text search.
-	parameters = {'query': 'histone acetylation K27'}
-	r = requests.get(GENESET_URL, params=parameters)
+    # Use the search parameter to perform a full
+    # text search.
+    parameters = {'query': 'histone acetylation K27'}
+    r = requests.get(GENESET_URL, params=parameters)
 
-	# The response from tribe is a json object.
-	# The requests library can convert this to
-	# a python dictionary.
-	result = r.json()
+    # The response from tribe is a json object.
+    # The requests library can convert this to
+    # a python dictionary.
+    result = r.json()
 
-	# Print all matching collections
-	while True:
-	    for collection in result['objects']:
-	        print("Title: " + collection['title'])
-	    if result['meta']['next'] is None:
-	        break
-	    r = requests.get(TRIBE_URL + result['meta']['next'])
-	    result = r.json()
+    # Print all matching collections
+    while True:
+        for collection in result['objects']:
+            print("Title: " + collection['title'])
+        if result['meta']['next'] is None:
+            break
+        r = requests.get(TRIBE_URL + result['meta']['next'])
+        result = r.json()
 
-	# Running the above code prints:
-	# Title: GO-BP-0043974:histone H3-K27 acetylation
-	# Title: GO-BP-1901674:regulation of histone H3-K27 acetylation
-	# Title: GO-BP-1901675:negative regulation of histone H3-K27 acetylation
-	# Title: GO-BP-1901676:positive regulation of histone H3-K27 acetylation
+    # Running the above code prints:
+    # Title: GO-BP-0043974:histone H3-K27 acetylation
+    # Title: GO-BP-1901674:regulation of histone H3-K27 acetylation
+    # Title: GO-BP-1901675:negative regulation of histone H3-K27 acetylation
+    # Title: GO-BP-1901676:positive regulation of histone H3-K27 acetylation
 
 
 When retrieving collections, getting gene identifiers in the most convenient
@@ -116,42 +116,42 @@ format is easy with Tribe:
 
 .. code-block:: python
 
-	import requests
+    import requests
 
-	# Code from the code examples to get a collection
-	GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
+    # Code from the code examples to get a collection
+    GENESET_URL = "https://tribe.greenelab.com/api/v1/geneset"
 
-	# 'show_tip' includes the most recent version and its
-	# genes with the payload.
-	parameters = {'show_tip': 'true'}
+    # 'show_tip' includes the most recent version and its
+    # genes with the payload.
+    parameters = {'show_tip': 'true'}
 
-	r = requests.get(GENESET_URL, params=parameters)
-	result = r.json()
+    r = requests.get(GENESET_URL, params=parameters)
+    result = r.json()
 
-	# Get the first collection
-	collection = result['objects'][0]
+    # Get the first collection
+    collection = result['objects'][0]
 
-	# The most recently saved version of a collection is the 'tip'
-	tip = collection['tip']
+    # The most recently saved version of a collection is the 'tip'
+    tip = collection['tip']
 
-	# This prints the list of Entrez identifiers.
-	print(tip['genes'])
+    # This prints the list of Entrez identifiers.
+    print(tip['genes'])
 
-	# If instead we wanted symbols, we would we would add
-	# 'xrdb' to the parameters:
-	parameters['xrdb'] = 'Symbol'
+    # If instead we wanted symbols, we would we would add
+    # 'xrdb' to the parameters:
+    parameters['xrdb'] = 'Symbol'
 
-	# Then with the same code from before
-	r = requests.get(GENESET_URL, params=parameters)
-	result = r.json()
-	collection = result['objects'][0]
-	tip = collection['tip']
+    # Then with the same code from before
+    r = requests.get(GENESET_URL, params=parameters)
+    result = r.json()
+    collection = result['objects'][0]
+    tip = collection['tip']
 
-	# This now prints a list of symbols.
-	print(tip['genes'])
+    # This now prints a list of symbols.
+    print(tip['genes'])
 
-	# In addition to 'Symbol' any database that Tribe knows about
-	# can be passed.
+    # In addition to 'Symbol' any database that Tribe knows about
+    # can be passed.
 
 
 
