@@ -16,19 +16,23 @@ Tribe's API can be accessed at https://tribe.greenelab.com/api/v1/?format=json.
     Tribe's API json response. You can append it to the end of any of the
     following API endpoints.
 
+|
 
 API Endpoints
 ---------------
 
 
-Geneset Endpoint
-__________________
+**Geneset Endpoint**
+______________________
 
 API URL:: 
 
     https://tribe.greenelab.com/api/v1/geneset
 
 
+Retrieving public genesets
+*****************************
+ 
 This python example uses the 
 `requests <http://docs.python-requests.org/en/latest/>`_ library to get public
 genesets from Tribe.
@@ -73,6 +77,9 @@ genesets from Tribe.
         collections.extend(result['objects'])
 
 
+Searching for genesets via the API
+***********************************
+
 Tribe supports full text search of genesets through the query parameter.
 
 .. code-block:: python
@@ -109,6 +116,9 @@ Tribe supports full text search of genesets through the query parameter.
     # Title: GO-BP-1901675:negative regulation of histone H3-K27 acetylation
     # Title: GO-BP-1901676:positive regulation of histone H3-K27 acetylation
 
+
+Fetching a geneset's genes
+****************************
 
 When retrieving collections, getting gene identifiers in the most convenient
 format is easy with Tribe. We use the ``'show_tip'`` parameter to retrieve the
@@ -158,10 +168,63 @@ In addition to 'Symbol', any database that Tribe knows about can be passed.
 Click :ref:`here<supported_organisms_and_identifiers>` for a full list of
 supported gene identifiers/databases.
 
+If you find a collection via the Tribe web interface (such as
+https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-homo-sapiens-regulation-of-transcription),
+and you want to get its latest list of genes as Entrez identifiers, you can
+build a similar request using the last part of this url
+('tribeupdater/go0060260-homo-sapiens-regulation-of-transcription').
+
+.. note:: 
+
+    The key is to know that this geneset's specific url
+    is defined by the the last two fragments of the url: 
+        a) The geneset creator's username ("tribeupdater/"), and
+        b) A url-friendly version of its title ("go0060260-homo-sapiens-r...")
 
 
-Versions Endpoint
-___________________
+.. code-block:: python
+
+    import requests
+
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
+
+    # Concatenate the string for our desired geneset's specific url, adding
+    # the geneset api endpoint ('/api/v1/geneset/'), 'tribeupdater/' for the
+    # creator username, and 'go0060260-homo-sapiens-regulation-of-transcription'
+    # for the url-friendly version of the geneset title.
+    specific_geneset_url = TRIBE_URL + '/api/v1/geneset/' + 'tribeupdater/' + \
+                           'go0060260-homo-sapiens-regulation-of-transcription'
+
+    parameters = {'show_tip': 'true'}
+
+    # Make a GET request to that geneset's endpoint
+    r = requests.get(specific_geneset_url, params=parameters)
+    result = r.json()
+
+    # Get the most recently saved version ('tip')
+    tip = result['tip']
+
+    # Print all genes in this 'tip' version. By default, Tribe returns genes
+    # using Entrez identifiers.
+    print(tip['genes'])
+
+    # Again, if we wanted another gene identifier instead of Entrez IDs, we
+    # would we would add it as an 'xrdb' to the parameters:
+    parameters['xrdb'] = 'Ensembl'
+
+    # Then use the same code as before
+    r = requests.get(specific_geneset_url, params=parameters)
+    result = r.json()
+    tip = result['tip']
+
+    # This now prints a list of this geneset's genes as Ensembl IDs.
+    print(tip['genes'])
+
+|
+
+**Versions Endpoint**
+________________________
 
 API URL:: 
 
@@ -195,10 +258,10 @@ to
     for version in versions_returned:
         print(str(version['commit_date']) + '\t' + str(version['genes']))
 
+|
 
-
-Genes Endpoint
-___________________
+**Genes Endpoint**
+_____________________
 
 API URL::
 
@@ -266,7 +329,7 @@ However, you can use Tribe Translate to translate hundreds of genes at a time.
     # As shown, Tribe returns a results list for each gene that is queried,
     # as well as a list of gene IDs that were entered but were not found.
 
-
+|
 
 Creating new resources through Tribe's API
 ---------------------------------------------
