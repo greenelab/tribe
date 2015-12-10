@@ -4,6 +4,7 @@ Tribe's web interface
 
 You can navigate Tribe's web interface by directing your browser to: https://tribe.greenelab.com/#/home
 
+.. _creating_collections_web_interface:
 
 Creating collections and keeping your history
 ----------------------------------------------------
