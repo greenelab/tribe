@@ -689,10 +689,14 @@ class GenesetResource(ModelResource):
             return http.HttpUnauthorized()
         else:
             loggedin_creator = bundle.request.user
-            geneset_slug = slugify(bundle.data['title'])
+            geneset_slug = slugify(bundle.data['title'])[:75]
             non_unique = Geneset.objects.filter(creator=loggedin_creator).filter(slug=geneset_slug)
             if (non_unique):
-                return http.HttpBadRequest({"There is already one collection with this title under this account. Please choose a different title."})
+                return http.HttpBadRequest("error: There is already one" + \
+                    " collection with this url created by this account. " + \
+                    "Please choose a different collection title. For more " + \
+                    "information, see our documentation here: " + \
+                    settings.DOCS_URL + "using_tribe.html#collection-urls")
             else:
                 updated_bundle = self.obj_create(bundle, **self.remove_api_resource_names(kwargs))
                 location = self.get_resource_uri(updated_bundle)
