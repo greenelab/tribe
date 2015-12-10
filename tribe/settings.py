@@ -507,3 +507,8 @@ if config.has_section('allauth'):
 
 ########## LOGIN REDIRECT
 LOGIN_REDIRECT_URL = '/#/home'
+
+########## DOCS CONFIGURATION
+if config.has_section('documentation'):
+    DOCS_URL = config.get('documentation', 'DOCS_URL')
+########## END DOCS CONFIGURATION
