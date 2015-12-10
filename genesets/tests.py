@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.core.management import call_command
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from fixtureless import Factory
 
@@ -17,6 +18,7 @@ from genes.models import Gene, CrossRef, CrossRefDB
 from genesets.models import Geneset
 from versions.models import Version
 from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
+from publications.models import Publication
 
 factory = Factory()
 
@@ -565,3 +567,82 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         User.objects.all().delete()
         Organism.objects.all().delete()
         Geneset.objects.all().delete()
+
+
+
+class GenesetSlugTestCase(ResourceTestCase):
+
+    def setUp(self):
+        super(GenesetSlugTestCase, self).setUp() # This part is important
+
+        self.org1 = Organism.objects.create(common_name="Mouse",
+            scientific_name="Mus musculus", taxonomy_id=10090)
+
+        self.username = "hjkl"
+        self.email = "hjkl@example.com"
+        self.password = "1234"
+        self.user1 = User.objects.create_user(self.username, self.email,
+                                              self.password)
+
+        self.g1 = Gene.objects.create(entrezid=18128, systematic_name="g1",
+            standard_name="Notch1", description="notch 1", organism=self.org1,
+            aliases="Mis6 N1 Tan1")
+        self.g2 = Gene.objects.create(entrezid=13819, systematic_name="g2",
+            standard_name="Epas1", description="endothelial PAS domain protein 1",
+            organism=self.org1, aliases="HIF-2alpha HIF2A")
+        self.g3 = Gene.objects.create(entrezid=15251, systematic_name="g2",
+            standard_name="Hif1a",
+            description="hypoxia inducible factor 1, alpha subunit",
+            organism=self.org1, aliases="HIF1alpha MOP1")
+
+
+    def testRemoteCreationSameSlug(self):
+        """
+        Test to check that users are given a helpful error message (that
+        also points to the Tribe docs) if they attempt to create a geneset
+        with the same slug as a geneset they have already created.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        geneset1_data = {}
+        geneset1_data['organism'] = '/api/v1/organism/' + self.org1.slug
+        geneset1_data['title'] = 'regulation of transcription from RNA ' + \
+            'polymerase II promoter in response to stress'
+        geneset1_data['abstract'] = 'Any process that increases the ' + \
+            'frequency, rate or extent of transcription from an RNA ' + \
+            'polymerase II promoter as a result of a stimulus indicating' + \
+            ' the organism is under stress...'
+        geneset1_data['public'] = True
+        geneset1_data['annotations'] = {self.g1.entrezid: [18299578]}
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset1_data)
+        self.assertHttpCreated(resp)
+
+        geneset2_data = {}
+        geneset2_data['organism'] = '/api/v1/organism/' + self.org1.slug
+        geneset2_data['title'] = 'regulation of transcription from RNA ' + \
+            'polymerase II promoter in response to oxidative stress'
+        geneset2_data['abstract'] = 'Modulation of the frequency, rate or ' + \
+            'extent of transcription from an RNA polymerase II promoter as' + \
+            ' a result of a stimulus indicating the organism is under ' + \
+            'oxidative stress, a state often resulting from exposure...'
+        geneset2_data['public'] = True
+        geneset2_data['annotations'] = {self.g2.entrezid: [14608355, 17284606],
+                                       self.g3.entrezid: [12832481]}
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
+        self.assertHttpBadRequest(resp)
+        self.assertEqual(resp.content, 'error: There is already ' + \
+            'one collection with this url created by this account. Please ' + \
+            'choose a different collection title. For more information, ' + \
+            'see our documentation here: ' + \
+            settings.DOCS_URL + 'using_tribe.html#collection-urls')
+
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Organism.objects.all().delete()
+        Geneset.objects.all().delete()
+        Version.objects.all().delete()
+        Publication.objects.all().delete()
