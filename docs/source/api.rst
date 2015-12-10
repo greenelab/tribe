@@ -80,7 +80,7 @@ genesets from Tribe.
 Searching for genesets via the API
 ***********************************
 
-Tribe supports full text search of genesets through the query parameter.
+Tribe supports full text search of genesets through the ``'query'`` parameter.
 
 .. code-block:: python
 
