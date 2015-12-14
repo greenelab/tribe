@@ -590,7 +590,7 @@ class GenesetSlugTestCase(ResourceTestCase):
         self.g2 = Gene.objects.create(entrezid=13819, systematic_name="g2",
             standard_name="Epas1", description="endothelial PAS domain protein 1",
             organism=self.org1, aliases="HIF-2alpha HIF2A")
-        self.g3 = Gene.objects.create(entrezid=15251, systematic_name="g2",
+        self.g3 = Gene.objects.create(entrezid=15251, systematic_name="g3",
             standard_name="Hif1a",
             description="hypoxia inducible factor 1, alpha subunit",
             organism=self.org1, aliases="HIF1alpha MOP1")
