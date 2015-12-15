@@ -3,67 +3,118 @@
         <div class="panel panel-default">
             <div class="panel-heading clearfix">
                 <h3 class="panel-title">
-                    <i ng-if="geneset.public" class="fa fa-unlock" tooltip="This collection is public."></i>
-                    <i ng-if="!geneset.public" class="fa fa-lock" tooltip="This collection is not public."></i>
+                    <i ng-if="geneset.public" class="fa fa-unlock"
+                        tooltip="This collection is public."></i>
+                    <i ng-if="!geneset.public" class="fa fa-lock"
+                        tooltip="This collection is not public."></i>
                     {{ geneset.title }}
-                    <button type="button" class="btn btn-sm btn-danger pull-right" ng-if="geneset.editable" ng-click="openDeleteModal()" tooltip="Delete collection">
-                      <i class="fa fa-trash-o" ></i>&nbsp;&nbsp;Delete
-                    </button>&nbsp;&nbsp;&nbsp;&nbsp;
-
+                    <button type="button" class="btn btn-sm btn-danger
+                        pull-right" ng-if="geneset.editable" 
+                        ng-click="openDeleteModal()" tooltip="Delete collection">
+                        <i class="fa fa-trash-o" ></i>&nbsp;&nbsp;Delete
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
                     <span class="btn btn-sm pull-right" ng-if="geneset.editable">
-                        <a ui-sref="use.edit({creator:geneset.creator.username, slug:geneset.slug})"><i class="fa fa-edit" tooltip="Edit collection's title or abstract."> </i></a>
+                        <a ui-sref="use.edit({creator:geneset.creator.username,
+                            slug:geneset.slug})">
+                            <i class="fa fa-edit" tooltip="Edit collection's
+                                title or abstract."></i>
+                        </a>
                     </span>
- 
                 </h3>
             </div>
+
             <div class="panel-body">
                 <p>{{ geneset.organism.scientific_name }}</p>
                 <p>Gene count in latest version (tip): {{ geneset.tip_item_count }}</p>
                 <p>Created by <span class="user">{{geneset.creator.username}}</span></p>
-                <p>Current Team: <span>{{ geneset.creator.username }} </span><span ng-repeat="collaborator in geneset.participants">{{ collaborator.username }} </span></p>
-                <div class="btn-group" ng-if="geneset.editable">
+                <p>Current Team: <span>{{ geneset.creator.username }}</span>
+                    <span ng-repeat="collaborator in geneset.participants">
+                        {{ collaborator.username }}
+                    </span>
+                </p>
+                <div class="btn-group" dropdown ng-if="geneset.editable">
                     <p>
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                            <i class="fa fa-users"></i> Add collaborator to team <span class="caret"></span>
+                        <button type="button" class="btn btn-default
+                            dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-users"></i> Add collaborator to team
+                            <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu" role="menu">
-                            <li ng-repeat="collaborator in user.collaborators"><a ng-click="invite(collaborator.email)">{{ collaborator.email }}</a></li>
+                            <li ng-repeat="collaborator in user.collaborators">
+                                <a ng-click="invite(collaborator.email)">
+                                    {{ collaborator.email }}
+                                </a>
+                            </li>
                         </ul>
                     </p>
                 </div>
-                <p>{{ geneset.abstract }}</h5>
+                <p>{{ geneset.abstract }}</p>
             </div>
         </div>
     </div>
 </div>
+
 <div class="row">
     <div class="col-sm-6">
         <div class="versions">
             <div class="panel panel-default">
-                <div class="panel-heading"><h3 class="panel-title">Versions</h3></div>
+                <div class="panel-heading">
+                    <h3 class="panel-title">Versions</h3>
+                </div>
                 <div class="list-group panel-body">
-                    <a class="list-group-item" ng-repeat="version in geneset.versions" ng-click="showVersion($index)">
+                    <a class="list-group-item" ng-repeat="version in 
+                        geneset.versions" ng-click="showVersion($index)">
                         <p class="list-group-item-text">
-                        <span ng-if="$first" class="label label-primary" tooltip="Some webservers that analyze Tribe collections only use this version.">Tip: {{version.ver_hash | limitTo:12}}</span>
-                        <span ng-if="!$first" class="label label-default" ng-class="{ 'label-info': version.ver_hash == chosenVersion.ver_hash }">{{version.ver_hash | limitTo:12}}</span>
+                            <span ng-if="$first" class="label label-primary"
+                                tooltip="Some webservers that analyze Tribe
+                                collections only use this version.">
+                                Tip: {{version.ver_hash | limitTo:12}}
+                            </span>
+                            <span ng-if="!$first" class="label label-default"
+                                ng-class="{ 'label-info': version.ver_hash ==
+                                chosenVersion.ver_hash }">
+                                {{version.ver_hash | limitTo:12}}
+                            </span>
                             {{version.description}} 
                         </p>
                         <i>Gene count: {{ version.genes.length }}</i>
                         <div class="commit-meta">
-                            Version by <span class="author">{{version.creator.username}}</span> on {{version.commit_date | date: 'MMM d, y @ h:mm a' }}.
+                            Version by 
+                            <span class="author">
+                                {{version.creator.username}}
+                            </span> 
+                            on {{version.commit_date | date: 'MMM d, y @ h:mm a' }}.
                         </div>
                     </a> 
                 </div>
             </div>
         </div>
     </div>
+
     <div class="col-sm-6">
         <div class="panel panel-default">
             <div class="panel-heading clearfix">
                 <h3 class="panel-title">{{chosenVersion.ver_hash | limitTo:12}}
                     <span class="btn btn-xs pull-right">
-                        <a ui-sref="fork({creator:geneset.creator.username, slug:geneset.slug, version:chosenVersion.ver_hash})"><i class="fa fa-code-fork" tooltip="Fork version into a new collection."> </i></a>
-                        <a ng-if="geneset.editable" ui-sref="use.newversion({creator:geneset.creator.username, slug:geneset.slug, version:chosenVersion.ver_hash})"><i class="fa fa-wrench" tooltip="Make a new version from this one."> </i></a>
+                        <button class="btn btn-primary btn-xs"
+                            ng-click="download()" tooltip="Downloads as csv
+                            file">
+                            Download this gene and publications list
+                        </button> &nbsp; &nbsp;
+
+                        <a ui-sref="fork({creator:geneset.creator.username,
+                            slug:geneset.slug, version:chosenVersion.ver_hash})">
+                            <i class="fa fa-code-fork" tooltip="Fork version 
+                                into a new collection."></i>
+                        </a>
+
+                        <a ng-if="geneset.editable" 
+                            ui-sref="use.newversion({creator:geneset.creator.username,
+                            slug:geneset.slug, version:chosenVersion.ver_hash})">
+                            <i class="fa fa-wrench" tooltip="Make a new version from
+                            this one."></i>
+                        </a>
                     </span>
                 </h3>
             </div>
@@ -71,8 +122,16 @@
                 <table class="table">
                     <thead><th>Gene</th><th>Publication</th></thead>
                     <tr ng-repeat="annotation in chosenVersion.annotations">
-                        <td style="vertical-align:middle"><p class="text-right"><a tabindex="0" class="btn btn-link" genebox="{{annotation.gene}}">{{annotation.gene.standard_name}}</a></p></td> 
-                        <td><pub-list pubs="annotation.pubs"></pub-list></tr>
+                        <td style="vertical-align:middle">
+                            <p class="text-right">
+                                <a tabindex="0" class="btn btn-link"
+                                    genebox="{{annotation.gene}}">
+                                    {{annotation.gene.standard_name}}
+                                </a>
+                            </p>
+                        </td> 
+                        <td><pub-list pubs="annotation.pubs"></pub-list>
+                    </tr>
                 </table>
             </div> 
         </div>
