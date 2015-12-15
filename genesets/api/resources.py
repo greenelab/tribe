@@ -689,8 +689,9 @@ class GenesetResource(ModelResource):
             return http.HttpUnauthorized()
         else:
             loggedin_creator = bundle.request.user
-            geneset_slug = slugify(bundle.data['title'])[:75]
-            non_unique = Geneset.objects.filter(creator=loggedin_creator).filter(slug=geneset_slug)
+            gs_slug_max_length = Geneset._meta.get_field('slug').max_length
+            gs_slug = slugify(bundle.data['title'])[:gs_slug_max_length]
+            non_unique = Geneset.objects.filter(creator=loggedin_creator).filter(slug=gs_slug)
             if (non_unique):
                 return http.HttpBadRequest("error: There is already one"\
                     " collection with this url created by this account. "\

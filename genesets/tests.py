@@ -596,18 +596,21 @@ class GenesetSlugTestCase(ResourceTestCase):
             organism=self.org1, aliases="HIF1alpha MOP1")
 
 
-    def testRemoteCreationSameSlug(self):
+    def testRemoteCreationVeryLongTitles(self):
         """
-        Test to check that users are given a helpful error message (that
-        also points to the Tribe docs) if they attempt to create a geneset
-        with the same slug as a geneset they have already created.
+        Test to check very long geneset titles. Since slugs are automatically
+        generated from the first 75 characters of geneset titles (if no 'slug'
+        is explicitly sent with the geneset data), very long titles that only
+        differ from each other after 75 characters produce identical slugs.
+        This test checks that users are given a helpful error message (that
+        also points to the Tribe docs) if this happens.
         """
         client = TestApiClient()
         client.client.login(username=self.username, password=self.password)
 
         geneset1_data = {}
         geneset1_data['organism'] = '/api/v1/organism/' + self.org1.slug
-        geneset1_data['title'] = 'regulation of transcription from RNA '\
+        geneset1_data['title'] = 'GO-regulation of transcription from RNA '\
             'polymerase II promoter in response to stress'
         geneset1_data['abstract'] = 'Any process that increases the '\
             'frequency, rate or extent of transcription from an RNA '\
@@ -621,8 +624,12 @@ class GenesetSlugTestCase(ResourceTestCase):
 
         geneset2_data = {}
         geneset2_data['organism'] = '/api/v1/organism/' + self.org1.slug
-        geneset2_data['title'] = 'regulation of transcription from RNA '\
+
+        # This title is 94 characters long and differs from the geneset1_data
+        # title in the 78th character (beyond truncation point).
+        geneset2_data['title'] = 'GO-regulation of transcription from RNA '\
             'polymerase II promoter in response to oxidative stress'
+
         geneset2_data['abstract'] = 'Modulation of the frequency, rate or '\
             'extent of transcription from an RNA polymerase II promoter as'\
             ' a result of a stimulus indicating the organism is under '\
@@ -637,7 +644,6 @@ class GenesetSlugTestCase(ResourceTestCase):
             ' with this url created by this account. Please choose a different'\
             ' collection title. For more information, see our documentation '\
             'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
-
 
     def tearDown(self):
         User.objects.all().delete()
