@@ -607,11 +607,11 @@ class GenesetSlugTestCase(ResourceTestCase):
 
         geneset1_data = {}
         geneset1_data['organism'] = '/api/v1/organism/' + self.org1.slug
-        geneset1_data['title'] = 'regulation of transcription from RNA ' + \
+        geneset1_data['title'] = 'regulation of transcription from RNA '\
             'polymerase II promoter in response to stress'
-        geneset1_data['abstract'] = 'Any process that increases the ' + \
-            'frequency, rate or extent of transcription from an RNA ' + \
-            'polymerase II promoter as a result of a stimulus indicating' + \
+        geneset1_data['abstract'] = 'Any process that increases the '\
+            'frequency, rate or extent of transcription from an RNA '\
+            'polymerase II promoter as a result of a stimulus indicating'\
             ' the organism is under stress...'
         geneset1_data['public'] = True
         geneset1_data['annotations'] = {self.g1.entrezid: [18299578]}
@@ -621,11 +621,11 @@ class GenesetSlugTestCase(ResourceTestCase):
 
         geneset2_data = {}
         geneset2_data['organism'] = '/api/v1/organism/' + self.org1.slug
-        geneset2_data['title'] = 'regulation of transcription from RNA ' + \
+        geneset2_data['title'] = 'regulation of transcription from RNA '\
             'polymerase II promoter in response to oxidative stress'
-        geneset2_data['abstract'] = 'Modulation of the frequency, rate or ' + \
-            'extent of transcription from an RNA polymerase II promoter as' + \
-            ' a result of a stimulus indicating the organism is under ' + \
+        geneset2_data['abstract'] = 'Modulation of the frequency, rate or '\
+            'extent of transcription from an RNA polymerase II promoter as'\
+            ' a result of a stimulus indicating the organism is under '\
             'oxidative stress, a state often resulting from exposure...'
         geneset2_data['public'] = True
         geneset2_data['annotations'] = {self.g2.entrezid: [14608355, 17284606],
@@ -633,11 +633,10 @@ class GenesetSlugTestCase(ResourceTestCase):
 
         resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
         self.assertHttpBadRequest(resp)
-        self.assertEqual(resp.content, 'error: There is already ' + \
-            'one collection with this url created by this account. Please ' + \
-            'choose a different collection title. For more information, ' + \
-            'see our documentation here: ' + \
-            settings.DOCS_URL + 'using_tribe.html#collection-urls')
+        self.assertEqual(resp.content, 'error: There is already one collection'\
+            ' with this url created by this account. Please choose a different'\
+            ' collection title. For more information, see our documentation '\
+            'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
 
 
     def tearDown(self):
