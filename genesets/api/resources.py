@@ -713,19 +713,34 @@ class GenesetResource(ModelResource):
         logger.info('Creating bundle %s', bundle)
         bundle = super(GenesetResource, self).obj_create(bundle, **kwargs)
 
-        parent_version = None
         try:
-            fork_hash = bundle.data['fork_version']
+            fork_ver_hash = bundle.data['fork_version']
         except KeyError:
-            fork_hash = None
+            fork_ver_hash = None
 
-        if fork_hash:  # if this was a fork of a specific version, add all the prior versions
-            fork_version = Version.objects.get(geneset=bundle.obj.fork_of, ver_hash=bundle.data['fork_version'])
-            parent_version = fork_version
-            from copy import deepcopy
-            commit_date = Version._meta.get_field_by_name('commit_date')[0]  # disable commit date so we preserve
+        if fork_ver_hash:  # if this was a fork of a specific version, add all the prior versions
+
+            # Disable commit date so we preserve original dates of versions
+            commit_date = Version._meta.get_field_by_name('commit_date')[0]
             commit_date.auto_now_add = False
-            while fork_version is not None:  # recursively copy all parent versions of this version
+
+            from copy import deepcopy
+            # We have to make the first version in that geneset (the one with
+            # no parent version) before we start our loop. Otherwise, we get
+            # a NoParentVersionSpecified exception
+            first_version = Version.objects.get(geneset=bundle.obj.fork_of,
+                                                parent=None)
+            first_forked_version = deepcopy(first_version)
+            first_forked_version.id = None
+            first_forked_version.geneset = bundle.obj
+            first_forked_version.save()
+
+            fork_version = Version.objects.get(geneset=bundle.obj.fork_of,
+                                               ver_hash=fork_ver_hash)
+
+            # Recursively copy all parent versions of this version, *except*
+            # for the first version, which we have already copied
+            while fork_version.parent is not None:
                 new_obj = deepcopy(fork_version)
                 new_obj.id = None
                 new_obj.geneset = bundle.obj
@@ -733,40 +748,47 @@ class GenesetResource(ModelResource):
                 fork_version = fork_version.parent
             commit_date.auto_now_add = True
 
-        if 'description' in bundle.data:
-            version = Version(geneset=bundle.obj, creator=bundle.obj.creator, description=bundle.data['description'], parent=parent_version)
         else:
-            version = Version(geneset=bundle.obj, creator=bundle.obj.creator, description="Created with collection.", parent=parent_version)
 
-        try:
-            passed_annotations = bundle.data['annotations']
-        except KeyError:
-            passed_annotations = None     
+            try:
+                parent_version = bundle.data['parent_version']
+            except KeyError:
+                parent_version = None
 
-        try:
-            posted_database = bundle.data['xrdb']
-        except KeyError:
-            posted_database = None
+            if 'description' in bundle.data:
+                version = Version(geneset=bundle.obj, creator=bundle.obj.creator, description=bundle.data['description'], parent=parent_version)
+            else:
+                version = Version(geneset=bundle.obj, creator=bundle.obj.creator, description="Created with collection.", parent=parent_version)
 
-        try:
-            full_pubs = bundle.data['full_pubs']
-        except KeyError:
-            full_pubs = None
+            try:
+                passed_annotations = bundle.data['annotations']
+            except KeyError:
+                passed_annotations = None     
 
-        logger.info('Hydrating annotations sent with geneset %s', bundle)
+            try:
+                posted_database = bundle.data['xrdb']
+            except KeyError:
+                posted_database = None
 
-        genes_not_found = None
-        if passed_annotations:
-            # if annotations were passed, add them to a new version
-            logger.info('Annotations were passed to create Geneset, make an initial version with these annotations: %s', passed_annotations)
-            formatted_for_db_annotations, genes_not_found = version.format_annotations(passed_annotations, posted_database, full_pubs)
-            version.annotations = formatted_for_db_annotations
-            version.save()
-        else:
-            logger.info('Hydrated gene set without any annotations, %s', bundle)
+            try:
+                full_pubs = bundle.data['full_pubs']
+            except KeyError:
+                full_pubs = None
 
-        if genes_not_found:
-            bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
+            logger.info('Hydrating annotations sent with geneset %s', bundle)
+
+            genes_not_found = None
+            if passed_annotations:
+                # if annotations were passed, add them to a new version
+                logger.info('Annotations were passed to create Geneset, make an initial version with these annotations: %s', passed_annotations)
+                formatted_for_db_annotations, genes_not_found = version.format_annotations(passed_annotations, posted_database, full_pubs)
+                version.annotations = formatted_for_db_annotations
+                version.save()
+            else:
+                logger.info('Hydrated gene set without any annotations, %s', bundle)
+
+            if genes_not_found:
+                bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
 
         return bundle
 
