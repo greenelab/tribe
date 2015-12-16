@@ -14,6 +14,8 @@ from versions.exceptions import VersionContainsNoneGene
 from publications.models import Publication
 from publications.utils import load_pmids
 
+from fixtureless import Factory
+factory = Factory()
 
 class CreatingRemoteVersionTestCase(ResourceTestCase):
 
@@ -350,6 +352,119 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
             simplified_sent_annotations[annotation] = [pub['pmid'] for pub in version_data['annotations'][annotation]]
 
         self.assertEqual(simplified_received_annotations, simplified_sent_annotations)
+
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Organism.objects.all().delete()
+        Geneset.objects.all().delete()
+        Version.objects.all().delete()
+        Publication.objects.all().delete()
+
+
+class ForkingVersionTestCase(ResourceTestCase):
+
+    def setUp(self):
+        # This line is important to set up the test case!
+        super(ForkingVersionTestCase, self).setUp()
+
+        org1 = Organism.objects.create(common_name="Mouse",
+                                       scientific_name="Mus musculus",
+                                       taxonomy_id=10090)
+
+        self.username = "asdf"
+        self.email = "asdf@example.com"
+        self.password = "1234"
+        self.user1 = User.objects.create_user(self.username, self.email,
+                                              self.password)
+
+        self.g1 = factory.create(Gene)
+        self.g2 = factory.create(Gene)
+        self.g3 = factory.create(Gene)
+        self.g4 = factory.create(Gene)
+
+        self.geneset1 = Geneset.objects.create(
+                            organism=org1, creator=self.user1,
+                            title='Test RNA polymerase II geneset',
+                            abstract='Sample abstract.', public=False)
+
+        # This first version is the only one that is allowed to have
+        # a parent version unspecified
+        self.version1 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='asdf',
+                            annotations=frozenset([(self.g1.pk, 17827783),
+                                (self.g1.pk, 8112735), (self.g2.pk,)]))
+
+        self.version2 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='asdf', parent=self.version1,
+                            annotations=frozenset([(self.g1.pk, 8112735),
+                                (self.g2.pk,)]))
+        self.version3 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='asdf', parent=self.version2,
+                            annotations=frozenset([(self.g1.pk, 8112735),
+                                (self.g2.pk,), (self.g3.pk,)]))
+        self.version4 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='asdf', parent=self.version3,
+                            annotations=frozenset([(self.g1.pk, 8112735),
+                                (self.g2.pk,), (self.g3.pk, 2556444)]))
+        self.version5 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='asdf', parent=self.version4,
+                            annotations=frozenset([(self.g1.pk, 8112735),
+                                (self.g2.pk,), (self.g3.pk, 2556444),
+                                (self.g4.pk,)]))
+
+
+
+    def testForkingGenesetAndVersions(self):
+        """
+        Tests that forking works normally and that it copies all versions &
+        parent versions recursively.
+        """
+
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        gsresp = client.get('/api/v1/geneset', format="json",
+                            data={'show_tip': 'true'})
+        self.assertValidJSONResponse(gsresp)
+
+        original_geneset = self.deserialize(gsresp)['objects'][0]
+        original_version = self.deserialize(gsresp)['objects'][0]['tip']
+
+        # Create data for geneset/version fork
+        forked_geneset = {}
+        forked_geneset['title'] = 'Fork of' + original_geneset['title']
+        forked_geneset['organism'] = original_geneset['organism']['resource_uri']
+        forked_geneset['abstr'] = original_geneset['abstract']
+        forked_geneset['public'] = False
+        forked_geneset['fork_of'] = original_geneset['resource_uri']
+        forked_geneset['fork_version'] = original_version['ver_hash']
+
+        resp = client.post('/api/v1/geneset', format="json", data=forked_geneset)
+        self.assertHttpCreated(resp)
+
+        # These are the actual database geneset objects
+        original_gs = Geneset.objects.get(title = original_geneset['title'])
+        forked_gs = Geneset.objects.get(title = forked_geneset['title'])
+
+        # This next part will make sets of the version hashes for all versions
+        # in each of the genesets and make sure that they are identical (i.e.
+        # all versions got copied).
+        original_version_set = set()
+        forked_version_set = set()
+
+        for version in Version.objects.filter(geneset = original_gs):
+            original_version_set.add(version.ver_hash)
+
+        for version in Version.objects.filter(geneset = forked_gs):
+            forked_version_set.add(version.ver_hash)
+
+        self.assertEqual(original_version_set, forked_version_set)
 
 
     def tearDown(self):
