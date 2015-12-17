@@ -97,11 +97,6 @@
             <div class="panel-heading clearfix">
                 <h3 class="panel-title">{{chosenVersion.ver_hash | limitTo:12}}
                     <span class="btn btn-xs pull-right">
-                        <button class="btn btn-primary btn-xs"
-                            ng-click="download()" tooltip="Downloads as csv
-                            file">
-                            Download this gene and publications list
-                        </button> &nbsp; &nbsp;
 
                         <a ui-sref="fork({creator:geneset.creator.username,
                             slug:geneset.slug, version:chosenVersion.ver_hash})">
