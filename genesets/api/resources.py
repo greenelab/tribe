@@ -9,10 +9,12 @@ For more information on JavaScript Objects, see: http://www.w3schools.com/json/
 
 """
 
+# Python imports
 import logging
 logger = logging.getLogger('genesets.api')
+from copy import deepcopy
 
-#Django imports
+# Django imports
 from django.db import IntegrityError
 from django.db.models import Q  # Needed for complex database queries
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
@@ -693,7 +695,7 @@ class GenesetResource(ModelResource):
             gs_slug = slugify(bundle.data['title'])[:gs_slug_max_length]
             non_unique = Geneset.objects.filter(creator=loggedin_creator).filter(slug=gs_slug)
             if (non_unique):
-                return http.HttpBadRequest("error: There is already one"\
+                return http.HttpBadRequest("There is already one"\
                     " collection with this url created by this account. "\
                     "Please choose a different collection title. For more "\
                     "information, see our documentation here: "\
@@ -724,7 +726,6 @@ class GenesetResource(ModelResource):
             commit_date = Version._meta.get_field_by_name('commit_date')[0]
             commit_date.auto_now_add = False
 
-            from copy import deepcopy
             # We have to make the first version in that geneset (the one with
             # no parent version) before we start our loop. Otherwise, we get
             # a NoParentVersionSpecified exception
@@ -756,9 +757,15 @@ class GenesetResource(ModelResource):
                 parent_version = None
 
             if 'description' in bundle.data:
-                version = Version(geneset=bundle.obj, creator=bundle.obj.creator, description=bundle.data['description'], parent=parent_version)
+                version = Version(geneset=bundle.obj, 
+                                  creator=bundle.obj.creator, 
+                                  description=bundle.data['description'],
+                                  parent=parent_version)
             else:
-                version = Version(geneset=bundle.obj, creator=bundle.obj.creator, description="Created with collection.", parent=parent_version)
+                version = Version(geneset=bundle.obj,
+                                  creator=bundle.obj.creator,
+                                  description="Created with collection.",
+                                  parent=parent_version)
 
             try:
                 passed_annotations = bundle.data['annotations']
@@ -780,15 +787,20 @@ class GenesetResource(ModelResource):
             genes_not_found = None
             if passed_annotations:
                 # if annotations were passed, add them to a new version
-                logger.info('Annotations were passed to create Geneset, make an initial version with these annotations: %s', passed_annotations)
-                formatted_for_db_annotations, genes_not_found = version.format_annotations(passed_annotations, posted_database, full_pubs)
+                logger.info('Annotations were passed to create Geneset,'\
+                            'make an initial version with these annotations: %s',
+                            passed_annotations)
+                formatted_for_db_annotations, genes_not_found =\
+                            version.format_annotations(passed_annotations,
+                                                       posted_database, full_pubs)
                 version.annotations = formatted_for_db_annotations
                 version.save()
             else:
                 logger.info('Hydrated gene set without any annotations, %s', bundle)
 
             if genes_not_found:
-                bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
+                bundle.data['Warning - The following genes were not found in our database'] =\
+                                                                         list(genes_not_found)
 
         return bundle
 

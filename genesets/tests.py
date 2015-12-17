@@ -131,12 +131,6 @@ class GenesetTipTestCase(TestCase):
                                    parent=geneset1.get_tip())
 
 
-    def tearDown(self):
-        User.objects.all().delete()
-        Organism.objects.all().delete()
-        Geneset.objects.all().delete()
-        Version.objects.all().delete()
-
 
 class TestKEGGLoaderMethods(TestCase):
     KEGG_URL_BASE = 'http://rest.kegg.jp'
@@ -563,12 +557,6 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']) - len(not_in_db_genes))
 
 
-    def tearDown(self):
-        User.objects.all().delete()
-        Organism.objects.all().delete()
-        Geneset.objects.all().delete()
-
-
 
 class GenesetSlugTestCase(ResourceTestCase):
 
@@ -623,7 +611,7 @@ class GenesetSlugTestCase(ResourceTestCase):
 
         resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
         self.assertHttpBadRequest(resp)
-        self.assertEqual(resp.content, 'error: There is already one collection'\
+        self.assertEqual(resp.content, 'There is already one collection'\
             ' with this url created by this account. Please choose a different'\
             ' collection title. For more information, see our documentation '\
             'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
@@ -673,14 +661,7 @@ class GenesetSlugTestCase(ResourceTestCase):
 
         resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
         self.assertHttpBadRequest(resp)
-        self.assertEqual(resp.content, 'error: There is already one collection'\
+        self.assertEqual(resp.content, 'There is already one collection'\
             ' with this url created by this account. Please choose a different'\
             ' collection title. For more information, see our documentation '\
             'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
-
-    def tearDown(self):
-        User.objects.all().delete()
-        Organism.objects.all().delete()
-        Geneset.objects.all().delete()
-        Version.objects.all().delete()
-        Publication.objects.all().delete()
