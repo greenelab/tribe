@@ -596,6 +596,39 @@ class GenesetSlugTestCase(ResourceTestCase):
             organism=self.org1, aliases="HIF1alpha MOP1")
 
 
+    def testRemoteCreationSameSlug(self):
+        """
+        Test to check that users are given a helpful error message (that
+        also points to the Tribe docs) if they create a geneset with the same
+        slug as one of their already existing genesets.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        geneset1_data = {}
+        geneset1_data['organism'] = '/api/v1/organism/' + self.org1.slug
+        geneset1_data['title'] = 'SampleSameSlug'
+        geneset1_data['abstract'] = 'SampleAbstract1'
+        geneset1_data['annotations'] = {self.g1.entrezid: [18299578]}
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset1_data)
+        self.assertHttpCreated(resp)
+
+        geneset2_data = {}
+        geneset2_data['organism'] = '/api/v1/organism/' + self.org1.slug
+        geneset2_data['title'] = 'SampleSameSlug'
+        geneset2_data['abstract'] = 'SampleAbstract2'
+        geneset2_data['annotations'] = {self.g2.entrezid: [14608355, 17284606],
+                                       self.g3.entrezid: [12832481]}
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
+        self.assertHttpBadRequest(resp)
+        self.assertEqual(resp.content, 'error: There is already one collection'\
+            ' with this url created by this account. Please choose a different'\
+            ' collection title. For more information, see our documentation '\
+            'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
+
+
     def testRemoteCreationVeryLongTitles(self):
         """
         Test to check very long geneset titles. Since slugs are automatically
