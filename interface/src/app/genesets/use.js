@@ -284,6 +284,41 @@ angular.module( 'tribe.genesets.use', [
                 }
             });
         };
+
+
+        $scope.openDownloadModal = function () {
+
+            var modalInstance = $modal.open({
+                templateUrl: 'genesets/download/downloadModal.tpl.html',
+                controller: ['$scope', function( $scope ) {
+
+                }],
+                resolve: {
+                }               
+            });
+
+            modalInstance.result.then(function (response) {
+
+            });
+        };
+
+        $scope.download = function( versionHash ) {
+            var verParams = {creator:$stateParams.creator, slug:$stateParams.slug, version: versionHash}; //, xrids_requested: true};
+            Versions.download(verParams).$promise.then( /* 
+                // success
+                function(data) {
+
+                    var file = new Blob([data], { type: 'text/csv' });
+
+                    var objectUrl = URL.createObjectURL(file);
+                    window.open(objectUrl);
+
+                    //saveAs(file, 'etwas.csv');
+                },
+                // error
+                function( error ){} */
+            );
+        };
     })
 
 
