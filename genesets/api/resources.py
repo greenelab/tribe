@@ -24,6 +24,8 @@ from django.middleware.csrf import _sanitize_token, constant_time_compare
 from django.utils.http import same_origin
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
+from django.template.defaultfilters import slugify
+from django.http import HttpResponse
 
 # Tribe imports
 from organisms.models import Organism
@@ -40,7 +42,7 @@ from profiles.models import Profile
 
 
 # Tastypie is the RESTful API which manages the JavaScript serialization
-from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
+from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS, convert_post_to_put
 from tastypie import fields
 from tastypie import http
 from tastypie.authentication import BasicAuthentication, SessionAuthentication, MultiAuthentication
@@ -50,6 +52,7 @@ from tastypie.http import HttpUnauthorized, HttpForbidden
 from tastypie.serializers import Serializer
 from tastypie.cache import SimpleCache
 from tastypie.throttle import CacheDBThrottle
+from tastypie.utils import dict_strip_unicode_keys
 
 # Haystack imports - Haystack is the Python package that handles the gene search functionality in the server
 from django.conf.urls import *
@@ -258,22 +261,16 @@ class UserResource(ModelResource):
 
     def dispatch(self, request_type, request, **kwargs):
         """
-        *** RAZ: Overriding this Tastypie method to remove
+        Handles the common operations (allowed HTTP method, authentication,
+        throttling, method lookup) surrounding most CRUD interactions.
+
+        ***RAZ: Overriding this Tastypie method to remove
         authentication when users do a POST request
         to create a user through the API.
         This is so that end-users can create user objects
         and login without being authenticated.
         """
 
-        # Need to import the following methods:
-        from tastypie.resources import convert_post_to_put
-        from tastypie import http
-        from django.http import HttpResponse
-
-        """
-        Handles the common operations (allowed HTTP method, authentication,
-        throttling, method lookup) surrounding most CRUD interactions.
-        """
         allowed_methods = getattr(self._meta, "%s_allowed_methods" % request_type, None)
 
         if 'HTTP_X_HTTP_METHOD_OVERRIDE' in request.META:
@@ -673,9 +670,6 @@ class GenesetResource(ModelResource):
 
     def post_list(self, request, **kwargs):
         # Overriding post_list method to return an error if a geneset with the same creator and slug already exists.
-        from tastypie import http
-        from tastypie.utils import dict_strip_unicode_keys
-        from django.template.defaultfilters import slugify
         deserialized = self.deserialize(request, request.body, format=request.META.get('CONTENT_TYPE', 'application/json'))
         deserialized = self.alter_deserialized_detail_data(request, deserialized)
         bundle = self.build_bundle(data=dict_strip_unicode_keys(deserialized), request=request)
