@@ -13,6 +13,7 @@ For more information on JavaScript Objects, see: http://www.w3schools.com/json/
 import logging
 logger = logging.getLogger('genesets.api')
 from copy import deepcopy
+import csv
 
 # Django imports
 from django.db import IntegrityError
@@ -886,6 +887,7 @@ class VersionResource(ModelResource):
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<geneset__creator__username>[\w.-]+)/(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<geneset__creator__username>[\w.-]+)/(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)/download%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('download_as_csv'), name="api_download_as_csv"),
         ]
 
     def dehydrate_annotations(self, bundle):
@@ -1007,6 +1009,37 @@ class VersionResource(ModelResource):
             raise BadRequest("This geneset already has at least one version." + \
                 " You must specify the parent version of this new version.")
         return bundle
+
+
+    def download_as_csv(self, request, **kwargs):
+        """
+        This method builds a csv file of the current version for the user
+        to download. 
+        """
+
+        basic_bundle = self.build_bundle(request=request)
+
+        try:
+            obj = self.cached_obj_get(bundle=basic_bundle, **self.remove_api_resource_names(kwargs))
+        except ObjectDoesNotExist:
+            return http.HttpNotFound()
+        except MultipleObjectsReturned:
+            return http.HttpMultipleChoices("More than one resource is found at this URI.")
+
+        logger.debug("version obj %s found" % (obj))
+        bundle = self.build_bundle(obj=obj, request=request)
+        bundle_annotations = self.dehydrate_annotations(bundle)
+
+        desired_annotation_dict = {}
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+        writer = csv.writer(response)
+        #for annotation in bundle_annotations:
+        #    writer.writerow(annotation)
+
+        return response
 
 
 """
