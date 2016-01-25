@@ -22,7 +22,8 @@ angular.module( 'tribe.genesets.use', [
   'tribe.organism',
   'tribe.versions.resource',
   'tribe.genesets.delete',
-  'tribe.auth.user'
+  'tribe.auth.user',
+  'tribe.crossrefdbs.resource'
 ])
 
 /**
@@ -237,7 +238,7 @@ angular.module( 'tribe.genesets.use', [
     /** 
      * Controller that handles displaying a page for each GeneSet.
      */
-    .controller( 'GeneSetDetailCtrl', function ( $scope, $stateParams, $modal, $state, GeneSets, UserFactory, Versions ) {
+    .controller( 'GeneSetDetailCtrl', function ( $scope, $stateParams, $modal, $state, $http, GeneSets, UserFactory, Versions ) {
         // Get Geneset
         var gsParams = {creator:$stateParams.creator, slug:$stateParams.slug, show_versions: true, show_team: true};
         $scope.geneset = GeneSets.get(gsParams);
@@ -286,39 +287,39 @@ angular.module( 'tribe.genesets.use', [
         };
 
 
-        $scope.openDownloadModal = function () {
+        $scope.openDownloadModal = function ( versionHash ) {
 
             var modalInstance = $modal.open({
                 templateUrl: 'genesets/download/downloadModal.tpl.html',
-                controller: ['$scope', function( $scope ) {
+                controller: ['$scope', '$modalInstance', 'CrossrefDBs', function( $scope, $modalInstance, CrossrefDBs ) {
+                    $scope.versionHash = versionHash;
+                    $scope.crossRefDbList = ['Symbol'];
+
+                    CrossrefDBs.query( function(data) {
+                        for (var i in data.objects ) {
+                            $scope.crossRefDbList.push(data.objects[i]['name']);
+                        }
+                    });
+
+                    $scope.geneIdentifier = '';
+                    $scope.download = function () {
+                        $modalInstance.close($scope.geneIdentifier);
+                    };
+                    $scope.cancel = function () {
+                        $modalInstance.dismiss('cancel');
+                    };
 
                 }],
                 resolve: {
                 }               
             });
 
-            modalInstance.result.then(function (response) {
-
+            modalInstance.result.then(function (geneIdentifier) {
+                var download_url = '/api/v1/version/' + $stateParams.creator + '/' +  $stateParams.slug + '/' + versionHash + '/download?xrid=' + geneIdentifier;
+                window.open(download_url);
             });
         };
 
-        $scope.download = function( versionHash ) {
-            var verParams = {creator:$stateParams.creator, slug:$stateParams.slug, version: versionHash}; //, xrids_requested: true};
-            Versions.download(verParams).$promise.then( /* 
-                // success
-                function(data) {
-
-                    var file = new Blob([data], { type: 'text/csv' });
-
-                    var objectUrl = URL.createObjectURL(file);
-                    window.open(objectUrl);
-
-                    //saveAs(file, 'etwas.csv');
-                },
-                // error
-                function( error ){} */
-            );
-        };
     })
 
 
@@ -339,4 +340,3 @@ angular.module( 'tribe.genesets.use', [
         };
     })
 ;
-
