@@ -3,6 +3,7 @@ logger = logging.getLogger(__name__)
 
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.core.exceptions import FieldError
 from organisms.models import Organism
 import re
 
@@ -55,8 +56,22 @@ class Gene(models.Model):
 
 
 class CrossRefDB(models.Model):
-    name = models.CharField(max_length=64, unique=True, db_index=True)
+    name = models.CharField(max_length=64, unique=True, db_index=True,
+                            blank=False)
     url  = models.URLField()
+
+    def save(self, *args, **kwargs):
+        """
+        Extends save method of Django models to check that the database name
+        is not left blank. Note: 'blank=False' is only checked at a
+        form-validation-stage. A test using Fixtureless, that tried to
+        randomly create a CrossRefDB with an empty string name would
+        unintentionally break the test.
+        """
+        if self.name == '':
+            raise FieldError
+        else:
+            return super(CrossRefDB, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return self.name
@@ -82,6 +97,3 @@ class CrossRef(models.Model):
         url = url.replace("_REPL_", self.xrid)
         return url
     specific_url = property(_get_url)
-
-
-

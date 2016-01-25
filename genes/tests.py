@@ -1,6 +1,8 @@
 from datetime import date
 
 from django.test import TestCase
+from django.core.exceptions import FieldError
+from django.db import IntegrityError
 
 from fixtureless import Factory
 
@@ -109,3 +111,30 @@ class TranslateTestCase(TestCase):
         Gene.objects.all().delete() #remove any created publications
         CrossRef.objects.all().delete() #remove any created publications
         CrossRefDB.objects.all().delete() #remove any created publications
+
+
+class CrossRefDBTestCase(TestCase):
+
+    def test_saving_xrdb(self):
+        """
+        Test that this simple CrossRefDB creation raises no errors
+        """
+        xrdb1 = factory.create(CrossRefDB, {"name": "XRDB1"})
+
+
+    def test_saving_xrdb_no_name(self):
+        """
+        Check that CrossRefDBs in database are required to have a non-null
+        name - if they do, raise IntegrityError.
+        """
+        with self.assertRaises(IntegrityError):
+            xrdb1 = factory.create(CrossRefDB, {"name": None})
+
+
+    def test_saving_xrdb_blank_name(self):
+        """
+        Check that CrossRefDBs in database are required to have a name that
+        is not an empty string - if they do, raise FieldError.
+        """
+        with self.assertRaises(FieldError):
+            xrdb1 = factory.create(CrossRefDB, {"name": ""})
