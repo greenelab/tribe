@@ -30,7 +30,7 @@ from django.http import HttpResponse
 
 # Tribe imports
 from organisms.models import Organism
-from genes.models import Gene, CrossRef
+from genes.models import Gene, CrossRef, CrossRefDB
 from genes.utils import translate_genes
 from genesets.models import Geneset
 from versions.models import Version
@@ -861,6 +861,7 @@ class VersionAuthorization(Authorization):
     def delete_detail(self, object_list, bundle):
         raise Unauthorized("Versions cannot be modified after they are created.")
 
+
 class VersionResource(ModelResource):
     creator     = fields.ForeignKey(BasicUserResource, 'creator', full=True)
     geneset     = fields.ForeignKey(GenesetResource, 'geneset', full=True)
@@ -899,8 +900,15 @@ class VersionResource(ModelResource):
         """
 
         xrids_requested = bundle.request.GET.get('xrids_requested', None)
+
+        # Specific cross-reference identifier that the main gene objects
+        # in the annotations should return. This is only used if
+        # all xrids are not requested.
+        specific_xrid = bundle.request.GET.get('xrid', None)
+
         genes = set()
         pubs = set()
+
         for annotation in bundle.obj.annotations:
             (gene, pub) = annotation
             genes.add(gene)
@@ -911,10 +919,28 @@ class VersionResource(ModelResource):
             for gobj in bundle.data['gene_objs']:
                 gene_cache[gobj.data['id']] = gobj.data
 
-        else:
+        elif specific_xrid in ('Symbol', 'Entrez', '', None):
             gene_objs = Gene.objects.filter(pk__in=genes).values()
             for gobj in gene_objs:
                 gene_cache[gobj['id']] = gobj
+
+        else:
+            try:
+                requested_xrdb = CrossRefDB.objects.get(name=specific_xrid)
+            except CrossRefDB.DoesNotExist:
+                raise BadRequest("The type of gene identifier (xrid) you "
+                                 "requested is not in our database.")
+
+            gene_objs = CrossRef.objects.filter(
+                crossrefdb=requested_xrdb).filter(gene__in=genes).values(
+                    'gene_id',
+                    'id',
+                    'crossrefdb__name',
+                    'crossrefdb__url',
+                    'xrid')
+            for gobj in gene_objs:
+                gene_cache[gobj['gene_id']] = gobj
+
 
         pub_objs = Publication.objects.filter(pk__in=pubs).values()
         pub_cache = {}
@@ -932,7 +958,10 @@ class VersionResource(ModelResource):
                     results[gene] = []
         return_list = []
         for (gid, pubs) in results.iteritems():
-            return_list.append({'gene':gene_cache[gid],'pubs': pubs})
+            try:
+                return_list.append({'gene':gene_cache[gid],'pubs': pubs})
+            except KeyError:
+                pass
         return return_list
 
 
@@ -1020,24 +1049,45 @@ class VersionResource(ModelResource):
         basic_bundle = self.build_bundle(request=request)
 
         try:
-            obj = self.cached_obj_get(bundle=basic_bundle, **self.remove_api_resource_names(kwargs))
+            obj = self.cached_obj_get(bundle=basic_bundle,
+                                      **self.remove_api_resource_names(kwargs))
         except ObjectDoesNotExist:
             return http.HttpNotFound()
         except MultipleObjectsReturned:
-            return http.HttpMultipleChoices("More than one resource is found at this URI.")
+            return http.HttpMultipleChoices("More than one resource is"
+                                            "found at this URI.")
 
         logger.debug("version obj %s found" % (obj))
         bundle = self.build_bundle(obj=obj, request=request)
         bundle_annotations = self.dehydrate_annotations(bundle)
 
-        desired_annotation_dict = {}
+        desired_xrid = request.GET.get('xrid')
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+        response['Content-Disposition'] = 'attachment; filename="' + \
+                                          str(bundle.obj) + '.csv"'
 
-        writer = csv.writer(response)
-        #for annotation in bundle_annotations:
-        #    writer.writerow(annotation)
+        writer = csv.writer(response, delimiter="\t")
+        writer.writerow(["Collection: " + str(bundle.obj.geneset)])
+        writer.writerow(["Version: " + str(bundle.obj.ver_hash)])
+        writer.writerow(["Author: " + str(bundle.obj.geneset.creator)])
+        writer.writerow([])
+        writer.writerow(["Gene", "Pubmed IDs"])
+
+        for annotation in bundle_annotations:
+            pubmed_id_list = [str(pub['pmid']) for pub in annotation['pubs']]
+
+            if desired_xrid in ('Symbol', '', None):
+                writer.writerow([annotation['gene']['systematic_name'],
+                                ", ".join(pubmed_id_list)])
+
+            elif desired_xrid == 'Entrez':
+                writer.writerow([annotation['gene']['entrezid'],
+                                ", ".join(pubmed_id_list)])
+
+            else:
+                writer.writerow([annotation['gene']['xrid'],
+                                ", ".join(pubmed_id_list)])
 
         return response
 
@@ -1143,3 +1193,14 @@ class CrossrefResource(ModelResource):
             'xrid': ALL,
             'crossrefdb': ALL,
             'gene': ALL_WITH_RELATIONS }
+
+
+class CrossrefDBResource(ModelResource):
+    name = fields.CharField(attribute='name')
+    url  = fields.CharField(attribute='url')
+
+    class Meta:
+        queryset = CrossRefDB.objects.all()
+        allowed_methods = ['get']
+        filtering = { 'name': ALL,
+                      'url': ALL }

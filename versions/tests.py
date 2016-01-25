@@ -1,7 +1,10 @@
 """
 Version tests
 """
+import string
+
 from django.test import TestCase
+from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 
 from tastypie.test import ResourceTestCase, TestApiClient
@@ -16,6 +19,626 @@ from publications.utils import load_pmids
 
 from fixtureless import Factory
 factory = Factory()
+
+class ReturnDesiredXridsTestCase(ResourceTestCase):
+    """
+    Testing that version annotations are returned using requested
+    gene cross-reference identifier. In turn, this checks the API methods in
+    VersionResource that dehydrate annotations are working appropriately.
+    """
+
+    def setUp(self):
+        # This line is important to set up the test case!
+        super(ReturnDesiredXridsTestCase, self).setUp()
+
+        # Need to specify username, otherwise will get error:
+        # 'Invalid resource lookup data provided (mismatched type)'
+        # when using a fixtureless username in the url (weird characters).
+        self.user1 = factory.create(User, {'username': 'asdf'})
+
+        self.org1 = factory.create(Organism)
+
+        self.g1 = factory.create(Gene)
+        self.g2 = factory.create(Gene)
+        self.g3 = factory.create(Gene)
+        self.g4 = factory.create(Gene)
+
+        # Need to specify xrdb name. Otherwise, fixtureless might make the
+        # name an empty string, which would raise an error.
+        self.xrdb1 = factory.create(CrossRefDB, {'name': 'XRDB1'})
+        self.xrdb2 = factory.create(CrossRefDB, {'name': 'XRDB2'})
+        self.xrdb3 = factory.create(CrossRefDB, {'name': 'XRDB3'})
+
+        self.xref1  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g1})
+        self.xref1b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g1})
+        self.xref2  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g2})
+        self.xref2b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g2})
+        self.xref3  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g3})
+        self.xref3b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g3})
+        self.xref4  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g4})
+        self.xref4b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g4})
+
+        self.geneset1 = Geneset.objects.create(
+                            organism=self.org1, creator=self.user1,
+                            title='Test RNA polymerase II geneset',
+                            abstract='Sample abstract.', public=True)
+
+        # This first version is the only one that is allowed to have
+        # a parent version unspecified. *Note: also must fill in publications
+        # as None, instead of just leaving a blank after the comma in tuple.
+        self.version1 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='Sample description',
+                            annotations=frozenset([(self.g1.pk, None),
+                                (self.g2.pk, None), (self.g3.pk, None),
+                                (self.g4.pk, None)]))
+
+
+    def testNoXridSpecified(self):
+        """
+        If no xrid is specified (as is the case most of the time), check that
+        gene objects containing the Entrez ID AND standard name (symbol) are
+        returned.
+        """
+        client = TestApiClient()
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+        parameters = {}
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+        self.assertValidJSONResponse(response)
+
+        annotations = self.deserialize(response)['annotations']
+
+        returned_gene_set = set()
+
+        for annot in annotations:
+            returned_gene_set.add((annot['gene']['entrezid'],
+                                   annot['gene']['standard_name']))
+
+        desired_gene_set = set([(gene.entrezid, gene.standard_name) 
+                                 for gene in Gene.objects.all()])
+        self.assertEqual(returned_gene_set, desired_gene_set)
+
+
+    def testGetEntrezIds(self):
+        """
+        If the xrid specified is Entrez, check that gene objects containing
+        the gene's Entrez ID are returned.
+        """
+        client = TestApiClient()
+
+        parameters = {'xrid': 'Entrez'}
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+
+        self.assertValidJSONResponse(response)
+
+        annotations = self.deserialize(response)['annotations']
+        returned_gene_set = set()
+
+        for annotation in annotations:
+            returned_gene_set.add(annotation['gene']['entrezid'])
+
+        desired_gene_set = set([gene.entrezid for gene in Gene.objects.all()])
+
+        self.assertEqual(returned_gene_set, desired_gene_set)
+
+
+    def testGetSymbols(self):
+        """
+        If symbols are requested, check that gene objects containing
+        standard names are returned.
+        """
+        client = TestApiClient()
+
+        parameters = {'xrid': 'Symbol'}
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+
+        self.assertValidJSONResponse(response)
+
+        annotations = self.deserialize(response)['annotations']
+        returned_gene_set = set()
+
+        for annotation in annotations:
+            returned_gene_set.add(annotation['gene']['standard_name'])
+
+        desired_gene_set = set([gene.standard_name for gene in Gene.objects.all()])
+
+        self.assertEqual(returned_gene_set, desired_gene_set)
+
+
+    def testGettingXrdb1(self):
+        """
+        Check that all genes in the annotations are returned with the type
+        of xrid in xrdb1.
+        """
+        client = TestApiClient()
+
+        parameters = {'xrid': self.xrdb1.name}
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+
+        self.assertValidJSONResponse(response)
+
+        annotations = self.deserialize(response)['annotations']
+        returned_gene_set = set()
+
+        for annotation in annotations:
+            returned_gene_set.add(annotation['gene']['xrid'])
+
+        desired_gene_set = set([self.xref1.xrid, self.xref2.xrid,
+                                self.xref3.xrid, self.xref4.xrid])
+        self.assertEqual(returned_gene_set, desired_gene_set)
+
+
+    def testGettingXrdb2(self):
+        """
+        Check that all genes in the annotations are returned with the type
+        of xrid in xrdb2.
+        """
+        client = TestApiClient()
+
+        parameters = {'xrid': self.xrdb2.name}
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+
+        self.assertValidJSONResponse(response)
+
+        annotations = self.deserialize(response)['annotations']
+        returned_gene_set = set()
+
+        for annotation in annotations:
+            returned_gene_set.add(annotation['gene']['xrid'])
+
+        desired_gene_set = set([self.xref1b.xrid, self.xref2b.xrid,
+                                self.xref3b.xrid, self.xref4b.xrid])
+
+        self.assertEqual(returned_gene_set, desired_gene_set)
+
+
+    def testGettingXrdb3(self):
+        """
+        When requesting a type of xrid that is inexistent for the requested
+        genes, check that an empty set is returned.
+        """
+        client = TestApiClient()
+
+        parameters = {'xrid': self.xrdb3.name}
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+
+        self.assertValidJSONResponse(response)
+
+        annotations = self.deserialize(response)['annotations']
+        returned_gene_set = set()
+
+        for annotation in annotations:
+            returned_gene_set.add(annotation['gene'])
+
+        self.assertEqual(returned_gene_set, set([]))
+
+
+    def testNonExistentXrdb(self):
+        """
+        Check that an error is returned if the user requests identifiers from
+        an xrdb not loaded into our database.
+        """
+        client = TestApiClient()
+
+        parameters = {'xrid': 'qwerty'}
+
+        desired_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash
+
+        response = client.get(desired_version_url, format="json",
+                            data=parameters)
+
+        self.assertHttpBadRequest(response)
+        self.assertEqual(self.deserialize(response)['error'], 'The type of '
+                         'gene identifier (xrid) you requested is not in our '
+                         'database.')
+
+
+class DownloadVersionAsCSVTestCase(ResourceTestCase):
+    """
+    Testing the API endpoint that returns gene/publication list as
+    tab-separated *.csv file for a specific geneset/collection version.
+    """
+
+    def setUp(self):
+        # This line is important to set up the test case!
+        super(DownloadVersionAsCSVTestCase, self).setUp()
+
+        # Need to specify username, otherwise will get error:
+        # 'Invalid resource lookup data provided (mismatched type)'
+        # when using a fixtureless username in the url (weird characters).
+        self.user1 = factory.create(User, {'username': 'asdf'})
+
+        self.org1 = factory.create(Organism)
+
+        self.g1 = factory.create(Gene, {'systematic_name': get_random_string(5)})
+        self.g2 = factory.create(Gene, {'systematic_name': get_random_string(5)})
+        self.g3 = factory.create(Gene, {'systematic_name': get_random_string(5)})
+        self.g4 = factory.create(Gene, {'systematic_name': get_random_string(5)})
+
+        self.p1 = factory.create(Publication,
+                {'pmid': get_random_string(7, allowed_chars=string.digits)})
+        self.p2 = factory.create(Publication,
+                {'pmid': get_random_string(7, allowed_chars=string.digits)})
+        self.p3 = factory.create(Publication,
+                {'pmid': get_random_string(7, allowed_chars=string.digits)})
+
+        # Need to specify xrdb name. Otherwise, fixtureless might make the
+        # name an empty string, which would raise an error.
+        self.xrdb1 = factory.create(CrossRefDB, {'name': 'XRDB1'})
+        self.xrdb2 = factory.create(CrossRefDB, {'name': 'XRDB2'})
+        self.xrdb3 = factory.create(CrossRefDB, {'name': 'XRDB3'})
+
+        self.xref1  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g1,
+                                                'xrid': get_random_string(5)})
+        self.xref1b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g1,
+                                                'xrid': get_random_string(5)})
+        self.xref2  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g2,
+                                                'xrid': get_random_string(5)})
+        self.xref2b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g2,
+                                                'xrid': get_random_string(5)})
+        self.xref3  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g3,
+                                                'xrid': get_random_string(5)})
+        self.xref3b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g3,
+                                                'xrid': get_random_string(5)})
+        self.xref4  = factory.create(CrossRef, {'crossrefdb': self.xrdb1,
+                                                'gene': self.g4,
+                                                'xrid': get_random_string(5)})
+        self.xref4b = factory.create(CrossRef, {'crossrefdb': self.xrdb2,
+                                                'gene': self.g4,
+                                                'xrid': get_random_string(5)})
+
+        self.geneset1 = Geneset.objects.create(
+                            organism=self.org1, creator=self.user1,
+                            title='Test RNA polymerase II geneset',
+                            abstract='Sample abstract.', public=True)
+
+        # This first version is the only one that is allowed to have
+        # a parent version unspecified. *Note: also must fill in publications
+        # as None, instead of just leaving a blank after the comma in tuple.
+        self.version1 = Version.objects.create(
+                            geneset=self.geneset1, creator=self.user1,
+                            description='Sample description',
+                            annotations=frozenset([(self.g1.pk, self.p1.pk),
+                                (self.g2.pk, None), (self.g3.pk, self.p2.pk),
+                                (self.g3.pk, self.p3.pk), (self.g4.pk, None)]))
+
+
+    def testNoXridSpecified(self):
+        """
+        If no xrid is specified, check that genes in the *.csv file are
+        returned as symbols.
+        """
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        csv_response = response.content.replace("\r", "")
+        response_lines = csv_response.split("\n")
+        self.assertEqual(response_lines[0], 'Collection: ' + self.geneset1.title)
+        self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
+        self.assertEqual(response_lines[2], 
+                         'Author: ' + self.geneset1.creator.username)
+        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+
+        returned_annotations_dict = {}
+        for line in response_lines[5:9]:
+            toks = line.split("\t")
+            if toks[1]:
+                pubs = toks[1].split(", ")
+                returned_annotations_dict[toks[0]] = set(pubs)
+            else:
+                returned_annotations_dict[toks[0]] = set()
+
+        saved_annotations_dict = {}
+        for annotation in self.version1.annotations:
+            gene_pk, pub_pk = annotation
+            symbol = Gene.objects.get(pk=gene_pk).systematic_name
+
+            if symbol not in saved_annotations_dict:
+                saved_annotations_dict[symbol] = set()
+
+            if pub_pk is not None:
+                pmid = str(Publication.objects.get(pk=pub_pk).pmid)
+                saved_annotations_dict[symbol].add(pmid)
+
+        self.assertEqual(returned_annotations_dict, saved_annotations_dict)
+
+
+
+
+    def testGetEntrezIds(self):
+        """
+        If the xrid specified is Entrez, check that genes in the *.csv file are
+        returned as Entrez IDs.
+        """
+
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {'xrid': 'Entrez'}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        csv_response = response.content.replace("\r", "")
+        response_lines = csv_response.split("\n")
+        self.assertEqual(response_lines[0], 'Collection: ' + self.geneset1.title)
+        self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
+        self.assertEqual(response_lines[2], 
+                         'Author: ' + self.geneset1.creator.username)
+        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+
+        returned_annotations_dict = {}
+        for line in response_lines[5:9]:
+            toks = line.split("\t")
+            if toks[1]:
+                pubs = toks[1].split(", ")
+                returned_annotations_dict[toks[0]] = set(pubs)
+            else:
+                returned_annotations_dict[toks[0]] = set()
+
+        saved_annotations_dict = {}
+        for annotation in self.version1.annotations:
+            gene_pk, pub_pk = annotation
+            entrezid = str(Gene.objects.get(pk=gene_pk).entrezid)
+
+            if entrezid not in saved_annotations_dict:
+                saved_annotations_dict[entrezid] = set()
+
+            if pub_pk is not None:
+                pmid = str(Publication.objects.get(pk=pub_pk).pmid)
+                saved_annotations_dict[entrezid].add(pmid)
+
+        self.assertEqual(returned_annotations_dict, saved_annotations_dict)
+
+
+    def testGetSymbols(self):
+        """
+        If symbols are requested, check that genes in the *.csv file are
+        returned as such.
+        """
+
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {'xrid': 'Symbol'}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        csv_response = response.content.replace("\r", "")
+        response_lines = csv_response.split("\n")
+        self.assertEqual(response_lines[0], 'Collection: ' + self.geneset1.title)
+        self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
+        self.assertEqual(response_lines[2], 
+                         'Author: ' + self.geneset1.creator.username)
+        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+
+        returned_annotations_dict = {}
+        for line in response_lines[5:9]:
+            toks = line.split("\t")
+            if toks[1]:
+                pubs = toks[1].split(", ")
+                returned_annotations_dict[toks[0]] = set(pubs)
+            else:
+                returned_annotations_dict[toks[0]] = set()
+
+        saved_annotations_dict = {}
+        for annotation in self.version1.annotations:
+            gene_pk, pub_pk = annotation
+            symbol = Gene.objects.get(pk=gene_pk).systematic_name
+
+            if symbol not in saved_annotations_dict:
+                saved_annotations_dict[symbol] = set()
+
+            if pub_pk is not None:
+                pmid = str(Publication.objects.get(pk=pub_pk).pmid)
+                saved_annotations_dict[symbol].add(pmid)
+
+        self.assertEqual(returned_annotations_dict, saved_annotations_dict)
+
+
+    def testGettingXrdb1(self):
+        """
+        Check that all genes in the *.csv file are returned with the type
+        of xrid in xrdb1.
+        """
+
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {'xrid': self.xrdb1.name}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        csv_response = response.content.replace("\r", "")
+        response_lines = csv_response.split("\n")
+        self.assertEqual(response_lines[0], 'Collection: ' + self.geneset1.title)
+        self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
+        self.assertEqual(response_lines[2], 
+                         'Author: ' + self.geneset1.creator.username)
+        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+
+        returned_annotations_dict = {}
+        for line in response_lines[5:9]:
+            toks = line.split("\t")
+            if toks[1]:
+                pubs = toks[1].split(", ")
+                returned_annotations_dict[toks[0]] = set(pubs)
+            else:
+                returned_annotations_dict[toks[0]] = set()
+
+        saved_annotations_dict = {}
+        for annotation in self.version1.annotations:
+            gene_pk, pub_pk = annotation
+            xrid = str(CrossRef.objects
+                       .filter(crossrefdb__name=self.xrdb1.name)
+                       .get(gene=gene_pk).xrid)
+
+            if xrid not in saved_annotations_dict:
+                saved_annotations_dict[xrid] = set()
+
+            if pub_pk is not None:
+                pmid = str(Publication.objects.get(pk=pub_pk).pmid)
+                saved_annotations_dict[xrid].add(pmid)
+
+        self.assertEqual(returned_annotations_dict, saved_annotations_dict)
+
+
+    def testGettingXrdb2(self):
+        """
+        Check that all genes in the *.csv file are returned with the type
+        of xrid in xrdb2.
+        """
+
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {'xrid': self.xrdb2.name}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        csv_response = response.content.replace("\r", "")
+        response_lines = csv_response.split("\n")
+        self.assertEqual(response_lines[0], 'Collection: ' + self.geneset1.title)
+        self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
+        self.assertEqual(response_lines[2], 
+                         'Author: ' + self.geneset1.creator.username)
+        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+
+        returned_annotations_dict = {}
+        for line in response_lines[5:9]:
+            toks = line.split("\t")
+            if toks[1]:
+                pubs = toks[1].split(", ")
+                returned_annotations_dict[toks[0]] = set(pubs)
+            else:
+                returned_annotations_dict[toks[0]] = set()
+
+        saved_annotations_dict = {}
+        for annotation in self.version1.annotations:
+            gene_pk, pub_pk = annotation
+            xrid = str(CrossRef.objects
+                       .filter(crossrefdb__name=self.xrdb2.name)
+                       .get(gene=gene_pk).xrid)
+
+            if xrid not in saved_annotations_dict:
+                saved_annotations_dict[xrid] = set()
+
+            if pub_pk is not None:
+                pmid = str(Publication.objects.get(pk=pub_pk).pmid)
+                saved_annotations_dict[xrid].add(pmid)
+
+        self.assertEqual(returned_annotations_dict, saved_annotations_dict)
+
+
+    def testGettingXrdb3(self):
+        """
+        Check that no genes are returned in the *.csv file if the user
+        requests the xrdb3 type of identifier ()
+        """
+
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {'xrid': self.xrdb3.name}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        csv_response = response.content.replace("\r", "")
+        response_lines = csv_response.split("\n")
+        self.assertEqual(response_lines[0], 'Collection: ' + self.geneset1.title)
+        self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
+        self.assertEqual(response_lines[2], 
+                         'Author: ' + self.geneset1.creator.username)
+        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+        self.assertEqual(response_lines[5], '')
+
+        self.assertEqual(len(response_lines), 6)
+
+
+    def testNonExistentXrdb(self):
+        """
+        Check that an error is returned if the user requests identifiers from
+        an xrdb not loaded into our database.
+        """
+        client = TestApiClient()
+
+        download_version_url = '/api/v1/version/' + self.user1.username + \
+                              '/' + self.geneset1.slug + '/' + \
+                              self.version1.ver_hash + '/download'
+        parameters = {'xrid': 'qwerty'}
+        response = client.get(download_version_url, format="json",
+                            data=parameters)
+
+        self.assertHttpBadRequest(response)
+        self.assertEqual(self.deserialize(response)['error'], 'The type of '
+                         'gene identifier (xrid) you requested is not in our '
+                         'database.')
+
 
 class CreatingRemoteVersionTestCase(ResourceTestCase):
 
