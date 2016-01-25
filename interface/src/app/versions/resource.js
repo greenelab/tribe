@@ -4,11 +4,6 @@ angular.module("tribe.versions.resource", ['ngResource', 'ngRoute'])
             query: {
                 method: 'GET',
                 isArray: false
-            },
-            download: {
-                url: '/api/v1/version/:creator/:slug/:version/download',
-                method: 'GET',
-                params: { xrid: '@xrid' }
             }
         });
     }])
