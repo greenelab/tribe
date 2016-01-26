@@ -238,7 +238,7 @@ angular.module( 'tribe.genesets.use', [
     /** 
      * Controller that handles displaying a page for each GeneSet.
      */
-    .controller( 'GeneSetDetailCtrl', function ( $scope, $stateParams, $modal, $state, $http, GeneSets, UserFactory, Versions ) {
+    .controller( 'GeneSetDetailCtrl', function ( $scope, $stateParams, $modal, $state, GeneSets, UserFactory, Versions ) {
         // Get Geneset
         var gsParams = {creator:$stateParams.creator, slug:$stateParams.slug, show_versions: true, show_team: true};
         $scope.geneset = GeneSets.get(gsParams);
@@ -279,9 +279,16 @@ angular.module( 'tribe.genesets.use', [
 
             modalInstance.result.then(function (response) {
                 if (response === 'Delete') {
-                    GeneSets.rubbish({id: $scope.geneset.id}).$promise.then( function() {
-                        $state.go('deleted', { creator:$scope.geneset.creator.username, slug:$scope.geneset.slug, title:$scope.geneset.title }); //redirect to delete-success page
-                    });
+                    GeneSets.rubbish({id: $scope.geneset.id}).$promise.then(
+                        function() {
+                            $state.go('deleted', {
+                                //redirect to delete-success page
+                                creator:$scope.geneset.creator.username,
+                                slug:$scope.geneset.slug,
+                                title:$scope.geneset.title 
+                            });
+                        }
+                    );
                 }
             });
         };
@@ -291,31 +298,34 @@ angular.module( 'tribe.genesets.use', [
 
             var modalInstance = $modal.open({
                 templateUrl: 'genesets/download/downloadModal.tpl.html',
-                controller: ['$scope', '$modalInstance', 'CrossrefDBs', function( $scope, $modalInstance, CrossrefDBs ) {
-                    $scope.versionHash = versionHash;
-                    $scope.crossRefDbList = ['Symbol'];
+                controller: ['$scope', '$modalInstance', 'CrossrefDBs', 
+                    function( $scope, $modalInstance, CrossrefDBs ) {
+                        $scope.versionHash = versionHash;
+                        $scope.crossRefDbList = ['Symbol'];
 
-                    CrossrefDBs.query( function(data) {
-                        for (var i in data.objects ) {
+                        CrossrefDBs.query( function(data) {
+                          for (var i in data.objects ) {
                             $scope.crossRefDbList.push(data.objects[i]['name']);
-                        }
-                    });
+                          }
+                        });
 
-                    $scope.geneIdentifier = '';
-                    $scope.download = function () {
-                        $modalInstance.close($scope.geneIdentifier);
-                    };
-                    $scope.cancel = function () {
-                        $modalInstance.dismiss('cancel');
-                    };
-
-                }],
+                        $scope.geneIdentifier = '';
+                        $scope.download = function () {
+                            $modalInstance.close($scope.geneIdentifier);
+                        };
+                        $scope.cancel = function () {
+                            $modalInstance.dismiss('cancel');
+                        };
+                    }
+                ],
                 resolve: {
                 }               
             });
 
             modalInstance.result.then(function (geneIdentifier) {
-                var download_url = '/api/v1/version/' + $stateParams.creator + '/' +  $stateParams.slug + '/' + versionHash + '/download?xrid=' + geneIdentifier;
+                var download_url = '/api/v1/version/' + $stateParams.creator + 
+                    '/' +  $stateParams.slug + '/' + versionHash + 
+                    '/download?xrid=' + geneIdentifier;
                 window.open(download_url);
             });
         };

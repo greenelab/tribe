@@ -958,6 +958,9 @@ class VersionResource(ModelResource):
                     results[gene] = []
         return_list = []
         for (gid, pubs) in results.iteritems():
+            # Try to get the gene object from the gene_cache dictionary.
+            # However, if gene object was not found with desired xrid,
+            # skip it. 
             try:
                 return_list.append({'gene':gene_cache[gid],'pubs': pubs})
             except KeyError:
@@ -1054,7 +1057,7 @@ class VersionResource(ModelResource):
         except ObjectDoesNotExist:
             return http.HttpNotFound()
         except MultipleObjectsReturned:
-            return http.HttpMultipleChoices("More than one resource is"
+            return http.HttpMultipleChoices("More than one resource is "
                                             "found at this URI.")
 
         logger.debug("version obj %s found" % (obj))
