@@ -1,22 +1,25 @@
 <div class="modal-header">
-     <h4>
-        Download the gene and publication list for collection version</br>
-        <b>{{versionHash | limitTo:12}}</b>
-     </h4>
+  <h4>
+    Download the gene and publication list for collection version</br>
+    <b>{{versionHash | limitTo:12}}</b>
+  </h4>
 </div>
 
 <div class="modal-body">
 
-    <div class="form-group">
-        <label for="xrid">Choose the type of gene identifier you want in your .csv file:</label>
-        </br>
-        <i>Note: Not all types of gene identifiers are available for every organism.</i>
-        </br>
-        </br>
-        <select class="form-control" id="xrid" ng-model="geneIdentifier" ng-options="crossRefDb for crossRefDb in crossRefDbList" required>
-            <option value="">--- Choose an identifier ---</option>
-        </select>
-    </div>
+  <div class="form-group">
+    <label for="xrid">Choose the type of gene identifier you want in your
+        .csv file:</label>
+    </br>
+    <i>Note: Not all types of gene identifiers are available for every
+        organism.</i>
+    </br>
+    </br>
+    <select class="form-control" id="xrid" ng-model="geneIdentifier"
+      ng-options="crossRefDb for crossRefDb in crossRefDbList" required>
+        <option value="">--- Choose an identifier ---</option>
+    </select>
+</div>
 
 </div>
 
