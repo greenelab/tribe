@@ -281,6 +281,8 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
     """
     Testing the API endpoint that returns gene/publication list as
     tab-separated *.csv file for a specific geneset/collection version.
+    For all tests below, check that the contents of the *.csv file are what
+    we expect.
     """
 
     def setUp(self):
@@ -373,10 +375,11 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
         self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
         self.assertEqual(response_lines[2], 
                          'Author: ' + self.geneset1.creator.username)
-        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+        self.assertEqual(response_lines[3], 'Gene Identifier Type: Symbol')
+        self.assertEqual(response_lines[5], 'Gene\tPubmed IDs')
 
         returned_annotations_dict = {}
-        for line in response_lines[5:9]:
+        for line in response_lines[6:10]:
             toks = line.split("\t")
             if toks[1]:
                 pubs = toks[1].split(", ")
@@ -397,8 +400,6 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
                 saved_annotations_dict[symbol].add(pmid)
 
         self.assertEqual(returned_annotations_dict, saved_annotations_dict)
-
-
 
 
     def testGetEntrezIds(self):
@@ -422,10 +423,11 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
         self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
         self.assertEqual(response_lines[2], 
                          'Author: ' + self.geneset1.creator.username)
-        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+        self.assertEqual(response_lines[3], 'Gene Identifier Type: Entrez')
+        self.assertEqual(response_lines[5], 'Gene\tPubmed IDs')
 
         returned_annotations_dict = {}
-        for line in response_lines[5:9]:
+        for line in response_lines[6:10]:
             toks = line.split("\t")
             if toks[1]:
                 pubs = toks[1].split(", ")
@@ -469,10 +471,11 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
         self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
         self.assertEqual(response_lines[2], 
                          'Author: ' + self.geneset1.creator.username)
-        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+        self.assertEqual(response_lines[3], 'Gene Identifier Type: Symbol')
+        self.assertEqual(response_lines[5], 'Gene\tPubmed IDs')
 
         returned_annotations_dict = {}
-        for line in response_lines[5:9]:
+        for line in response_lines[6:10]:
             toks = line.split("\t")
             if toks[1]:
                 pubs = toks[1].split(", ")
@@ -516,10 +519,12 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
         self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
         self.assertEqual(response_lines[2], 
                          'Author: ' + self.geneset1.creator.username)
-        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+        self.assertEqual(response_lines[3],
+                         'Gene Identifier Type: ' + self.xrdb1.name)
+        self.assertEqual(response_lines[5], 'Gene\tPubmed IDs')
 
         returned_annotations_dict = {}
-        for line in response_lines[5:9]:
+        for line in response_lines[6:10]:
             toks = line.split("\t")
             if toks[1]:
                 pubs = toks[1].split(", ")
@@ -565,10 +570,12 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
         self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
         self.assertEqual(response_lines[2], 
                          'Author: ' + self.geneset1.creator.username)
-        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
+        self.assertEqual(response_lines[3],
+                         'Gene Identifier Type: ' + self.xrdb2.name)
+        self.assertEqual(response_lines[5], 'Gene\tPubmed IDs')
 
         returned_annotations_dict = {}
-        for line in response_lines[5:9]:
+        for line in response_lines[6:10]:
             toks = line.split("\t")
             if toks[1]:
                 pubs = toks[1].split(", ")
@@ -614,10 +621,14 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
         self.assertEqual(response_lines[1], 'Version: ' + self.version1.ver_hash)
         self.assertEqual(response_lines[2], 
                          'Author: ' + self.geneset1.creator.username)
-        self.assertEqual(response_lines[4], 'Gene\tPubmed IDs')
-        self.assertEqual(response_lines[5], '')
+        self.assertEqual(response_lines[3],
+                         'Gene Identifier Type: ' + self.xrdb3.name)
+        self.assertEqual(response_lines[5], 'Gene\tPubmed IDs')
 
-        self.assertEqual(len(response_lines), 6)
+        # Check that there were only 7 lines in the file and the last one
+        # is blank.
+        self.assertEqual(response_lines[6], '')
+        self.assertEqual(len(response_lines), 7)
 
 
     def testNonExistentXrdb(self):
