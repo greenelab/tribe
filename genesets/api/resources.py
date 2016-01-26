@@ -1066,6 +1066,11 @@ class VersionResource(ModelResource):
 
         desired_xrid = request.GET.get('xrid')
 
+        # If no 'xrid' was requested, or it is an empty string,
+        # make desired_xrid equal to 'Symbol'
+        if (desired_xrid == '') or (desired_xrid == None):
+            desired_xrid = 'Symbol'
+
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="' + \
                                           str(bundle.obj) + '.csv"'
@@ -1074,13 +1079,14 @@ class VersionResource(ModelResource):
         writer.writerow(["Collection: " + str(bundle.obj.geneset)])
         writer.writerow(["Version: " + str(bundle.obj.ver_hash)])
         writer.writerow(["Author: " + str(bundle.obj.geneset.creator)])
+        writer.writerow(["Gene Identifier Type: " + str(desired_xrid)])
         writer.writerow([])
         writer.writerow(["Gene", "Pubmed IDs"])
 
         for annotation in bundle_annotations:
             pubmed_id_list = [str(pub['pmid']) for pub in annotation['pubs']]
 
-            if desired_xrid in ('Symbol', '', None):
+            if desired_xrid  == 'Symbol':
                 writer.writerow([annotation['gene']['systematic_name'],
                                 ", ".join(pubmed_id_list)])
 
