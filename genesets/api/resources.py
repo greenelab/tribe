@@ -1206,10 +1206,10 @@ class CrossrefResource(ModelResource):
 
 class CrossrefDBResource(ModelResource):
     name = fields.CharField(attribute='name')
-    url  = fields.CharField(attribute='url')
+    url = fields.CharField(attribute='url')
 
     class Meta:
         queryset = CrossRefDB.objects.all()
         allowed_methods = ['get']
-        filtering = { 'name': ALL,
-                      'url': ALL }
+        filtering = {'name': ALL,
+                     'url': ALL}
