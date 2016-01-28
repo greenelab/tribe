@@ -1042,11 +1042,10 @@ class VersionResource(ModelResource):
                 " You must specify the parent version of this new version.")
         return bundle
 
-
     def download_as_csv(self, request, **kwargs):
         """
         This method builds a csv file of the current version for the user
-        to download. 
+        to download.
         """
 
         basic_bundle = self.build_bundle(request=request)
@@ -1068,7 +1067,7 @@ class VersionResource(ModelResource):
 
         # If no 'xrid' was requested, or it is an empty string,
         # make desired_xrid equal to 'Symbol'
-        if (desired_xrid == '') or (desired_xrid == None):
+        if not desired_xrid:
             desired_xrid = 'Symbol'
 
         response = HttpResponse(content_type='text/csv')
