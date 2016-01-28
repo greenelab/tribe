@@ -58,7 +58,7 @@ class Gene(models.Model):
 class CrossRefDB(models.Model):
     name = models.CharField(max_length=64, unique=True, db_index=True,
                             blank=False)
-    url  = models.URLField()
+    url = models.URLField()
 
     def save(self, *args, **kwargs):
         """
@@ -82,13 +82,13 @@ class CrossRefDB(models.Model):
 
 class CrossRef(models.Model):
     crossrefdb = models.ForeignKey(CrossRefDB, null=False)
-    gene       = models.ForeignKey(Gene, null=False)
-    xrid       = models.CharField(max_length=32, null=False, db_index=True)
+    gene = models.ForeignKey(Gene, null=False)
+    xrid = models.CharField(max_length=32, null=False, db_index=True)
 
     def __unicode__(self):
         return self.xrid
 
-    #return the url for this entry
+    # Return the url for this entry
     def _get_url(self):
         url = self.crossrefdb.url
         if "_SPEC_" in url:
@@ -96,4 +96,5 @@ class CrossRef(models.Model):
             url = url.replace("_SPEC_", species_name.replace(" ", "+"))
         url = url.replace("_REPL_", self.xrid)
         return url
+
     specific_url = property(_get_url)
