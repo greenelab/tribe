@@ -883,21 +883,32 @@ class VersionResource(ModelResource):
         }
         max_limit = None
 
-    # URL that allows access by geneset username and slug combined with the version hash
+    # URL that allows access by geneset username and slug combined with the
+    # version hash. For more info, see:
     # http://django-tastypie.readthedocs.org/en/latest/cookbook.html?highlight=prepend_urls#using-non-pk-data-for-your-urls
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<geneset__creator__username>[\w.-]+)/(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
-            url(r"^(?P<resource_name>%s)/(?P<geneset__creator__username>[\w.-]+)/(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)/download%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('download_as_csv'), name="api_download_as_csv"),
+            url(r"^(?P<resource_name>%s)/"
+                "(?P<geneset__creator__username>[\w.-]+)/"
+                "(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)%s$" %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"
+                ),
+            url(r"^(?P<resource_name>%s)/"
+                "(?P<geneset__creator__username>[\w.-]+)/"
+                "(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)/"
+                "download%s$" % (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('download_as_csv'), name="api_download_as_csv"
+                ),
         ]
 
     def dehydrate_annotations(self, bundle):
-        logger.info("Dehydrating Annotations")
-
         """
-        Pull out both the gene and publication objects and put them into a list that gets returned.
+        Pull out all gene and publication objects and put them into a list
+        that gets returned.
         Format is: [{genedict}, [{pubdict}, {pubdict}...]]
         """
+        logger.info("Dehydrating Annotations")
 
         xrids_requested = bundle.request.GET.get('xrids_requested', None)
 
@@ -940,7 +951,6 @@ class VersionResource(ModelResource):
                     'xrid')
             for gobj in gene_objs:
                 gene_cache[gobj['gene_id']] = gobj
-
 
         pub_objs = Publication.objects.filter(pk__in=pubs).values()
         pub_cache = {}
