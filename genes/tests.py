@@ -121,7 +121,6 @@ class CrossRefDBTestCase(TestCase):
         """
         xrdb1 = factory.create(CrossRefDB, {"name": "XRDB1"})
 
-
     def test_saving_xrdb_no_name(self):
         """
         Check that CrossRefDBs in database are required to have a non-null
@@ -129,7 +128,6 @@ class CrossRefDBTestCase(TestCase):
         """
         with self.assertRaises(IntegrityError):
             xrdb1 = factory.create(CrossRefDB, {"name": None})
-
 
     def test_saving_xrdb_blank_name(self):
         """
