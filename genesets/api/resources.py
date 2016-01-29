@@ -888,18 +888,17 @@ class VersionResource(ModelResource):
     # http://django-tastypie.readthedocs.org/en/latest/cookbook.html?highlight=prepend_urls#using-non-pk-data-for-your-urls
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/"
-                "(?P<geneset__creator__username>[\w.-]+)/"
-                "(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)%s$" %
+            url((r"^(?P<resource_name>%s)/"
+                 r"(?P<geneset__creator__username>[\w.-]+)/"
+                 r"(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)%s$") %
                 (self._meta.resource_name, trailing_slash()),
-                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"
-                ),
-            url(r"^(?P<resource_name>%s)/"
-                "(?P<geneset__creator__username>[\w.-]+)/"
-                "(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)/"
-                "download%s$" % (self._meta.resource_name, trailing_slash()),
-                self.wrap_view('download_as_csv'), name="api_download_as_csv"
-                ),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url((r"^(?P<resource_name>%s)/"
+                 r"(?P<geneset__creator__username>[\w.-]+)/"
+                 r"(?P<geneset__slug>[\w.-]+)/(?P<ver_hash>[\w.-]+)/"
+                 r"download%s$") %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('download_as_csv'), name="api_download_as_csv"),
         ]
 
     def dehydrate_annotations(self, bundle):
