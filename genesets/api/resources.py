@@ -909,11 +909,12 @@ class VersionResource(ModelResource):
         """
         logger.info("Dehydrating Annotations")
 
+        # If 'xrids_requested == True', bring back annotations with *all*
+        # available xrids.
         xrids_requested = bundle.request.GET.get('xrids_requested', None)
 
-        # Specific cross-reference identifier that the main gene objects
-        # in the annotations should return. This is only used if
-        # all xrids are not requested.
+        # If xrids_requested == False or None, specific_xrid will be used to
+        # choose which xrid to use when annotating.
         specific_xrid = bundle.request.GET.get('xrid', None)
 
         genes = set()
@@ -962,16 +963,16 @@ class VersionResource(ModelResource):
                 results[gene].append(pub_cache[pub])
             except KeyError:
                 try:
-                    results[gene] = [pub_cache[pub],]
+                    results[gene] = [pub_cache[pub], ]
                 except KeyError:
                     results[gene] = []
         return_list = []
         for (gid, pubs) in results.iteritems():
             # Try to get the gene object from the gene_cache dictionary.
             # However, if gene object was not found with desired xrid,
-            # skip it. 
+            # skip it.
             try:
-                return_list.append({'gene':gene_cache[gid],'pubs': pubs})
+                return_list.append({'gene': gene_cache[gid], 'pubs': pubs})
             except KeyError:
                 pass
         return return_list
