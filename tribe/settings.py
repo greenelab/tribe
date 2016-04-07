@@ -483,8 +483,12 @@ DOGSLOW_LOG_LEVEL = 'WARNING'
 ########## END DOGSLOW CONFIGURATION
 
 ########## OAUTH CONFIGURATION
-OAUTH_EXPIRE_DELTA = datetime.timedelta(days=int(config.get('oauth', 'OAUTH_EXPIRE_DAYS')))
-OAUTH_ACCESS_TOKEN_MODEL = 'oauth2_provider.models.AccessToken'
+if config.has_section('oauth'):
+    OAUTH2_PROVIDER = {
+        'ACCESS_TOKEN_EXPIRE_SECONDS': int(config.get(
+            'oauth', 'ACCESS_TOKEN_EXPIRE_SECONDS'))
+    }
+    OAUTH_ACCESS_TOKEN_MODEL = config.get('oauth', 'OAUTH_ACCESS_TOKEN_MODEL')
 ########## END OAUTH CONFIGURATION
 
 ########## ALLAUTH CONFIGURATION
