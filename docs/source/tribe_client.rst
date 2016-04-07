@@ -85,6 +85,10 @@ Quick Start
 
 7. Make a link that takes the user to the ``/tribe_client`` url of your website for them to log in using Tribe
 
+  .. note:: 
+
+    The OAuth token is configured to expire **14 days** from when it was created.
+
 
 A Closer Look
 -----------------------------
