@@ -368,7 +368,14 @@ to you. Your application/tool will need these when requesting an OAuth token
 from Tribe to create resources.
 
 3. Now you can create new genesets and versions using the Client ID, secret,
-and your username and password. The following code is an example of how you
+and your username and password.
+
+  .. note:: 
+
+    The OAuth token is configured to expire **14 days** from when it was created.
+
+
+The following code is an example of how you
 might go about doing this. This code also uses
 `requests <http://docs.python-requests.org/en/latest/>`_.
 
