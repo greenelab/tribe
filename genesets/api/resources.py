@@ -1130,36 +1130,10 @@ class GenesetVersionResource(VersionResource):
 
     def dehydrate_annotations(self, bundle):
         """
-        Pull out both the gene and publication objects and put them into a list that gets returned.
-        Format is: [{genedict}, [{pubdict}, {pubdict}...]]
+        This will just call the dehydrate_annotations() method of
+        VersionResource so that code does not get repeated.
         """
-        genes = set()
-        pubs = set()
-        for annotation in bundle.obj.annotations:
-            (gene, pub) = annotation
-            genes.add(gene)
-            pubs.add(pub)
-        gene_objs = Gene.objects.filter(pk__in=genes).values()
-        gene_cache = {}
-        for gobj in gene_objs:
-            gene_cache[gobj['id']] = gobj
-        pub_objs = Publication.objects.filter(pk__in=pubs).values()
-        pub_cache = {}
-        for pobj in pub_objs:
-            pub_cache[pobj['id']] = pobj
-        results = {}
-        for annotation in bundle.obj.annotations:
-            (gene, pub) = annotation
-            try:
-                results[gene].append(pub_cache[pub])
-            except KeyError:
-                try:
-                    results[gene] = [pub_cache[pub],]
-                except KeyError:
-                    results[gene] = []
-        return_list = []
-        for (gid, pubs) in results.iteritems():
-            return_list.append({'gene':gene_cache[gid],'pubs': pubs})
+        return_list = VersionResource.dehydrate_annotations(self, bundle)
         return return_list
 
 
