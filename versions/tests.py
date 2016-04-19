@@ -522,6 +522,7 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=g2, xrid="XRID1")
         xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g1, xrid="XRRID1")
         xref4 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g2, xrid="XRID2")
+        xref5 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g3, xrid="XRID3")
 
         self.geneset1 = Geneset.objects.create(organism=self.org1, creator=self.user1,
         									   title='Test RNA polymerase II geneset',
@@ -535,7 +536,6 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
 
         # Create some random publications
         load_pmids([17827783, 8112735, 2556444])
-
 
     def testVersionCreationNotLoggedIn(self):
         """
@@ -552,7 +552,6 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
 
         resp = client.post('/api/v1/version', format="json", data=version_data)
         self.assertHttpUnauthorized(resp)
-
 
     def testVersionCreationWrongLogin(self):
         """
@@ -572,7 +571,6 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
 
         resp = client.post('/api/v1/version', format="json", data=version_data)
         self.assertHttpUnauthorized(resp)
-
 
     def testSimpleVersionCreationNoAnnots(self):
         """
@@ -595,8 +593,6 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         # 'New versions must have annotations.'
         self.assertHttpBadRequest(resp)
         self.assertEqual(self.deserialize(resp)['error'], 'New versions must have annotations.')
-
-
 
     def testSimpleVersionCreationWithAnnots(self):
         """
@@ -623,6 +619,39 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
 
         self.assertEqual(simplified_annotations, version_data['annotations'])
 
+    def testSimpleVersionCreationWithXrdb(self):
+        """
+        Checking that the Version.format_annotations() method handles xrdbs
+        properly, and that they are what we expect when we request them as
+        Entrez.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        version_data = {}
+        version_data['geneset'] = '/api/v1/geneset/' + str(self.geneset1.pk)
+        version_data['description'] = 'Adding genes and publications.'
+        version_data['annotations'] = {'XRID1': [20671152],
+                                       'XRID2': [8887666],
+                                       'XRID3': []}
+        version_data['xrdb'] = 'ASDF'
+
+        resp = client.post('/api/v1/version', format="json", data=version_data)
+        self.assertHttpCreated(resp)
+        gsresp = client.get(
+            '/api/v1/geneset', format="json",
+            data={'show_tip': 'true', 'full_annotations': 'true'}
+        )
+        self.assertValidJSONResponse(gsresp)
+
+        entrez_annots = {55982: [20671152], 18091: [8887666], 67087: []}
+
+        simplified_annotations = {}
+        for annotation in self.deserialize(gsresp)['objects'][0]['tip']['annotations']:
+            entrezid = annotation['gene']['entrezid']
+            simplified_annotations[entrezid] = [pub['pmid'] for pub in annotation['pubs']]
+
+        self.assertEqual(simplified_annotations, entrez_annots)
 
     def testCheckGenesetVersionURI(self):
         """
@@ -647,8 +676,6 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         self.assertValidJSONResponse(vers_resp)
 
         self.assertEqual(self.deserialize(gsresp)['objects'][0]['tip']['resource_uri'], self.deserialize(vers_resp)['objects'][0]['resource_uri'])
-
-
 
     def testCreateSecondVersionWithParent(self):
         """
