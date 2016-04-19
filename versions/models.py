@@ -4,7 +4,7 @@ logger.setLevel(logging.WARNING)
 
 from django.db import models
 from django.contrib.auth.models import User
-from genes.models import Gene
+from genes.models import Gene, CrossRef
 from genesets.models import Geneset
 from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
 from publications.models import Publication
@@ -63,7 +63,6 @@ class FrozenSetField(models.TextField):
         return (field_class, args, kwargs)
 
 
-
 class Version(models.Model):
     geneset     = models.ForeignKey(Geneset, help_text="The gene set this will be a new version of.")
     creator     = models.ForeignKey(User, help_text="Must be the same as the author of the gene set.")
@@ -74,20 +73,19 @@ class Version(models.Model):
     annotations = FrozenSetField(editable = False, help_text="Holds gene PK's.")
     # FrozenSetField defined in the class above.
 
-
     def save(self, *args, **kwargs):
         """
         Extends save method of Django models to automatically do some checks
         (checks to see if the user should have passed a parent version and if
         publications are sent without genes), and creates a sha1 ver_hash for
-        each new version as it is saved in the database for the first time. 
-        For more information on overriding methods, see: 
+        each new version as it is saved in the database for the first time.
+        For more information on overriding methods, see:
         https://docs.djangoproject.com/en/dev/topics/db/models/#overriding-model-methods
         """
 
         existing_versions_num = self.geneset.version_set.count()
 
-        if (existing_versions_num != 0) and (self.parent == None):
+        if (existing_versions_num != 0) and (self.parent is None):
             raise NoParentVersionSpecified
 
         if not self.ver_hash:
@@ -110,16 +108,17 @@ class Version(models.Model):
 
         return super(Version, self).save(*args, **kwargs)
 
-
     def format_annotations(self, annots, xrdb, full_pubs):
         """
-        xrdb is the type of identifier that 
+        xrdb is the type of gene identifier that the annotations are sent as
         """
         formatted_for_db_annotations = set()
         genes_not_found = set()
         annotation_dict = {}
 
-        for key in annots: # This loop validates the annotations and gets the actual gene/publication objects
+        for key in annots:
+            # This loop validates the annotations and gets the actual
+            # gene/publication objects
             try:
                 if (xrdb is None):
                     gene_obj = Gene.objects.get(id=key)
@@ -128,12 +127,15 @@ class Version(models.Model):
                 elif (xrdb == 'Symbol'):
                     gene_obj = Gene.objects.get(systematic_name=key)
                 else:
-                    gene_obj = CrossRef.objects.filter(crossrefdb__name=xrdb).get(xrid=key)
+                    xref_obj = CrossRef.objects.filter(
+                            crossrefdb__name=xrdb).get(xrid=key)
+                    gene_obj = xref_obj.gene
 
                 pubs = set()
                 for publication in annots[key]:
 
-                    if full_pubs:  # The full publication database objects were sent
+                    if full_pubs:
+                        # The full publication database objects were sent
                         pubs.add(publication['id'])
                     else:
                         pubmed_id = publication  # Only the pubmed IDs were sent
@@ -150,7 +152,7 @@ class Version(models.Model):
 
                 annotation_dict[gene_obj.pk] = pubs
 
-            except Gene.DoesNotExist:
+            except (Gene.DoesNotExist, CrossRef.DoesNotExist):
                 genes_not_found.add(key)
 
         if annotation_dict:  # if annotations (genes and publications) exist in the database:
