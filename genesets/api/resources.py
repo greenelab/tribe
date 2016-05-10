@@ -680,12 +680,24 @@ class GenesetResource(ModelResource):
 
         # If there is either no user or the user is not authenticated,
         # return Unauthorized response:
-        if (not request.user):  
+        if (not request.user):
             return http.HttpUnauthorized()
         elif (not request_user.is_authenticated()):
             return http.HttpUnauthorized()
         else:
             loggedin_creator = bundle.request.user
+            if 'slug' in bundle.data:
+                non_unique_slug = Geneset.objects.filter(
+                    creator=loggedin_creator).filter(slug=bundle.data['slug'])
+                if non_unique_slug:
+                    return http.HttpBadRequest(
+                        "There is already one collection with the same 'slug' "
+                        "field as this collection created by this account. "
+                        "Please try using a different collection 'slug', or do"
+                        " not include one with this collection's data and let "
+                        "Tribe create one for you. For more information, see "
+                        "our documentation here: " + settings.DOCS_URL +
+                        "using_tribe.html#collection-urls")
             gs_slug_max_length = Geneset._meta.get_field('slug').max_length
             gs_slug = slugify(bundle.data['title'])[:gs_slug_max_length]
             non_unique = Geneset.objects.filter(creator=loggedin_creator).filter(slug=gs_slug)
