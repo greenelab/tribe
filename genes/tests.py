@@ -1,5 +1,3 @@
-from datetime import date
-
 from django.test import TestCase
 from django.core.exceptions import FieldError
 from django.db import IntegrityError
@@ -145,7 +143,8 @@ class LoadCrossRefsTestCase(TestCase):
     def setUp(self):
         xrdb1 = CrossRefDB.objects.create(
             name="Ensembl", url="http://www.ensembl.org/Gene/Summary?g=_REPL_")
-        xrdb2 = CrossRefDB.objects.create(
+
+        CrossRefDB.objects.create(
             name="UniProtKB", url="http://www.uniprot.org/uniprot/_REPL_")
 
         g1 = factory.create(Gene, {'entrezid': 50810})
@@ -153,18 +152,14 @@ class LoadCrossRefsTestCase(TestCase):
         g3 = factory.create(Gene)
         g4 = factory.create(Gene)
 
-        ens1 = factory.create(CrossRef, {'crossrefdb': xrdb1,
-                                         'xrid': 'ENSG00000166503',
-                                         'gene': g1})
-        ens2 = factory.create(CrossRef, {'crossrefdb': xrdb1,
-                                         'xrid': 'ENSG00000214575',
-                                         'gene': g2})
-        ens3 = factory.create(CrossRef, {'crossrefdb': xrdb1,
-                                         'xrid': 'ENSG00000170312',
-                                         'gene': g3})
-        ens4 = factory.create(CrossRef, {'crossrefdb': xrdb1,
-                                         'xrid': 'ENSG00000172053',
-                                         'gene': g4})
+        factory.create(CrossRef, {'crossrefdb': xrdb1, 'gene': g1,
+                                  'xrid': 'ENSG00000166503'})
+        factory.create(CrossRef, {'crossrefdb': xrdb1, 'gene': g2,
+                                  'xrid': 'ENSG00000214575'})
+        factory.create(CrossRef, {'crossrefdb': xrdb1, 'gene': g3,
+                                  'xrid': 'ENSG00000170312'})
+        factory.create(CrossRef, {'crossrefdb': xrdb1, 'gene': g4,
+                                  'xrid': 'ENSG00000172053'})
 
     def test_load_uniprot_mgmt_command(self):
         """
