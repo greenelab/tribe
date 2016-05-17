@@ -5,6 +5,7 @@ from optparse import make_option
 
 import logging
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class Command(BaseCommand):
