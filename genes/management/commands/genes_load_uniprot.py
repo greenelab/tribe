@@ -15,10 +15,9 @@ class Command(BaseCommand):
                          ' -e "Ensembl" idmapping.dat.gz > '
                          'uniprot_entrez_ensembl.txt'),
     )
-    help = 'Add UniProtKB cross references. *Note - Ensembl Cross-' + \
-           'reference database must be loaded in Tribe before ' + \
-           'running this command, as it will look for Ensembl IDs' + \
-           ' if it finds no Entrez mappings.'
+    help = ('Add UniProtKB cross references. *Note - Ensembl Cross-reference'
+            ' database must be loaded in Tribe before running this command, '
+            'as it will look for Ensembl IDs if it finds no Entrez mappings.')
 
     def handle(self, *args, **options):
         uniprot_file = options.get('uniprot')
