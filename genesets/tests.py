@@ -556,6 +556,47 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
         self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']) - len(not_in_db_genes))
 
+    def testCreateGenesetWithTags(self):
+        """
+        Test to create a new geneset with some annotations AND tags
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org1.scientific_name
+        org_resp = self.api_client.get(
+            '/api/v1/organism', format="json",
+            data={'scientific_name': org_scientific_name}
+        )
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'RNA polymerase II geneset with tags'
+        geneset_data['abstract'] = ('Any process that modulates the rate, '
+                                    'frequency or extent of a process involved'
+                                    ' in starting transcription from an RNA '
+                                    'polymerase II promoter.')
+        geneset_data['public'] = True
+        geneset_data['annotations'] = {55982: [20671152, 19583951],
+                                       18091: [8887666], 67087: []}
+        geneset_data['xrdb'] = 'Entrez'
+        geneset_data['tags'] = ['alpha', 'beta', 'omega']
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+        self.assertHttpCreated(resp)
+
+        gsresp = self.api_client.get(
+            '/api/v1/geneset', format="json", data={'show_tip': 'true'})
+        self.assertValidJSONResponse(gsresp)
+
+        # Check that all tags have been saved successfully. We need to
+        # convert the lists to set, because they might have been saved
+        # in a different order:
+        self.assertEqual(set(self.deserialize(gsresp)['objects'][0]['tags']),
+                         set(geneset_data['tags']))
 
 
 class GenesetSlugTestCase(ResourceTestCase):
