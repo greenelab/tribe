@@ -717,7 +717,6 @@ class GenesetResource(ModelResource):
                     updated_bundle = self.alter_detail_data_to_serialize(request, updated_bundle)
                     return self.create_response(request, updated_bundle, response_class=http.HttpCreated, location=location)
 
-
     def obj_create(self, bundle, **kwargs):
         logger.info('Creating bundle %s', bundle)
         bundle = super(GenesetResource, self).obj_create(bundle, **kwargs)
@@ -727,7 +726,9 @@ class GenesetResource(ModelResource):
         except KeyError:
             fork_ver_hash = None
 
-        if fork_ver_hash:  # if this was a fork of a specific version, add all the prior versions
+        if fork_ver_hash:
+            # If this was a fork of a specific version, add all
+            # the prior versions
 
             # Disable commit date so we preserve original dates of versions
             commit_date = Version._meta.get_field_by_name('commit_date')[0]
@@ -764,8 +765,8 @@ class GenesetResource(ModelResource):
                 parent_version = None
 
             if 'description' in bundle.data:
-                version = Version(geneset=bundle.obj, 
-                                  creator=bundle.obj.creator, 
+                version = Version(geneset=bundle.obj,
+                                  creator=bundle.obj.creator,
                                   description=bundle.data['description'],
                                   parent=parent_version)
             else:
@@ -777,7 +778,7 @@ class GenesetResource(ModelResource):
             try:
                 passed_annotations = bundle.data['annotations']
             except KeyError:
-                passed_annotations = None     
+                passed_annotations = None
 
             try:
                 posted_database = bundle.data['xrdb']
@@ -794,23 +795,29 @@ class GenesetResource(ModelResource):
             genes_not_found = None
             if passed_annotations:
                 # if annotations were passed, add them to a new version
-                logger.info('Annotations were passed to create Geneset,'\
-                            'make an initial version with these annotations: %s',
+                logger.info('Annotations were passed to create Geneset, make'
+                            ' an initial version with these annotations: %s',
                             passed_annotations)
+
                 formatted_for_db_annotations, genes_not_found =\
-                            version.format_annotations(passed_annotations,
-                                                       posted_database, full_pubs)
+                    version.format_annotations(passed_annotations,
+                                               posted_database, full_pubs)
+
                 version.annotations = formatted_for_db_annotations
                 version.save()
             else:
-                logger.info('Hydrated gene set without any annotations, %s', bundle)
+                logger.info('Hydrated gene set without any annotations, %s',
+                            bundle)
 
             if genes_not_found:
-                bundle.data['Warning - The following genes were not found in our database'] =\
-                                                                         list(genes_not_found)
+                bundle.data['Warning - The following genes were not found '
+                            'in our database'] = list(genes_not_found)
+
+        if 'tags' in bundle.data:
+            for tag in bundle.data['tags']:
+                bundle.obj.tags.add(tag)
 
         return bundle
-
 
     def get_object_list(self, request):
         return super(GenesetResource, self).get_object_list(request).filter(deleted=False)
