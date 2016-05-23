@@ -23,7 +23,7 @@ class Geneset(models.Model):
     organism    = models.ForeignKey(Organism, help_text="The organism the genes in this set belong to.")
     abstract    = models.TextField(null=True)
     slug        = models.SlugField(help_text="Slugified title field", max_length=75)
-                                  # A 'slug' is a label for an object in django, which only
+                                # A 'slug' is a label for an object in django, which only
                                   # contains letters, numbers, underscores, and hyphens, thus making it URL-usable. For more
                                   # information, see: http://stackoverflow.com/questions/427102/what-is-a-slug-in-django
     public   = models.BooleanField(default=False, help_text="Do you want other users to have read-access to this gene set?")
