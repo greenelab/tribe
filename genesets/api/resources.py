@@ -472,6 +472,7 @@ def GetTip(gs):
     else:
         return vers[0]
 
+
 class GenesetResource(ModelResource):
     title       = fields.CharField(attribute='title')
     creator     = fields.ForeignKey(BasicUserResource, 'creator', full=True)
@@ -483,7 +484,7 @@ class GenesetResource(ModelResource):
     editable    = fields.BooleanField(readonly=True)
     participants= fields.ListField(readonly=True, use_in=lambda bundle: bundle.request.GET.get('show_team', None) == 'true', null=True)
     versions    = fields.ToManyField('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_detail=True, full_list=False, attribute=lambda bundle: Version.objects.filter(geneset=bundle.obj).order_by('-commit_date'), use_in=lambda bundle: bundle.request.GET.get('show_versions', None) == 'true', null=True)
-    tip         = fields.ForeignKey('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_list=True, attribute=lambda bundle: GetTip(bundle.obj), use_in=lambda bundle: bundle.request.GET.get('show_tip', None) == 'true', null=True)
+    tip         = fields.ForeignKey('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_list=True, attribute=lambda bundle: bundle.obj.get_tip(), use_in=lambda bundle: bundle.request.GET.get('show_tip', None) == 'true', null=True)
     tags        = fields.ListField(attribute='tag_prop', readonly=True, null=True)
 
     class Meta:

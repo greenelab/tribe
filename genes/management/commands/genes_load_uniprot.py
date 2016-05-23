@@ -1,9 +1,38 @@
-import sys
-from django.core.management.base import BaseCommand
-from genes.models import CrossRefDB, CrossRef, Gene
-from optparse import make_option
+# The docstring in this module is written in rst format so that it can be
+# collected by sphinx and integrated into django-genes/README.rst file.
+
+"""
+   This command can be used to populate database with UniProtKB
+   identifiers. It takes one argument:
+
+   * uniprot_file: location of a file mapping UniProtKB IDs to Entrez
+     and Ensembl IDs
+
+   **Important:** Before calling this command, please make sure that
+   both Ensembl and Entrez identifiers have been loaded into the
+   database.
+
+   After downloading the gzipped file, use ``zgrep`` command to get
+   the lines we need (the original file is quite large), then run this
+   command:
+
+   ::
+
+      wget -P data/ -N ftp://ftp.uniprot.org/pub/databases/uniprot/\
+current_release/knowledgebase/idmapping/idmapping.dat.gz
+      zgrep -e "GeneID" -e "Ensembl" data/idmapping.dat.gz \
+> data/uniprot_entrez_ensembl.txt
+      python manage.py genes_load_uniprot \
+--uniprot_file=data/uniprot_entrez_ensembl.txt
+"""
 
 import logging
+import sys
+from optparse import make_option
+
+from django.core.management.base import BaseCommand
+from genes.models import CrossRefDB, CrossRef, Gene
+
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
