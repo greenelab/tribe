@@ -45,7 +45,9 @@ angular.module( 'tribe', [
     $rootScope.$stateParams = $stateParams;
 
 
-    $rootScope.$on('$stateChangeStart', function (ev, to, toParams, from, fromParams) {
+    $rootScope.$on(
+      '$stateChangeStart', function (ev, to, toParams, from, fromParams) {
+
         if (requiredLoginStates.indexOf(to['name']) > -1) {
             UserFactory.getPromise().$promise.then( function() {
 
@@ -53,14 +55,20 @@ angular.module( 'tribe', [
 
                     var modalInstance = $modal.open({
                         templateUrl: 'auth/login-modal-box.tpl.html',
-                        controller: ['$scope', '$modalInstance', function( $scope, $modalInstance ) {
-                            $scope.message = "You need to sign in to create a collection.";
+                        controller: [
+                          '$scope', '$modalInstance', function($scope,
+                                                               $modalInstance) {
+                            $scope.message = "You need to sign in to create " +
+                                "a collection.";
                             $scope.credentials = {};
                             $scope.login = function () {
-                                User.login($scope.credentials).$promise.then( function(data) {
+                                User.login($scope.credentials)
+                                  .$promise.then( function(data) {
                                     if (data['success'] === true) {
                                         $rootScope.$broadcast( 'user.update' );
                                         $modalInstance.close(data['success']);
+                                        $window.location.reload();
+
                                     }
                                 });
                             };
