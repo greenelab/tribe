@@ -108,7 +108,7 @@ class Version(models.Model):
 
         return super(Version, self).save(*args, **kwargs)
 
-    def format_annotations(self, annots, xrdb, full_pubs):
+    def format_annotations(self, annots, xrdb, full_pubs, organism=None):
         """
         xrdb is the type of gene identifier that the annotations are sent as
         """
@@ -116,16 +116,22 @@ class Version(models.Model):
         genes_not_found = set()
         annotation_dict = {}
 
+        if organism is not None:
+            gene_objects_manager = Gene.objects.filter(
+                organism__scientific_name=organism)
+        else:
+            gene_objects_manager = Gene.objects
+
         for key in annots:
             # This loop validates the annotations and gets the actual
             # gene/publication objects
             try:
                 if (xrdb is None):
-                    gene_obj = Gene.objects.get(id=key)
+                    gene_obj = gene_objects_manager.get(id=key)
                 elif (xrdb == 'Entrez'):
-                    gene_obj = Gene.objects.get(entrezid=key)
+                    gene_obj = gene_objects_manager.get(entrezid=key)
                 elif (xrdb == 'Symbol'):
-                    gene_obj = Gene.objects.get(systematic_name=key)
+                    gene_obj = gene_objects_manager.get(systematic_name=key)
                 else:
                     xref_obj = CrossRef.objects.filter(
                             crossrefdb__name=xrdb).get(xrid=key)
@@ -138,15 +144,22 @@ class Version(models.Model):
                         # The full publication database objects were sent
                         pubs.add(publication['id'])
                     else:
-                        pubmed_id = publication  # Only the pubmed IDs were sent
+                        # Only the pubmed IDs were sent
+                        pubmed_id = publication
                         try:
-                            pub_obj = Publication.objects.get(pmid=pubmed_id) # Check to see if it is in the database
-                        except Publication.DoesNotExist: # If it doesn't exit, load it
+                            # Check to see if publication is in the database
+                            pub_obj = Publication.objects.get(pmid=pubmed_id)
+                        except Publication.DoesNotExist:
+                            # If it doesn't exit, load it
                             load_pmids([pubmed_id, ])
-                            try: # Try again to see if it is now in the database
+                            try:
+                                # Try again to see if publication is now in
+                                # the database
                                 pub_obj = Publication.objects.get(pmid=pubmed_id)
-                            except Publication.DoesNotExist:  # pubmed_id that was passed probably does not exist
-                                pub_obj=None
+                            except Publication.DoesNotExist:
+                                # Pubmed id that was passed probably does not
+                                # exist
+                                pub_obj = None
                         if pub_obj:
                             pubs.add(pub_obj.id)
 
@@ -155,18 +168,23 @@ class Version(models.Model):
             except (Gene.DoesNotExist, CrossRef.DoesNotExist):
                 genes_not_found.add(key)
 
-        if annotation_dict:  # if annotations (genes and publications) exist in the database:
+        if annotation_dict:
+            # if annotations (genes and publications) exist in the database:
             for key in annotation_dict:
-                if annotation_dict[key]: # This is the python way to check if the set is not empty (i.e. there are publications for this gene)
+                # The following statement is the pythonic way to check if the
+                # set is not empty (i.e. there are publications for this gene)
+                if annotation_dict[key]:
+                    # There are publications for this gene - add them as tuples
+                    # to formatted_for_db_annotations set.
                     for pub in annotation_dict[key]:
                         formatted_for_db_annotations.add((key, pub))
                 else:
-                    formatted_for_db_annotations.add((key, None))  # There are no pubs for this gene
+                    # There are no pubs for this gene
+                    formatted_for_db_annotations.add((key, None))
 
             formatted_for_db_annotations = frozenset(formatted_for_db_annotations)
 
         return (formatted_for_db_annotations, genes_not_found)
-
 
     # __unicode__ in django explained: https://docs.djangoproject.com/en/dev/ref/models/instances/#unicode
     def __unicode__(self):
