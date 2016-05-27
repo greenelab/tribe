@@ -1048,7 +1048,14 @@ class VersionResource(ModelResource):
         except KeyError:
             full_pubs = None
 
-        formatted_for_db_annotations, genes_not_found = bundle.obj.format_annotations(passed_annotations, posted_database, full_pubs)
+        geneset_uri = bundle.data['geneset']
+        geneset = None
+        if geneset_uri:
+            geneset = GenesetResource().get_via_uri(geneset_uri, bundle.request)
+
+        formatted_for_db_annotations, genes_not_found = \
+            bundle.obj.format_annotations(passed_annotations, posted_database,
+                                          full_pubs, organism=geneset.organism.scientific_name)
 
         if genes_not_found:
             bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
