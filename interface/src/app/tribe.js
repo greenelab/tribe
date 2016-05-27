@@ -68,7 +68,6 @@ angular.module( 'tribe', [
                                         $rootScope.$broadcast( 'user.update' );
                                         $modalInstance.close(data['success']);
                                         $window.location.reload();
-
                                     }
                                 });
                             };
