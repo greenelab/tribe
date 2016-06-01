@@ -918,14 +918,62 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         )
         self.assertValidJSONResponse(gsresp)
 
-        simplified_annotations = {}
+        simplified_annotations = []
         for annotation in self.deserialize(gsresp)['tip']['annotations']:
-            entrezid = annotation['gene']['entrezid']
-            simplified_annotations[entrezid] = [pub['pmid'] for
-                                                pub in annotation['pubs']]
+            simple_annot = {}
+            simple_annot['gene'] = annotation['gene']['entrezid']
+            simple_annot['pubs'] = [pub['pmid'] for pub in annotation['pubs']]
+            simplified_annotations.append(simple_annot)
 
-        entrez_annots = {9164906: [20671152]}
+        entrez_annots = [{'gene': 9164906, 'pubs': [20671152]}]
         self.assertEqual(simplified_annotations, entrez_annots)
+
+    def testBadGenesetURI(self):
+        """
+        Check that we get the correct response from API if geneset_uri
+        passed for new Version is in a format not supported by the API
+        (i.e. '/api/v1/geneset/<geneset_pk>')
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        version_data = {}
+
+        # Add a letter to the geneset Primary Key to make it an invalid format:
+        version_data['geneset'] = '/api/v1/geneset/983b'
+        version_data['description'] = 'Adding falsy geneset_uri'
+        version_data['annotations'] = {55982: [20671152]}
+        version_data['xrdb'] = 'Symbol'
+
+        resp = client.post('/api/v1/version', format="json", data=version_data)
+        self.assertHttpBadRequest(resp)
+        self.assertEqual(self.deserialize(resp)['error'],
+                         "The 'geneset' resource URI sent was in a format not "
+                         "supported by the Tribe API.")
+
+    def testNonexistentGenesetURI(self):
+        """
+        Check that we get the correct response from API if geneset_uri
+        passed for new Version does not correspond to any existing
+        geneset in the database.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        version_data = {}
+
+        # Pass in an outrageously large geneset PK, which will
+        # *almost certainly* never exist in this test database.
+        version_data['geneset'] = '/api/v1/geneset/99999999999999999999999'
+        version_data['description'] = 'Adding falsy geneset_uri'
+        version_data['annotations'] = {55982: [20671152]}
+        version_data['xrdb'] = 'Symbol'
+
+        resp = client.post('/api/v1/version', format="json", data=version_data)
+        self.assertHttpNotFound(resp)
+        self.assertEqual(resp.content,
+                         "The 'geneset' resource URI sent did not match the "
+                         "resource URI for any geneset in our database.")
 
     def tearDown(self):
         User.objects.all().delete()

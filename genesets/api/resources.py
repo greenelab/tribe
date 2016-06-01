@@ -48,8 +48,9 @@ from tastypie import fields
 from tastypie import http
 from tastypie.authentication import BasicAuthentication, SessionAuthentication, MultiAuthentication
 from tastypie.authorization import DjangoAuthorization, Authorization
-from tastypie.exceptions import Unauthorized, BadRequest
-from tastypie.http import HttpUnauthorized, HttpForbidden
+from tastypie.exceptions import Unauthorized, BadRequest, \
+    NotFound, ImmediateHttpResponse
+from tastypie.http import HttpUnauthorized, HttpForbidden, HttpNotFound
 from tastypie.serializers import Serializer
 from tastypie.cache import SimpleCache
 from tastypie.throttle import CacheDBThrottle
@@ -1063,19 +1064,34 @@ class VersionResource(ModelResource):
         bundle.obj.annotations = formatted_for_db_annotations
         return bundle
 
-
     def obj_create(self, bundle, **kwargs):
         """
-        This overrides the Resource's default obj_create method. It checks
-        to see if the Version model itself throws a 'NoParentVersionSpecified'
-        exception when it tries to save the Version (see Version.save() 
-        method).
+        This overrides the Resource's default obj_create method and does
+        a couple of checks. First, it checks whether the geneset_uri passed
+        is in the correct format and corresponds to a Geneset in the
+        database. Second, it checks to see if the Version model itself
+        throws a 'NoParentVersionSpecified' exception when it tries to save
+        the Version (see Version.save() method).
         """
+
+        try:
+            GenesetResource().get_via_uri(bundle.data['geneset'],
+                                          bundle.request)
+        except NotFound:
+            raise BadRequest("The 'geneset' resource URI sent was in a format"
+                             " not supported by the Tribe API.")
+        except Geneset.DoesNotExist:
+            raise ImmediateHttpResponse(response=http.HttpNotFound(
+                "The 'geneset' resource URI sent did not "
+                "match the resource URI for any geneset "
+                "in our database."))
+
         try:
             bundle = super(VersionResource, self).obj_create(bundle, **kwargs)
         except NoParentVersionSpecified:
-            raise BadRequest("This geneset already has at least one version." + \
-                " You must specify the parent version of this new version.")
+            raise BadRequest("This geneset already has at least one version. "
+                             "You must specify the parent version of this new "
+                             "version.")
         return bundle
 
     def download_as_csv(self, request, **kwargs):
