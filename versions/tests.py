@@ -506,9 +506,11 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
                                             scientific_name="Homo sapiens",
                                             taxonomy_id=9606,
                                             slug="homo-sapiens")
-        self.org3 = Organism.objects.create(
-            common_name="Yeast", scientific_name="Saccharomyces cerevisiae",
-            taxonomy_id=4932, slug="saccharomyces-cerevisiae")
+        self.org3 = Organism.objects.create(common_name="Yeast",
+                                            scientific_name="Saccharomyces "
+                                                            "cerevisiae",
+                                            taxonomy_id=4932,
+                                            slug="saccharomyces-cerevisiae")
 
         self.username = "asdf"
         self.email = "asdf@example.com"
@@ -528,18 +530,22 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         xrdb2 = CrossRefDB.objects.create(name="XRDB2",
                                           url="http://www.example.com/2")
 
-        g1 = Gene.objects.create(entrezid=55982, systematic_name="g1",
-                                 standard_name="Paxip1", description="asdf",
-                                 organism=self.org1, aliases="gee1 GEE1")
-        g2 = Gene.objects.create(entrezid=18091, systematic_name="g2",
-                                 standard_name="Nkx2-5", description="asdf",
-                                 organism=self.org1, aliases="gee2 GEE2")
-        g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc",
-                                 standard_name="Ctnnbip1", description="asdf",
-                                 organism=self.org1, aliases="gee3 GEE3")
-        g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc",
-                                 standard_name="Wnt10b", description="asdf",
-                                 organism=self.org1, aliases="gee4 GEE4")
+        self.g1 = Gene.objects.create(entrezid=55982, systematic_name="g1",
+                                      standard_name="Paxip1",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee1 GEE1")
+        self.g2 = Gene.objects.create(entrezid=18091, systematic_name="g2",
+                                      standard_name="Nkx2-5",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee2 GEE2")
+        self.g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc",
+                                      standard_name="Ctnnbip1",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee3 GEE3")
+        self.g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc",
+                                      standard_name="Wnt10b",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee4 GEE4")
         self.g5 = Gene.objects.create(entrezid=3388, systematic_name="ICR1",
                                       standard_name="ICR1",
                                       organism=self.org2)
@@ -547,11 +553,11 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
                                       standard_name="ICR1",
                                       organism=self.org3)
 
-        xref1 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g1, xrid="XRID1")
-        xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=g2, xrid="XRID1")
-        xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g1, xrid="XRRID1")
-        xref4 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g2, xrid="XRID2")
-        xref5 = CrossRef.objects.create(crossrefdb = xrdb1, gene=g3, xrid="XRID3")
+        xref1 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRID1")
+        xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=self.g2, xrid="XRID1")
+        xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRRID1")
+        xref4 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g2, xrid="XRID2")
+        xref5 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g3, xrid="XRID3")
 
         self.geneset1 = Geneset.objects.create(organism=self.org1, creator=self.user1,
         									   title='Test RNA polymerase II geneset',
