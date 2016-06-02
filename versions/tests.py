@@ -943,7 +943,7 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         version_data['geneset'] = '/api/v1/geneset/983b'
         version_data['description'] = 'Adding falsy geneset_uri'
         version_data['annotations'] = {55982: [20671152]}
-        version_data['xrdb'] = 'Symbol'
+        version_data['xrdb'] = 'Entrez'
 
         resp = client.post('/api/v1/version', format="json", data=version_data)
         self.assertHttpBadRequest(resp)
@@ -967,7 +967,7 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         version_data['geneset'] = '/api/v1/geneset/99999999999999999999999'
         version_data['description'] = 'Adding falsy geneset_uri'
         version_data['annotations'] = {55982: [20671152]}
-        version_data['xrdb'] = 'Symbol'
+        version_data['xrdb'] = 'Entrez'
 
         resp = client.post('/api/v1/version', format="json", data=version_data)
         self.assertHttpNotFound(resp)
