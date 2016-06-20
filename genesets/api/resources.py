@@ -29,9 +29,9 @@ from django.template.defaultfilters import slugify
 from django.http import HttpResponse
 
 # Tribe imports
-from organisms.models import Organism
+from organisms.api import OrganismResource
 from genes.models import Gene, CrossRef, CrossRefDB
-from genes.utils import translate_genes
+from genes.api import GeneResource
 from genesets.models import Geneset
 from versions.models import Version
 from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
@@ -323,88 +323,6 @@ class UserResource(ModelResource):
             raise BadRequest('Username already exists')
         return bundle
 
-
-class OrganismResource(ModelResource):
-
-    class Meta:
-        queryset   = Organism.objects.all()
-        filtering  = {'scientific_name': ALL, 'slug': ALL, 'taxonomy_id': ALL}
-        allowed_methods = ['get']
-        detail_uri_name = 'slug'
-
-
-class GeneResource(ModelResource):
-    entrezid = fields.IntegerField(attribute = 'entrezid')
-    pk = fields.IntegerField(attribute = 'id')
-    xrids = fields.ToManyField('genesets.api.resources.CrossrefResource', 'crossref_set', related_name='gene', full=True)
-
-    class Meta:
-        queryset   = Gene.objects.all()
-        resource_name = 'gene'
-        filtering = {'entrezid': ALL, 'pk': ALL, 'symbol': ALL}
-        allowed_methods = ['get']
-
-    # All of the following is the search code used by Haystack to search for genes and return individual gene 'Resources'
-        # that the users can add to their gene sets.
-    def prepend_urls(self):
-        return [
-            url(r"^(?P<resource_name>%s)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
-            url(r"^(?P<resource_name>%s)/xrid_translate%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('translate_gene_ids'), name="api_translate_gene_ids"),
-        ]
-
-    def get_search(self, request, **kwargs):
-        self.method_check(request, allowed=['get', 'post'])
-        self.is_authenticated(request)
-        self.throttle_check(request)
-
-        search_string = request.GET.get('query')
-        #because the organism is sent as the URI, get the last element (the pk)
-        organism_uri = request.GET.get('organism')
-        organism = None
-        if organism_uri:
-            organism = OrganismResource().get_via_uri(organism_uri, request)
-        if search_string:
-            search_toks = set(search_string.split())
-        else:
-            search_toks = []
-
-        genes = []
-
-        for search in search_toks:
-            item = {}
-            item['search'] = search
-            sqs = SearchQuerySet().models(Gene)
-            if organism is not None:
-                sqs = sqs.filter(organism=organism)
-            sqs = sqs.filter(content=search)
-            sqs = sqs.load_all()[:15]
-            objects = []
-
-            for result in sqs:
-                bundle = self.build_bundle(obj=result.object, request=request)
-                bundle = self.full_dehydrate(bundle)
-                objects.append(bundle)
-
-            item['found'] = objects
-            genes.append(item)
-
-        self.log_throttled_access(request)
-        return self.create_response(request, genes)
-
-    def translate_gene_ids(self, request, **kwargs):
-        self.method_check(request, allowed=['post'])
-        self.throttle_check(request)
-
-        #extract the relevant parameters
-        gene_list = request.POST.getlist('gene_list')
-        from_id = request.POST.get('from_id')
-        to_id   = request.POST.get('to_id')
-        organism = request.POST.get('organism')
-
-        #call the utils method for this
-        return_ids_dict = translate_genes(id_list=gene_list, from_id=from_id, to_id=to_id, organism=organism)
-
-        return self.create_response(request, return_ids_dict)
 
 def can_edit_geneset(geneset, user):
     if user.is_authenticated():
