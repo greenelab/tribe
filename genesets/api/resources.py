@@ -801,8 +801,9 @@ class GenesetResource(ModelResource):
                             passed_annotations)
 
                 formatted_for_db_annotations, genes_not_found =\
-                    version.format_annotations(passed_annotations,
-                                               posted_database, full_pubs)
+                    version.format_annotations(
+                        passed_annotations, posted_database, full_pubs,
+                        organism=bundle.obj.organism.scientific_name)
 
                 version.annotations = formatted_for_db_annotations
                 version.save()
