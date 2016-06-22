@@ -1,8 +1,8 @@
 Accessing Tribe through its API
 ===================================
 
-Tribe makes it easy to programatically retrieve many genesets and collections
-(and all their versions) at a time, using the gene identifier of preference.
+Tribe makes it easy to programmatically retrieve many genesets and collections
+(and all their versions) at a time, using your gene identifier of preference.
 
 
 Tribe's API
@@ -20,6 +20,85 @@ Tribe's API can be accessed at https://tribe.greenelab.com/api/v1/?format=json.
 
 API Endpoints
 ---------------
+
+**Organisms Endpoint**
+______________________
+
+API URL:: 
+
+    https://tribe.greenelab.com/api/v1/organism
+
+
+Fetching organisms in Tribe
+***************************
+ 
+This python example uses the 
+`requests <http://docs.python-requests.org/en/latest/>`_ library to get a
+list of organisms currently supported by Tribe.
+
+.. code-block:: python
+
+    import requests
+
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
+
+    # Make a GET request to the organisms endpoint:
+    r = requests.get(TRIBE_URL + '/api/v1/organism')
+
+    # The response from tribe is a json object.
+    # The requests library can convert this to
+    # a python dictionary.
+    result = r.json()
+
+    # Find out how many organisms are currently supported in Tribe 
+    # through 'meta'
+    print("Tribe contains " + str(result['meta']['total_count']) +
+          " organisms.")
+
+    # Print out this list of organisms:
+    for org_object in result['objects']:
+        print(org_object['scientific_name'])
+
+
+**Cross-Reference Databases Endpoint**
+______________________________________
+
+API URL:: 
+
+    https://tribe.greenelab.com/api/v1/crossrefdb
+
+
+Tribe's database contains many types of gene identifiers used by
+different cross-reference gene databases. These include Entrez,
+Ensembl, and UniProtKB.
+
+Getting list of cross-reference gene identifier types in Tribe
+**************************************************************
+ 
+This python example uses the 
+`requests <http://docs.python-requests.org/en/latest/>`_ library to get a
+list of gene identifier types currently supported by Tribe.
+
+.. code-block:: python
+
+    import requests
+
+    # Define where Tribe is located
+    TRIBE_URL = "https://tribe.greenelab.com"
+
+    # Make a GET request to the cross-reference databases endpoint:
+    r = requests.get(TRIBE_URL + '/api/v1/crossrefdb')
+
+    # The response from tribe is a json object.
+    # The requests library can convert this to
+    # a python dictionary.
+    result = r.json()
+
+    # Print out the list of cross-reference gene identifier types
+    # currently supported by Tribe:
+    for crossref_db_object in result['objects']:
+        print(crossref_db_object['name'])
 
 
 **Geneset Endpoint**
@@ -71,6 +150,9 @@ genesets from Tribe.
     # the collections array. This example uses
     # 'next' from 'meta' to iterate over all
     # pages of results.
+    # Warning: There are thousands of publicly available
+    # collections/genesets in Tribe, so be prepared to get a very long
+    # ``collections`` list at the end of this!
     while result['meta']['next'] is not None:
         r = requests.get(TRIBE_URL + result['meta']['next'])
         result = r.json()
@@ -169,17 +251,17 @@ Click :ref:`here<supported_organisms_and_identifiers>` for a full list of
 supported gene identifiers/databases.
 
 If you find a collection via the Tribe web interface (such as
-https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-homo-sapiens-regulation-of-transcription),
+https://tribe.greenelab.com/#/use/detail/annotation.refinery/go0060260-homo-sapiens),
 and you want to get its latest list of genes as Entrez identifiers, you can
 build a similar request using the last part of this url
-('tribeupdater/go0060260-homo-sapiens-regulation-of-transcription').
+('annotation.refinery/go0060260-homo-sapiens').
 
 .. note:: 
 
     The key is to know that this geneset's specific url
     is defined by the the last two fragments of the url: 
-        a) The geneset creator's username ("tribeupdater/"), and
-        b) A url-friendly version of its title ("go0060260-homo-sapiens-r...")
+        a) The geneset creator's username ("annotation.refinery/"), and
+        b) A url-friendly version of its ID and species ("go0060260-homo-sapiens")
 
 
 .. code-block:: python
@@ -190,11 +272,11 @@ build a similar request using the last part of this url
     TRIBE_URL = "https://tribe.greenelab.com"
 
     # Concatenate the string for our desired geneset's specific url, adding
-    # the geneset api endpoint ('/api/v1/geneset/'), 'tribeupdater/' for the
-    # creator username, and 'go0060260-homo-sapiens-regulation-of-transcription'
-    # for the url-friendly version of the geneset title.
-    specific_geneset_url = TRIBE_URL + '/api/v1/geneset/' + 'tribeupdater/' + \
-                           'go0060260-homo-sapiens-regulation-of-transcription'
+    # the geneset api endpoint ('/api/v1/geneset/'), 'annotation.refinery/' for
+    # the creator username, and 'go0060260-homo-sapiens' for url-friendly
+    # version of its ID and species.
+    specific_geneset_url = TRIBE_URL + '/api/v1/geneset/' + 'annotation.refinery/' + \
+                           'go0060260-homo-sapiens'
 
     parameters = {'show_tip': 'true'}
 
@@ -242,7 +324,7 @@ to
 
     # We get the versions for the geneset that matches the title we want:
     parameters = {
-        'geneset__slug': 'go0060260-homo-sapiens-regulation-of-transcription',
+        'geneset__slug': 'go0060260-homo-sapiens',
         'xrdb': 'Ensembl'
         }
 
@@ -383,7 +465,7 @@ might go about doing this. This code also uses
 
     # Sample code to remotely create a new geneset/collection on Tribe.
     # This sample geneset is based on this GO term collection:
-    # https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-mus-musculus-regulation-of-transcription
+    # https://tribe.greenelab.com/#/use/detail/annotation.refinery/go0060260-mus-musculus
 
     # This script uses the 'requests' python library:
     # http://docs.python-requests.org/en/latest/
@@ -416,7 +498,7 @@ might go about doing this. This code also uses
     # the genes in the GO term (Paxip1, Nkx2-5, Ctnnbip1, and Wnt10b), and
     # the pubmed IDs of related publications for each gene. (The whole 
     # list of the annotations for the original collection can also be found at:
-    # https://tribe.greenelab.com/#/use/detail/tribeupdater/go0060260-mus-musculus-regulation-of-transcription)
+    # https://tribe.greenelab.com/#/use/detail/annotation.refinery/go0060260-mus-musculus)
     geneset['annotations'] = {55982: [20671152, 19583951], 18091: [8887666], 67087: [], 22410:[]}
     geneset['xrdb'] = 'Entrez'
     geneset['description'] = 'First version' # Description for the first version - this is optional
