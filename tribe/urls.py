@@ -1,13 +1,13 @@
 from django.conf.urls import patterns, include, url
-from django.views.generic import TemplateView, RedirectView # django.views.generic.simple has been deprecated - Views in generic module are now used.
-#from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.generic import TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
-import views
 
 from tastypie.api import Api
+
+from organisms.api import OrganismResource
+from genes.api import GeneResource
+
 from genesets.api.resources import UserResource
-from genesets.api.resources import OrganismResource
-from genesets.api.resources import GeneResource
 from genesets.api.resources import GenesetResource
 from genesets.api.resources import VersionResource
 from genesets.api.resources import PublicationResource
