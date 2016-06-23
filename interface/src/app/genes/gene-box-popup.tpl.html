@@ -1,0 +1,39 @@
+<div class="popover {{placement}}" ng-class="{ in: isOpen(), fade: animation() }">
+
+  <div class="arrow"></div>
+
+  <div class="popover-inner">
+  
+
+    <div class="popover-title" >
+      <b>{{ title }}</b>
+    </div>
+
+    <div class="popover-content" >
+
+      <h5><b>Description:</b></h5>
+        {{description}} 
+
+      <h5><b>Databases:</b></h5>
+
+      Entrez:
+      <a href="http://www.ncbi.nlm.nih.gov/gene/{{entrezid}}">{{entrezid}}</a>
+      <br>
+
+      <div ng-repeat="xrid in xrids">
+        {{xrid.crossrefdb}}:
+        <a href="{{xrid.db_url}}">{{xrid.xrid}}</a>
+        <br>
+      </div>
+
+      <div ng-if="aliases">
+        <h5><b>Aliases:</b></h5>
+        {{aliases}}
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+

@@ -1,0 +1,15 @@
+<div>
+    <form class="form-inline" role="form">
+        <div class="form-group">
+            <select name="organism" ng-model="search.organism__slug" ng-options="o.slug as o.scientific_name for o in organisms.objects" class="form-control">
+                <option value="">--- Any Organism ---</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input name="search_text" ng-model="search.query" type="search" class="form-control" placeholder="Search text">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-default" ng-click="goSearch( search )" ng-disabled="loadingSearchResults">Search</button>
+        </div>
+    </form>
+</div>
