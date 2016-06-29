@@ -523,13 +523,9 @@ class GenesetResource(ModelResource):
         if "query" in filters:
             if filters["query"]:  # don't search if the string is empty
                 logger.debug("Filtered by query.")
-                sqs = SearchQuerySet().models(Geneset).filter(content=filters["query"]).load_all()
-                orm_filters["pk__in"] = [i.pk for i in sqs]
-                # TODO: Replace the two lines above with the lines below when
-                # this issue: https://github.com/django-haystack/django-haystack/issues/1019
-                # is merged and closed. Probably django-haystack 2.4
-                #pks = SearchQuerySet().models(Geneset).filter(content=filters["query"]).values_list('pk', flat=True)
-                #orm_filters["pk__in"] = [int(x) for x in pks]
+                pks = SearchQuerySet().models(Geneset).filter(
+                    content=filters["query"]).values_list('pk', flat=True)
+                orm_filters["pk__in"] = [int(x) for x in pks]
 
         if "filter_tags" in filters:
             if filters["filter_tags"]:  # don't search if the string is empty
