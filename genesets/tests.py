@@ -612,7 +612,8 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         geneset_data = {}
         geneset_data['organism'] = org_uri
         geneset_data['title'] = 'Test yeast geneset'
-        geneset_data['abstract'] = 'Adding ambiguous symbol gene.'
+        geneset_data['abstract'] = 'Adding yeast gene that has the same ' \
+                                   'symbol as a human gene'
         geneset_data['annotations'] = {'ICR1': [20671152]}
         geneset_data['xrdb'] = 'Symbol'
 
