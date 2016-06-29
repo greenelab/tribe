@@ -52,7 +52,8 @@ list of organisms currently supported by Tribe.
     result = r.json()
 
     # Find out how many organisms are currently supported in Tribe 
-    # through 'meta'
+    # by looking up the 'total_count' in the 'meta' section of the
+    # response object.
     print("Tribe contains " + str(result['meta']['total_count']) +
           " organisms.")
 
