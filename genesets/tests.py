@@ -400,30 +400,63 @@ class GenesetRegisteredTestCase(ResourceTestCase):
 class CreatingRemoteGenesetTestCase(ResourceTestCase):
 
     def setUp(self):
-        super(CreatingRemoteGenesetTestCase, self).setUp() # This part is important
+        # This following 'super' call is important to initialize TestCase
+        super(CreatingRemoteGenesetTestCase, self).setUp()
 
-        self.org1 = Organism.objects.create(common_name="Mouse", scientific_name="Mus musculus", taxonomy_id=10090)
+        self.org1 = Organism.objects.create(common_name="Mouse",
+                                            scientific_name="Mus musculus",
+                                            taxonomy_id=10090,
+                                            slug="mus-musculus")
+        self.org2 = Organism.objects.create(common_name="Human",
+                                            scientific_name="Homo sapiens",
+                                            taxonomy_id=9606,
+                                            slug="homo-sapiens")
+        self.org3 = Organism.objects.create(common_name="Yeast",
+                                            scientific_name="Saccharomyces "
+                                                            "cerevisiae",
+                                            taxonomy_id=4932,
+                                            slug="saccharomyces-cerevisiae")
 
         self.username = "hjkl"
         self.email = "hjkl@example.com"
         self.password = "1234"
-        self.user1 = User.objects.create_user(self.username, self.email, self.password)
+        self.user1 = User.objects.create_user(
+            self.username, self.email, self.password)
 
-        #Create some genes, crossrefdb's and crossrefs
-        xrdb1 = CrossRefDB.objects.create(name="ASDF", url="http://www.example.com")
-        xrdb2 = CrossRefDB.objects.create(name="XRDB2", url="http://www.example.com/2")
+        # Create some genes, crossrefdb's and crossrefs
+        xrdb1 = CrossRefDB.objects.create(name="ASDF",
+                                          url="http://www.example.com")
+        xrdb2 = CrossRefDB.objects.create(name="XRDB2",
+                                          url="http://www.example.com/2")
 
-        self.g1 = Gene.objects.create(entrezid=55982, systematic_name="g1", standard_name="Paxip1", description="asdf", organism=self.org1, aliases="gee1 GEE1")
-        self.g2 = Gene.objects.create(entrezid=18091, systematic_name="g2", standard_name="Nkx2-5", description="asdf", organism=self.org1, aliases="gee2 GEE2")
-        self.g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc", standard_name="Ctnnbip1", description="asdf", organism=self.org1, aliases="gee3 GEE3")
-        self.g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc", standard_name="Wnt10b", description="asdf", organism=self.org1, aliases="gee4 GEE4")
+        self.g1 = Gene.objects.create(entrezid=55982, systematic_name="g1",
+                                      standard_name="Paxip1",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee1 GEE1")
+        self.g2 = Gene.objects.create(entrezid=18091, systematic_name="g2",
+                                      standard_name="Nkx2-5",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee2 GEE2")
+        self.g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc",
+                                      standard_name="Ctnnbip1",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee3 GEE3")
+        self.g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc",
+                                      standard_name="Wnt10b",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee4 GEE4")
+        self.g5 = Gene.objects.create(entrezid=3388, systematic_name="ICR1",
+                                      standard_name="ICR1",
+                                      organism=self.org2)
+        self.g6 = Gene.objects.create(entrezid=9164906, systematic_name="ICR1",
+                                      standard_name="ICR1",
+                                      organism=self.org3)
         self.gene_entrezid_set = set([55982, 18091, 67087, 22410])
 
-        xref1 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRID1")
-        xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=self.g2, xrid="XRID1")
-        xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRRID1")
-        xref4 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g2, xrid="XRID2")
-
+        CrossRef.objects.create(crossrefdb=xrdb1, gene=self.g1, xrid="XRID1")
+        CrossRef.objects.create(crossrefdb=xrdb2, gene=self.g2, xrid="XRID1")
+        CrossRef.objects.create(crossrefdb=xrdb1, gene=self.g1, xrid="XRRID1")
+        CrossRef.objects.create(crossrefdb=xrdb1, gene=self.g2, xrid="XRID2")
 
     def testSimpleGenesetCreationNoGenes(self):
         """
@@ -555,6 +588,54 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         # check the length of the annotations that were actually found and got saved
         self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
         self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']) - len(not_in_db_genes))
+
+    def testCreateGenesetAmbiguousSymbol(self):
+        """
+        Checking that the GenesetResource's obj_create() method correctly
+        passes the scientific_name of the new geneset's organism to the
+        Version.format_annotations() method, and that this filters out
+        genes for the passed organism (in case there are genes with the
+        same symbol for different organisms). This test is analogous to the
+        CreatingRemoteVersionTestCase.testCreateVersionAmbiguousSymbol()
+        test for the VersionResource in versions/tests.py.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org3.scientific_name
+        org_resp = self.api_client.get('/api/v1/organism', format="json",
+                                       data={'scientific_name': org_scientific_name})
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'Test yeast geneset'
+        geneset_data['abstract'] = 'Adding yeast gene that has the same ' \
+                                   'symbol as a human gene'
+        geneset_data['annotations'] = {'ICR1': [20671152]}
+        geneset_data['xrdb'] = 'Symbol'
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+
+        new_geneset_uri = self.deserialize(resp)['resource_uri']
+
+        gsresp = client.get(
+            new_geneset_uri, format="json",
+            data={'show_tip': 'true', 'full_annotations': 'true'}
+        )
+        self.assertValidJSONResponse(gsresp)
+
+        simplified_annotations = []
+        for annotation in self.deserialize(gsresp)['tip']['annotations']:
+            simple_annot = {}
+            simple_annot['gene'] = annotation['gene']['entrezid']
+            simple_annot['pubs'] = [pub['pmid'] for pub in annotation['pubs']]
+            simplified_annotations.append(simple_annot)
+
+        entrez_annots = [{'gene': 9164906, 'pubs': [20671152]}]
+        self.assertEqual(simplified_annotations, entrez_annots)
 
     def testCreateGenesetWithTags(self):
         """
