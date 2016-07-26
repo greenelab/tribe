@@ -286,7 +286,10 @@ if config.has_section('haystack'):
             'INDEX_NAME': config.get('haystack', 'INDEX_NAME'),
         }
     }
-    HAYSTACK_ITERATOR_LOAD_PER_QUERY = int(config.get('haystack', 'LOAD_PER_QUERY'))
+    HAYSTACK_ITERATOR_LOAD_PER_QUERY = int(config.get('haystack',
+                                                      'LOAD_PER_QUERY'))
+    HAYSTACK_SIGNAL_PROCESSOR = config.get('haystack',
+                                           'HAYSTACK_SIGNAL_PROCESSOR')
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
