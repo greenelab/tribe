@@ -198,8 +198,13 @@ class TestKEGGLoaderMethods(TestCase):
         from genesets.management.commands import genesets_load_kegg
         result = genesets_load_kegg.get_kegg_info(self.KEGG_URL_BASE, 'H00001')
         self.assertTrue('title' in result)
-        self.assertEqual(result['title'],
-                         'Acute lymphoblastic leukemia (ALL) (precursor B lymphoblastic leukemia)')
+
+        # Note: The name of this KEGG term has changed:
+        # http://www.genome.jp/dbget-bin/www_bget?ds:H00001
+        self.assertEqual(
+            result['title'], 'Acute lymphoblastic leukemia (ALL) (precursor B'
+                             ' lymphoblastic leukemia/lymphoma)')
+
         self.assertTrue('abstract' in result)
 
 
