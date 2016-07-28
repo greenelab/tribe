@@ -366,7 +366,7 @@ if config.has_section('sentry'):
 
         },
         'root': {
-            'level': 'INFO',
+            'level': config.get('log', 'LOG_LEVEL'),
             'handlers': ['console', 'sentry'],
         },
 
