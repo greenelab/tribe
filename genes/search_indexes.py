@@ -1,11 +1,14 @@
-import datetime
+from celery_haystack.indexes import CelerySearchIndex
 from haystack import indexes
 from genes.models import Gene
 from django.db.models import Max, Min
 
-cache_weights = {}#had to cache this, without the cache rebuilding the index crushed postgres
+# Had to cache the weights - without the cache,
+# rebuilding the index crushed postgres
+cache_weights = {}
 
-class GeneIndex(indexes.SearchIndex, indexes.Indexable):
+
+class GeneIndex(CelerySearchIndex, indexes.Indexable):
     text        = indexes.CharField(document=True, use_template=True)
     organism    = indexes.CharField(model_attr="organism__slug")
     obsolete    = indexes.BooleanField(model_attr="obsolete")
@@ -34,5 +37,3 @@ class GeneIndex(indexes.SearchIndex, indexes.Indexable):
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
-
-
