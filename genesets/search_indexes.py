@@ -1,19 +1,19 @@
 import re
 
-from haystack import indexes
 from genesets.models import Geneset
+
+from haystack import indexes
+
+try:
+    from celery_haystack.indexes import CelerySearchIndex as SearchIndex
+
+except ImportError:
+    from haystack.indexes import SearchIndex
 
 NONWORD = re.compile('\W+')
 
-try:
-    from celery_haystack.indexes import CelerySearchIndex
-    SEARCH_INDEX_PARENT_CLASS = CelerySearchIndex
 
-except ImportError:
-    SEARCH_INDEX_PARENT_CLASS = indexes.SearchIndex
-
-
-class GenesetIndex(SEARCH_INDEX_PARENT_CLASS, indexes.Indexable):
+class GenesetIndex(SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
 
     class Meta:
