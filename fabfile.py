@@ -302,12 +302,3 @@ def update_haystack_indexes(app_name=None):
     env.virt_env = PROD_CFG['virt_env']
     with cd(env.dir), prefix('source {0}/bin/activate'.format(env.virt_env)):
         execute(_update_search_indexes(app_name))
-
-
-@task
-def start_celery_daemon():
-
-    env.dir = PROD_CFG['dir']
-    env.virt_env = PROD_CFG['virt_env']
-    with cd(env.dir), prefix('source {0}/bin/activate'.format(env.virt_env)):
-        run('python manage.py celery worker -A tribe --detach -f celery.log')
