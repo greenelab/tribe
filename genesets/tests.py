@@ -212,7 +212,7 @@ class TestKEGGLoaderMethods(TestCase):
 
 
 # The Celery settings are needed for updating the Geneset search indexes
-# with a Celery queue.
+# with Celery in tests.
 @override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
                    CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class GenesetUnregisteredTestCase(ResourceTestCase):
@@ -304,7 +304,7 @@ class GenesetUnregisteredTestCase(ResourceTestCase):
 
 
 # The Celery settings are needed for updating the Geneset search indexes
-# with a Celery queue.
+# with Celery in tests.
 @override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
                    CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class GenesetRegisteredTestCase(ResourceTestCase):

@@ -1,8 +1,8 @@
 import re
 
-from genesets.models import Geneset
-
 from haystack import indexes
+
+from genesets.models import Geneset
 
 try:
     from celery_haystack.indexes import CelerySearchIndex as SearchIndex
