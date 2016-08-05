@@ -16,9 +16,6 @@ NONWORD = re.compile('\W+')
 class GenesetIndex(SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
 
-    class Meta:
-        model = Geneset
-
     def prepare(self, object):
         self.prepared_data = super(GenesetIndex, self).prepare(object)
 
