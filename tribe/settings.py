@@ -248,6 +248,13 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [x.strip() for x in config.get('modules', 'THIRD_PARTY').split(',')]
 THIRD_PARTY_APPS = filter(bool, THIRD_PARTY_APPS) #filter empty (in case not configured)
 
+# The following ones are the optional third-party apps (like using Celery
+# and celery_haystack to update Haystack search indexes
+OPTIONAL_APPS = [x.strip() for x in config.get(
+                 'modules', 'OPTIONAL_THIRD_PARTY').split(',')]
+# Filter empty (in case not configured)
+OPTIONAL_APPS = filter(bool, OPTIONAL_APPS)
+
 # Apps specific for this project go here.
 LOCAL_APPS = [
     'organisms',
@@ -286,10 +293,13 @@ if config.has_section('haystack'):
             'INDEX_NAME': config.get('haystack', 'INDEX_NAME'),
         }
     }
-    HAYSTACK_ITERATOR_LOAD_PER_QUERY = int(config.get('haystack', 'LOAD_PER_QUERY'))
+    HAYSTACK_ITERATOR_LOAD_PER_QUERY = int(config.get('haystack',
+                                                      'LOAD_PER_QUERY'))
+    HAYSTACK_SIGNAL_PROCESSOR = config.get('haystack',
+                                           'HAYSTACK_SIGNAL_PROCESSOR')
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + OPTIONAL_APPS
 
 
 ########## LOGGING CONFIGURATION
@@ -363,7 +373,7 @@ if config.has_section('sentry'):
 
         },
         'root': {
-            'level': 'INFO',
+            'level': config.get('log', 'LOG_LEVEL'),
             'handlers': ['console', 'sentry'],
         },
 
