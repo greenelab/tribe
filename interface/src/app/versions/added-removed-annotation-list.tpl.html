@@ -1,0 +1,38 @@
+<div>
+<div class="well well-sm" ng-if="genesEdited">
+<table class="table" name="geneTable">
+  <tr><th>Genes</th></tr>
+  <tr ng-repeat="(gene, val) in editedGenes">
+
+    <td>
+      <a tabindex="0" class="btn btn-link" genebox="{{genes[gene]}}" genebox-title="{{genes[gene].standard_name}}"> {{genes[gene].standard_name}}</a> 
+      <a class="pull-right" tooltip="Remove" tooltip-placement="left" ng-click="undoGene(gene)">
+        <i class="fa fa-times"> </i>
+      </a>  
+    </td>
+
+
+  </tr>
+</table>
+</div>
+
+<hr>
+<br>
+
+<div class="well well-sm" ng-if="publicationsEdited">
+<table class="table" name="publicationTable">
+  <tr><th>Publications</th><th>For gene</th></tr>
+  <tr ng-repeat="(gene, val) in editedPubs">
+
+    <td>
+      <removable-pub-list pubs="val" gene="gene" publength="pubLength" pubstate="pubstate"></removable-pub-list>
+    </td>
+
+    <td>
+      {{genes[gene].standard_name}}
+    </td>
+
+  </tr>
+</table>
+</div>
+</div>

@@ -1,0 +1,23 @@
+<div>
+    <table class="table table-striped" name="searchResults">
+        <tr><th>Title</th><th style="text-align:center">Gene Count</th><th>Species</th><th>Creator</th></tr>
+        <tr ng-if="loadingSearchResults"><td style="padding-top:2%;">Searching...</td><td style="padding-top:10%;"><span us-spinner></span></td><td></td></tr>
+
+        <tr ng-if="!loadingSearchResults" ng-repeat="geneset in genesets">
+                     
+            <td>
+              <i ng-if="geneset.public" class="fa fa-unlock" tooltip="This collection is public."></i>
+              <i ng-if="!geneset.public" class="fa fa-lock" tooltip="This collection is not public."></i>
+              &nbsp;
+              <a ui-sref="use.detail({creator:geneset.creator.username, slug:geneset.slug})">{{ geneset.title }}</a>
+
+            </td>
+            <td align="center">{{ geneset.tip_item_count }}</td>
+            <td>{{ geneset.organism.scientific_name }}</td>
+            <td>{{ geneset.creator.alt_username }}<span ng-if="user.id === geneset.creator.id" tooltip="This collection was created by you." style="font-size:1.2em">*</span></td>
+        </tr>			
+    </table>
+    <div class="row text-center">
+        <pagination total-items="totalResults" ng-model="currentPage" items-per-page="limit" previous-text="&lsaquo;&nbsp;Previous" next-text="Next&nbsp;&rsaquo;" max-size="maxSize" boundary-links="true" rotate="false"></pagination>
+    </div>
+</div>

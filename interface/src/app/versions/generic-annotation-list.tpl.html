@@ -1,0 +1,23 @@
+
+<table class="table" name="annotTable">
+  <tr><th>Gene</th><th>Publications</th><th></th></tr>
+  <tr ng-repeat="(gene, publications) in annotations">
+
+    <td>
+
+      <a tabindex="0" class="btn btn-link" genebox="{{genes[gene]}}" genebox-title="{{genes[gene].standard_name}}"> {{genes[gene].standard_name}}</a> 
+
+    </td>
+
+    <td>
+      <pub-list pubs="publications" gene="gene" publength="pubLength"></pub-list>
+    </td>
+
+    <td>
+        <a class="pull-right" tooltip="Delete gene and all its publications" tooltip-placement="left" ng-click="removeGene(genes[gene])">
+            <i class="fa fa-times"> </i>
+        </a>
+    </td>
+
+  </tr>
+</table>

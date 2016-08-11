@@ -1,0 +1,106 @@
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span>Get public genesets from Tribe.</span>
+            </div>
+            <div class="panel-body">
+                This python example uses the <a href="http://docs.python-requests.org/en/latest/">requests library</a> to communicate with Tribe.
+<pre>
+import requests
+
+# Define where Tribe is located.
+TRIBE_URL = "http://tribe.greenelab.com"
+
+# Make an initial request to the root.
+r = requests.get(TRIBE_URL + '/api/v1/geneset/')
+
+# The response from tribe is a json object.
+# The requests library can convert this to
+# a python dictionary.
+result = r.json()
+
+# Find out how many public collections are 
+# in tribe through 'meta'
+print("Tribe contains " + str(result['meta']['total_count']) + " public collections.")
+
+# 'meta' also supports pagination (providing 
+# api links to next and previous) so that
+# one can easily iterate through all collections.
+# 'meta' contains information about the request 
+# for requests that return a set of objects. 
+
+collections = []
+# Objects themselves are provided through 'objects'
+collections.extend(result['objects'])
+
+# Iterate over every collection and extend
+# the collections array. This example uses
+# 'next' from 'meta' to iterate over all
+# pages of results.
+while result['meta']['next'] is not None:
+    r = requests.get(TRIBE_URL + result['meta']['next'])
+    result = r.json()
+    collections.extend(result['objects'])
+</pre>
+            </div>
+            <div class="panel-footer">
+                <p>If you need help using the Tribe API, please
+                    <a ui-sref="contact-us">contact us</a>.
+                    We'd be happy to help, and we'll include 
+                    the example code here.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span>Tribe supports full text search through the query parameter.</span>
+            </div>
+            <div class="panel-body">
+<pre>
+import requests
+
+# Define where Tribe is located.
+TRIBE_URL = "http://tribe.greenelab.com"
+
+# Use the search parameter to perform a full
+# text search.
+parameters = {'query': 'histone acetylation K27'}
+r = requests.get(TRIBE_URL + '/api/v1/geneset/', params=parameters)
+
+# The response from tribe is a json object.
+# The requests library can convert this to
+# a python dictionary.
+result = r.json()
+
+# Print all matching collections
+while True:
+    for collection in result['objects']:
+        print("Title: " + collection['title'])
+    if result['meta']['next'] is None:
+        break
+    r = requests.get(TRIBE_URL + result['meta']['next'])
+    result = r.json()
+
+# Running the above code prints:
+# Title: GO-BP-0043974:histone H3-K27 acetylation
+# Title: GO-BP-1901674:regulation of histone H3-K27 acetylation
+# Title: GO-BP-1901675:negative regulation of histone H3-K27 acetylation
+# Title: GO-BP-1901676:positive regulation of histone H3-K27 acetylation
+</pre>
+            </div>
+            <div class="panel-footer">
+                <p>If you need help using the Tribe API, please
+                    <a ui-sref="contact-us">contact us</a>. 
+                    We'd be happy to help, and we'll include the 
+                    example code here.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

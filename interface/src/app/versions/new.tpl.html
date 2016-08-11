@@ -1,0 +1,103 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Create a new version of {{ geneset.title }}<span ng-if="prior_version"> from version {{ prior_version.ver_hash | limitTo:12 }}</span></div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Search for genes</div>
+                            <div class="panel-body">
+                                <div class="col-md-3">
+                                    <form class="form">
+                                        <textarea name="genes" rows="7" ng-model="genesToAdd.query" placeholder="Search genes by symbol or Entrez ID"></textarea>
+                                        <span class="error">{{ errors.name }}</span>
+                                        <button class="btn btn-default" ng-click="searchGenes()" ng-disabled="loadingSearchResults"> Search Genes <i class="fa fa-search"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-9">	
+                                    <search-result-table></search-result-table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row" ng-if="!addingPublications">
+                    <div class="col-sm-4">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">Version being created <button class="btn btn-primary btn-xs navbar-right" ng-click="editPublications()">Edit publications</button></div>
+                            <div class="panel-body">
+                                <generic-annotation-list annotations="all" genes="genes" editable="true" remove-gene="removeGene"> </generic-annotation-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="panel panel-success">
+                            <div class="panel-heading">New annotations</div>
+                            <div class="panel-body">
+                                <added-removed-annotation-list edited-genes="added_genes" edited-pubs="added_pubs" genes="genes" remove-gene="removeGene" pubstate="'added'"> </added-removed-annotation-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="panel panel-danger">
+                            <div class="panel-heading">Removed annotations</div>
+                            <div class="panel-body">
+                                <added-removed-annotation-list edited-genes="removed_genes" edited-pubs="removed_pubs" genes="genes" remove-gene="removeGene" pubstate="'removed'"> </added-removed-annotation-list>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row" ng-if="addingPublications">
+                    <div class="col-sm-6">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">Version being created <button class="btn btn-primary btn-xs navbar-right" ng-click="editGenes()"> Edit genes </button></div>
+                            <div class="panel-body">
+                                <extended-annotation-list annotations="all" genes="genes" remove-gene="removeGene" pubstate="'current'"> </extended-annotation-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="panel panel-success">
+                            <div class="panel-heading">New annotations in this version</div>
+                            <div class="panel-body">
+                                <added-removed-annotation-list edited_genes="added_genes" edited_pubs="added_pubs" genes="genes" remove-gene="removeGene" pubstate="'added'"> </added-removed-annotation-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="panel panel-danger">
+                            <div class="panel-heading">Removed annotations in this version</div>
+                            <div class="panel-body">
+                                <added-removed-annotation-list edited_genes="removed_genes" edited_pubs="removed_pubs" genes="genes" remove-gene="removeGene" pubstate="'removed'"> </added-removed-annotation-list>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <form role="form">
+                            <div class="form-group">
+                                <label for="description"></label>
+                                <textarea rows="2" class="form-control" id="description" ng-model="version.description" placeholder="Describe your changes here."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="form-controls">
+                    <button type="submit" class="btn btn-primary" ng-click="save()">Save Version</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

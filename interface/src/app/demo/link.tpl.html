@@ -1,0 +1,31 @@
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span>Servers connected to Tribe allow users to put their collections to work within external servers.</span>
+            </div>
+            <div class="panel-body">
+                <img src="/static/assets/link_images/giant_integration_process.png" class="img-responsive" alt="GIANT screenshot showing Tribe genesets." />
+            </div>
+            <div class="panel-footer">
+                <span><a href="http://giant.princeton.edu">GIANT's</a> OAuth2 connection to Tribe allows users to interpret their own collections through tissue-specific networks. For example, user-owned collections as well as publicly available collections are used for biological process enrichment calculations (shown above). Because GIANT is connected to the Tribe web service, GIANT's users benefit from up to date process annotations and can use GIANT to study processes not covered by curated databases but included in their own Tribe collections.</span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span>Link your server to Tribe through <a href="http://oauth.net/2/">OAuth2</a> to allow users to access their own non-public collections within your server.</span>
+            </div>
+            <div class="panel-body">
+                <img src="/static/assets/link_images/tribe_connecting.png" class="img-responsive" alt="Tribe OAuth2 diagram" />
+            </div>
+            <div class="panel-footer">
+                <span>Connecting to Tribe with an example server (e.g. <a href="http://giant.princeton.edu">GIANT</a>). The user visits GIANT and indicates that they'd like to analyze a non-public Tribe collection (1). GIANT redirects the user to a Tribe login page with a token indicating that the request came from GIANT (2). The user logs into Tribe (3) and Tribe returns an authorization code to the browser (4) which is automatically sent to GIANT (5). GIANT then sends the authorization code to Tribe (6) which returns an access token (7) that allows the server to retrieve that user's private collections through the standard Tribe API. The server then returns the desired results to the user (8). This process allows a user to analyze private collections on external servers while keeping their login information private. We provide an <a href="https://bitbucket.org/greenelab/tribe-client">open source Tribe client written in python</a> that performs these tasks.</span>
+            </div>
+        </div>
+    </div>
+</div>

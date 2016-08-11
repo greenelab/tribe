@@ -1,0 +1,24 @@
+
+<table class="table" name="annotTable">
+  <tr><th>Gene</th><th>Publications</th><th></th></tr>
+  <tr ng-repeat="(gene, val) in annotations">
+
+    <td>
+
+      <a tabindex="0" class="btn btn-link" genebox="{{genes[gene]}}" genebox-title="{{genes[gene].standard_name}}"> {{genes[gene].standard_name}}</a> 
+
+    </td>
+
+    <td>
+      <removable-pub-list pubs="val" gene="gene" pubstate="pubstate"></removable-pub-list>
+    </td>
+
+    <td>
+      <button class="btn btn-default btn-xs pull-right" ng-click="open(gene)" tooltip="Add publication" tooltip-placement="left">
+        <i class="fa fa-plus"> </i>
+      </button>
+    </td>
+
+  </tr>
+</table>
+

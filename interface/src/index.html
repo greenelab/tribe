@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="tribe" ng-controller="TribeCtrl">
+  <head>
+    <title ng-bind="pageTitle"></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- font awesome from BootstrapCDN -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css"
+      rel="stylesheet">
+
+    <!-- compiled CSS --><% styles.forEach( function ( file ) { %>
+    <link rel="stylesheet" type="text/css" href="/static/<%= file %>" /><% }); %>
+
+    <!-- compiled JavaScript --><% scripts.forEach( function ( file ) { %>
+    <script type="text/javascript" src="/static/<%= file %>"></script><% }); %>
+  
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead row">
+          <div class="col-md-12">
+              <h1><a ng-href="/#/home" style="color:black">
+                <i class="fa fa-users"></i> Tribe:</a>
+                <small>
+                  The collaborative platform for reproducible web-based analyses.
+                </small>
+              </h1>
+            <nav class="navbar navbar-default" role="navigation" ui-view="navbar">
+              <div class="collapse navbar-collapse">
+                  <ul class="navbar-nav nav">
+                    <li ui-route="/home" ng-class="{active:$uiRoute}">
+                      <a ng-href="/#/home">
+                        <i class="fa fa-home"></i>
+                        Home
+                      </a>
+                    </li>
+                    <li ui-route="/build" ng-class="{active:$uiRoute}">
+                      <a href="/#/build">
+                        Build Collection
+                      </a>
+                    </li>
+                    <li ui-route="/use/.*" ng-class="{active:$uiRoute}">
+                      <a ui-sref="use.list">
+                        Use Collection
+                      </a>
+                    </li>
+                    <li ui-route="/help" ng-class="{active:$uiRoute}">
+                      <a ui-sref="help">
+                        <i class="fa fa-book"></i>
+                        Help
+                      </a>
+                    </li>
+                  </ul>
+                  <ul class="nav navbar-nav navbar-right">
+                    <login-button></login-button>
+                    <profile-button></profile-button>
+                  </ul>
+              </div>
+            </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" ui-view="main">
+    </div>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <div class="clearfix visible-xs"></div>
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-inner row">
+            <div class="col-md-6 col-md-offset-3">
+                <small>
+                    <ul class="nav nav-pills nav-justified">
+                      <li><a href="/#/citetribe">Cite</a></li>
+                      <li><a href="/oauth2/applications/">Register Server</a></li>
+                      <li><a href="/#/contact-us">Contact Us</a></li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+        <div class="footer-inner row">
+          <p class="text-center text-muted">
+            <small>
+              tribe-interface v<%= version %> &copy; 2016 
+              <a href="http://www.greenelab.com/">Greene Laboratory</a>; 
+              <a href="http://www.med.upenn.edu/">Perelman School of Medicine</a> 
+              at the
+              <a href="http://www.upenn.edu/">University of Pennsylvania</a>.
+            </small>
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
