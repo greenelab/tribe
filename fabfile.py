@@ -139,10 +139,11 @@ def _restart():
     """
     Restart the service on the server.
 
-    You must have setup sudo for the supervisorctl restart tribe command. See the
-    setup fab file.
+    You must have setup sudo for the supervisorctl restart tribe command.
+    See the setup fab file.
     """
     run('sudo supervisorctl restart tribe')
+    run('sudo supervisorctl restart tribe-celery')
 
 
 def _bower():
