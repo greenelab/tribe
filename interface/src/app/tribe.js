@@ -14,15 +14,25 @@ angular.module( 'tribe', [
   'ui.router',
   'ui.route',
   'ui.bootstrap',
-  'angularSpinner'
+  'angularSpinner',
+  'angulartics',
+  'angulartics.google.analytics'
 ])
 
-.config( function myAppConfig ( $stateProvider, $urlRouterProvider ) {
+.config( function myAppConfig ( $stateProvider, $analyticsProvider ) {
     $stateProvider
       .state('notAuth', {
           url: '/accounts/login/'
       });
-   // $urlRouterProvider.otherwise( '/home' );
+
+    // The next code is straight from the instructions on installing
+    // angulartics on an angular app:
+
+    // Records pages that don't use $state or $route 
+    $analyticsProvider.firstPageview(true);
+
+    // Records full path
+    $analyticsProvider.withAutoBase(true);
 
 })
 
