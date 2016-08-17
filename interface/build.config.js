@@ -75,7 +75,7 @@ module.exports = {
       'vendor/spin.js/spin.js',
       'vendor/angular-spinner/angular-spinner.js',
       'vendor/angulartics/dist/angulartics.min.js',
-      'vendor/angulartics-google-analytics/dist/angulartics-ga.min.js'
+      'vendor/angulartics-google-analytics/lib/angulartics-ga.js'
     ],
     css: [
 //#bug in Gruntfile.js, had to rename to xeditable.css      'vendor/angular-xeditable/dist/css/xeditable.css',
