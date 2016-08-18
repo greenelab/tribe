@@ -15,7 +15,9 @@
     "raven-js": "~1.1.0",
     "underscore": "~1.5.0",
     "spin.js": "~2.1.0",
-    "angular-spinner": "~0.6.1"
+    "angular-spinner": "~0.6.1",
+    "angulartics": "~1.1.2",
+    "angulartics-google-analytics": "~0.2.1"
   },
   "resolutions": {
     "angular": "1.2.10-build.2180+sha.131410b"
