@@ -526,3 +526,9 @@ LOGIN_REDIRECT_URL = '/#/home'
 if config.has_section('documentation'):
     DOCS_URL = config.get('documentation', 'DOCS_URL')
 ########## END DOCS CONFIGURATION
+
+# GOOGLE ANALYTICS CONFIGURATION
+if config.has_section('google analytics'):
+    GA_CODE = config.get('google analytics', 'GA_CODE')
+else:
+    GA_CODE = ''
