@@ -25,8 +25,15 @@ angular.module( 'tribe', [
           url: '/accounts/login/'
       });
 
-    // The next code is straight from the instructions on installing
-    // angulartics on an angular app:
+    // The next code is straight from the instructions on hooking up
+    // angulartics on an angular app (see docs here:
+    // http://angulartics.github.io and here:
+    // https://github.com/angulartics/angulartics-google-analytics)
+    //
+    // The main index.html file contains (in the <head> section) the same
+    // code that Google Analytics provides by default, except for
+    // the line "ga('send', 'pageview');", as the angulartics
+    // $analyticsProvider now handles the sending of tracking info. 
 
     // Records pages that don't use $state or $route 
     $analyticsProvider.firstPageview(true);
