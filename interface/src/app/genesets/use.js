@@ -330,6 +330,19 @@ angular.module( 'tribe.genesets.use', [
             });
         };
 
+        $scope.forkGeneset = function( ) {
+            $state.go('fork', {creator: $scope.geneset.creator.username,
+                               slug: $scope.geneset.slug,
+                               version: $scope.chosenVersion.ver_hash});
+        };
+
+        $scope.createNewVersion = function( ) {
+            $state.go('use.newversion', {creator: $scope.geneset.creator.username,
+                                         slug: $scope.geneset.slug,
+                                         version: $scope.chosenVersion.ver_hash});
+        };
+
+
     })
 
 
