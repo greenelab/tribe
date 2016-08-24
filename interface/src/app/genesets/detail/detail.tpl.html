@@ -99,7 +99,7 @@
                     <span class="pull-right">
 
                         <button class="btn btn-success btn-xs" tooltip="Create a new version"
-                             ng-click="createNewVersion()">
+                             ng-if="geneset.editable" ng-click="createNewVersion()">
                                 <i class="fa fa-plus"></i>
                                  Version
                         </button>
