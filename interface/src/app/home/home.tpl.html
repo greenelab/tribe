@@ -2,7 +2,21 @@
 
   <p class="lead">
     <strong>Seamlessly mine data across bioinformatics systems.</strong>
-    For biologists, Tribe puts literature search and experimental results to work mining large data compendia. For bioinformatics researchers, Tribe allows biologists to use your webservers seamlessly as part of an analytical pipeline.
+    Tribe stores the findings of your research as collections of genes,
+    also called  gene sets, so you can keep track of them and send them
+    directly to other webservers for analyses. It knows the
+    different gene identifiers (e.g. Entrez and Ensembl) available
+    so that any webserver or tool in your pipeline can request
+    that identifier for your collection.
+    <br>
+    <br>
+    Tribe also keeps track of the different versions of your
+    collections as you edit them, and saves annotations you make to each
+    version so you can go back and reproduce your analyses.
+    To learn more, click
+    <a href={{tribeDocsUrl}} target="_blank">
+        here to read our documentation.
+    </a>
   </p>
 </div>
 
@@ -16,7 +30,25 @@
 
 <div class="marketing">
   <div class="row">
-    <div class="col-md-4">
+    <p class="lead"><strong>What Tribe offers:</strong></p>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <p class="lead">
+      If you are a <strong>biologist</strong>: Tribe puts literature search and experimental
+      results to work mining large data compendia.
+      </p>
+    </div>
+    <div class="col-md-6">
+      <p class="lead">
+      If you are a <strong>bioinformatics developer</strong>: Tribe allows biologists to use
+      your webservers seamlessly as part of their analytical pipeline.
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
         <h4><i class="fa fa-group"></i> <a ui-sref="democollab">Work with collaborators.</a></h4>
         <p class="text-justify">
             The idea of collaborative data mining is built into Tribe. Work with
@@ -24,25 +56,7 @@
             to mine large-scale data compendia.
         </p>
     </div>
-    <div class="col-md-4">
-        <h4><i class="fa fa-lock"></i> <a ui-sref="demoshare">Control your collections.</a></h4>
-        <p class="text-justify">
-            Tribe's permissions system allows you to control how your collections are
-            used. Collections can be public or private, and private collections are
-            only shared with people that you specifically authorize.
-        </p>
-    </div>
-    <div class="col-md-4">
-        <h4><i class="fa fa-code-fork"></i> <a ui-sref="demohistory">Keep your history.</a></h4>
-        <p class="text-justify">
-            Tribe provides detailed versioning information storing not just
-            what you know but also how you got there. Fork public resources and
-            add your own findings to quickly build your knowledgebase.
-        </p>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <h4><i class="fa fa-code"></i> <a ui-sref="democode">Write simple code.</a></h4>
         <p class="text-justify">
             Tribe's API returns well formed JSON objects, so support for the API
@@ -51,7 +65,19 @@
             library</a> for easy access.
         </p>
     </div>
-    <div class="col-md-4">
+  </div>
+
+
+  <div class="row">
+    <div class="col-md-6">
+        <h4><i class="fa fa-lock"></i> <a ui-sref="demoshare">Control your collections.</a></h4>
+        <p class="text-justify">
+            Tribe's permissions system allows you to control how your collections are
+            used. Collections can be public or private, and private collections are
+            only shared with people that you specifically authorize.
+        </p>
+    </div>
+    <div class="col-md-6">
         <h4><i class="fa fa-comments"></i> <a ui-sref="demoids">Speak one language.</a></h4>
         <p class="text-justify">
             Tribe's API was designed by computational biologists for computational
@@ -59,7 +85,18 @@
             can be returned with the gene identifiers that you need.
         </p>
     </div>
-    <div class="col-md-4">
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+        <h4><i class="fa fa-code-fork"></i> <a ui-sref="demohistory">Keep your history.</a></h4>
+        <p class="text-justify">
+            Tribe provides detailed versioning information storing not just
+            what you know but also how you got there. Fork public resources and
+            add your own findings to quickly build your knowledgebase.
+        </p>
+    </div>
+    <div class="col-md-6">
         <h4><i class="fa fa-link"></i> <a ui-sref="demolink">Link with Tribe.</a></h4>
         <p class="text-justify">
             Link your webserver with Tribe to make it immediately available to
