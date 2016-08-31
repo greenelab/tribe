@@ -71,6 +71,7 @@ angular.module( 'tribe.home', [
  * And of course we define a controller for our route.
  */
 .controller( 'HomeCtrl', function HomeController( $scope ) {
+    $scope.tribeDocsUrl = "http://tribe-greenelab.readthedocs.org";
 })
 
 ;
