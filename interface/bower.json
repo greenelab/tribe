@@ -1,6 +1,6 @@
 {
   "name": "tribe-interface",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "devDependencies": {},
   "dependencies": {
     "angular": "~1.2.0",
