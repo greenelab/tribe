@@ -47,7 +47,10 @@ angular.module( 'tribe.genesets.fork', [
         $scope.version = Versions.get({creator:$stateParams.creator, slug:$stateParams.slug, version:$stateParams.version});
         $scope.version.$promise.then(function() { // When things return, create a new geneset object
             $scope.newGeneset = {};
-            $scope.newGeneset.title = $scope.version.geneset.title;
+
+            $scope.newGeneset.title = "Fork of " + $scope.version.geneset.title +
+                " at version " + $scope.version.ver_hash.slice(0, 12);
+
             $scope.newGeneset.organism = $scope.version.geneset.organism.resource_uri;
             $scope.newGeneset.abstr = $scope.version.geneset.abstr;
             $scope.newGeneset.public = $scope.version.geneset.public;
@@ -57,12 +60,16 @@ angular.module( 'tribe.genesets.fork', [
         });
 
         $scope.fork = function() { // Save the new geneset object
-            $scope.new_gs = GeneSets.save($scope.newGeneset, function(data, headers) {
-                $state.go('use.detail', {creator:data.creator.username, slug: data.slug});
-            });
+            GeneSets.save($scope.newGeneset).$promise.then(
+                function( data ) {
+                    $state.go('use.detail', {creator:data.creator.username,
+                                             slug: data.slug});
+                },
+                function ( error ) {
+                    alert(error['data']);
+                });
         };
 
     })
 
 ;
-
