@@ -105,8 +105,10 @@
                 <h3 class="panel-title">{{chosenVersion.ver_hash | limitTo:12}}
                     <span class="pull-right">
 
-                        <button class="btn btn-success btn-xs" tooltip="Create a new version"
-                             ng-if="geneset.editable" ng-click="createNewVersion()">
+                        <button class="btn btn-success btn-xs"
+                            tooltip="Create a new version of this collection, with
+                            different genes and/or publications"
+                            ng-if="geneset.editable" ng-click="createNewVersion()">
                                 <i class="fa fa-plus"></i>
                                  Version
                         </button>
