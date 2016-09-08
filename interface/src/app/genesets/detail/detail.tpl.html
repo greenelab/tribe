@@ -46,6 +46,13 @@
                                     {{ collaborator.email }}
                                 </a>
                             </li>
+                            <li class="divider"></li>
+                            <li>
+                              <a ng-href="/#/profile">
+                                <i class="fa fa-share"></i> 
+                                &nbsp;Invite new collaborators
+                              </a>
+                            </li>
                         </ul>
                     </p>
                 </div>
@@ -98,8 +105,10 @@
                 <h3 class="panel-title">{{chosenVersion.ver_hash | limitTo:12}}
                     <span class="pull-right">
 
-                        <button class="btn btn-success btn-xs" tooltip="Create a new version"
-                             ng-click="createNewVersion()">
+                        <button class="btn btn-success btn-xs"
+                            tooltip="Create a new version of this collection, with
+                            different genes and/or publications"
+                            ng-if="geneset.editable" ng-click="createNewVersion()">
                                 <i class="fa fa-plus"></i>
                                  Version
                         </button>
