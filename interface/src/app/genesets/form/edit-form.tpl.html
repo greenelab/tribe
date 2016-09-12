@@ -1,0 +1,23 @@
+<form name="edit-geneset" class="form" role="form">
+
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" class="form-control" placeholder="Enter title" ng-model="geneset.title" required>
+    </div>
+
+    <div class="form-group">
+        <label for="organism">Organism</label>
+        <select class="form-control" ng-disabled="!newset" id="organism" ng-model="geneset.organism" ng-options="organism.resource_uri as organism.scientific_name for organism in organisms.objects" popover-placement="right" required>
+            <option value="">--- Choose an organism ---</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="abst">Abstract</label>
+        <textarea id="abstr" rows="3" class="form-control" ng-model="geneset.abstr" placeholder="Enter an abstract"></textarea>
+    </div>
+
+    <div class="form-group">
+        <button type="button" class="btn btn-default" ng-model="geneset.public" btn-checkbox>Public Collection</button>
+    </div>
+</form>

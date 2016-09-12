@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block head_title %} Fork {% endblock %}
+
+{% block content %}
+<br>
+
+<h3>Fork a new Gene Set</h3>
+<br>
+<div ng-app="gs_handler">
+<div ng-controller="ForkController" ng-init="thisVersion('{{ version.pk }}')" >
+Version the new Gene Set will be a fork of:<br>
+<table class="table table-bordered" border="2">
+    <tr>
+    <th> Gene Set Title       </th>
+    <th> Version              </th>
+    <th> Organism             </th>
+    <th> Description          </th>
+    </tr>
+    <tr><td>{[{ currentVersion.geneset.title }]}</td><td>{[{ currentVersion.ver_hash }]}</td><td>{[{ currentVersion.organism.scientific_name }]}</td><td>{[{ currentVersion.description }]}</td></tr>
+
+</table>
+
+
+<br><br>
+    <table class="table-bordered" border="2" > 
+	<tr><th> Genes in This Version</th></tr>
+	<tr ng-repeat="gene in currentVersion.gene_list"> <td>{[{ gene.symbol }]}</td>
+       </tr>
+    </table>
+
+
+<div style="position:absolute;left:500px;top:350px;">
+<form name="input" > 
+{% csrf_token %}
+
+<br>
+* Name for your new Gene Set: <br>
+	<input type="text" name="title" ng-model="newGeneSet.title" required></input><span class="error">{[{ errors.name }]}</span>
+        <br><br><br><br>
+
+        Description: <br>
+		<textarea name="description" rows="3" cols="31" ng-model="newGeneSet.description" placeholder="Enter a description"></textarea><span class="error">{[{ errors.name }]}</span><br><br><br><br>
+
+	* Do you want this new Gene Set to be public?<br>
+	(If public, it will only be read-accessible by other users.  Users other than the author can never modify any Gene Sets.)<br>
+	<br>  
+	<label class="checkbox">
+	<input type="checkbox" ng-model="newGeneSet.is_public">&nbsp;Public
+	</label><br><br><br>
+
+	By forking from this version node, you will create a new Gene Set with the same genes as this version.
+	<br><br>
+	<button class="btn btn-large btn-success" ng-click="saveGeneSet()"><i class="icon-circle-arrow-right"></i>  Commit New Fork</button>
+
+
+</form>
+</div>
+
+</div>
+</div>
+
+{% endblock %}
+
+
