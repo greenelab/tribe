@@ -1,7 +1,3 @@
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
-
 from django.db import models
 from django.contrib.auth.models import User
 from genes.models import Gene, CrossRef
@@ -14,6 +10,11 @@ from django.utils import timezone
 from django.db import connection
 import cPickle as pickle # For more information on pickling, see: http://docs.python.org/2/library/pickle.html
 import hashlib # See: http://docs.python.org/2/library/hashlib.html
+
+# Import and set logger
+import logging
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 """
 The class 'Version' is a Django model constructor, which is the blueprint for the information that will be stored
@@ -150,7 +151,9 @@ class Version(models.Model):
                             # Check to see if publication is in the database
                             pub_obj = Publication.objects.get(pmid=pubmed_id)
                         except Publication.DoesNotExist:
-                            # If it doesn't exit, load it
+                            # If it doesn't exist in the database, load it
+                            logger.info("Pubmed ID %s did not exist in the "
+                                        "database. Loading it now.", pubmed_id)
                             load_pmids([pubmed_id, ])
                             try:
                                 # Try again to see if publication is now in
@@ -159,6 +162,9 @@ class Version(models.Model):
                             except Publication.DoesNotExist:
                                 # Pubmed id that was passed probably does not
                                 # exist
+                                logger.info("Pubmed ID %s could not be loaded"
+                                            "from Pubmed server. Saving it in "
+                                            "version as None.", pubmed_id)
                                 pub_obj = None
                         if pub_obj:
                             pubs.add(pub_obj.id)

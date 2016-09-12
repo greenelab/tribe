@@ -1058,6 +1058,8 @@ class VersionResource(ModelResource):
         if genes_not_found:
             bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
 
+        logger.debug("Formatted for DB annotations are: %s",
+                     formatted_for_db_annotations)
         bundle.obj.annotations = formatted_for_db_annotations
         return bundle
 
