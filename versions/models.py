@@ -162,9 +162,10 @@ class Version(models.Model):
                             except Publication.DoesNotExist:
                                 # Pubmed id that was passed probably does not
                                 # exist
-                                logger.info("Pubmed ID %s could not be loaded"
-                                            "from Pubmed server. Saving it in "
-                                            "version as None.", pubmed_id)
+                                logger.warning("Pubmed ID %s could not be "
+                                               "loaded from Pubmed server. "
+                                               "Saving it in version as None.",
+                                               pubmed_id)
                                 pub_obj = None
                         if pub_obj:
                             pubs.add(pub_obj.id)
@@ -200,8 +201,10 @@ class Version(models.Model):
         version_name = gs + "-" + v_hash
         return version_name # Returns the gene set this version is a part of and the first seven characters of hash.
 
-
     class Meta:
-        ordering = ['geneset', 'commit_date'] # Order the versions of a gene set in chronological order.
+        # Order the versions of a gene set in chronological order.
+        ordering = ['geneset', 'commit_date']
+
+        # Each gene set must have different hashes for each version
+        # to differentiate them.
         unique_together = ('geneset', 'ver_hash')
-        # Each gene set must have different hashes for each version to differentiate them.
