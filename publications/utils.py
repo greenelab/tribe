@@ -11,6 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+NUM_PUBMED_RETRIES = settings.ETOOLS_CONFIG['num_of_retries']
+
+
 def load_pmids(pmids, force_update=False):
     """
     Loads PMIDS passed as integers into the database when they do not already exist.
@@ -37,18 +40,15 @@ def load_pmids(pmids, force_update=False):
         r = requests.post(settings.ETOOLS_CONFIG['base_url'], data=qdict)
 
         error_cnt = 0
-        while error_cnt < 3:
-            if r.status_code != 200:
-                error_cnt += 1
-                time.sleep(0.5)
-                r = requests.post(settings.ETOOLS_CONFIG['base_url'],
-                                  data=qdict)
-            else:
-                break
+        while r.status_code != 200 and error_cnt < NUM_PUBMED_RETRIES:
+            error_cnt += 1
+            time.sleep(0.5)
+            r = requests.post(settings.ETOOLS_CONFIG['base_url'],
+                              data=qdict)
 
         if r.status_code != 200:
-            logger.error('Requests to the PubMed server with data %s failed '
-                         'after 4 attempts.', qdict)
+            logger.warning('Requests to the PubMed server with data %s failed '
+                           'after %s attempts.', qdict, NUM_PUBMED_RETRIES + 1)
 
         pub_page = r.text
         if pub_page:
@@ -98,7 +98,7 @@ PARSE_NAMES = frozenset(('Authors',))
 def parse_pub(pub):
     logger.debug("Parsing PMID %s", pub.get('uid'))
     if pub.find('error') is not None:
-        logger.warning("Error in request for PMID %s from pubmed server.", pub.get('uid'))
+        logger.warning("Error in request for PMID %s from PubMed server.", pub.get('uid'))
         return None
     rel_fields = reduce(dict_merge, map(extract_fields, pub))
     result = {}
