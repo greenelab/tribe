@@ -790,13 +790,14 @@ class GenesetResource(ModelResource):
             logger.info('Hydrating annotations sent with geneset %s', bundle)
 
             genes_not_found = None
+            pubs_not_loaded = None
             if passed_annotations:
                 # if annotations were passed, add them to a new version
                 logger.info('Annotations were passed to create Geneset, make'
                             ' an initial version with these annotations: %s',
                             passed_annotations)
 
-                formatted_for_db_annotations, genes_not_found =\
+                formatted_for_db_annotations, genes_not_found, pubs_not_loaded = \
                     version.format_annotations(
                         passed_annotations, posted_database, full_pubs,
                         organism=bundle.obj.organism.scientific_name)
@@ -810,6 +811,10 @@ class GenesetResource(ModelResource):
             if genes_not_found:
                 bundle.data['Warning - The following genes were not found '
                             'in our database'] = list(genes_not_found)
+
+            if pubs_not_loaded:
+                bundle.data['Warning - The following publications could not '
+                            'be loaded'] = list(pubs_not_loaded)
 
         if 'tags' in bundle.data:
             for tag in bundle.data['tags']:
@@ -1051,12 +1056,18 @@ class VersionResource(ModelResource):
         if geneset_uri:
             geneset = GenesetResource().get_via_uri(geneset_uri, bundle.request)
 
-        formatted_for_db_annotations, genes_not_found = \
-            bundle.obj.format_annotations(passed_annotations, posted_database,
-                                          full_pubs, organism=geneset.organism.scientific_name)
+        formatted_for_db_annotations, genes_not_found, pubs_not_loaded = \
+            bundle.obj.format_annotations(
+                passed_annotations, posted_database, full_pubs,
+                organism=geneset.organism.scientific_name)
 
         if genes_not_found:
-            bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
+            bundle.data['Warning - The following genes were not found in'
+                        ' our database'] = list(genes_not_found)
+
+        if pubs_not_loaded:
+            bundle.data['Warning - The following publications could not '
+                        'be loaded'] = list(pubs_not_loaded)
 
         logger.debug("Formatted for DB annotations are: %s",
                      formatted_for_db_annotations)
