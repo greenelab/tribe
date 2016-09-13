@@ -473,7 +473,12 @@ ETOOLS_CONFIG = {
         'db': 'pubmed',
         'retmode': 'xml',
         'version': '2.0',
-    }
+    },
+    # Number of times to retry connecting to the PubMed server
+    # (if there are problems when connecting to it). The code
+    # to load the publications will wait half a second between
+    # each retry.
+    'num_of_retries': 3
 }
 ########## END ETOOLS CONFIGURATION
 
