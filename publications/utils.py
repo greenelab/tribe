@@ -16,7 +16,8 @@ NUM_PUBMED_RETRIES = settings.ETOOLS_CONFIG['num_of_retries']
 
 def load_pmids(pmids, force_update=False):
     """
-    Loads PMIDS passed as integers into the database when they do not already exist.
+    Loads publications into the database from a list of PubMed IDs passed
+    as integers into the database when they do not already exist.
     """
     pmids = list(set([int(x) for x in pmids]))
     logger.debug('Starting to load PMID(S) %s', pmids)
@@ -55,8 +56,11 @@ def load_pmids(pmids, force_update=False):
             logger.debug('Request to pubmed server returned pub_page')
             xmltree = ET.fromstring(pub_page.encode('utf-8'))
             pubs = xmltree.findall('.//DocumentSummary')
+
+            # pub_dicts will be a list of publications, where each
+            # of them is a dictionary
             pub_dicts = map(parse_pub, pubs)
-            for pub in pub_dicts:
+            for index, pub in enumerate(pub_dicts):
                 logger.debug('Making new pub %s', pub)
                 if pub is not None:
                     new_pub = None
@@ -85,7 +89,9 @@ def load_pmids(pmids, force_update=False):
                     logger.debug('Finished saving pub %s', new_pub)
 
                 else:
-                    logger.warning('Pub is none in pub_page %s', pub_page)
+                    bad_pmid = pubs[index].get('uid')
+                    logger.warning('PMID %s has no publication in pub_page %s',
+                                   bad_pmid, pub_page)
 
         else:
             logger.warning('There was no page returned from pubmed server!!')
