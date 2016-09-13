@@ -115,6 +115,7 @@ class Version(models.Model):
         """
         formatted_for_db_annotations = set()
         genes_not_found = set()
+        pubs_not_loaded = set()
         annotation_dict = {}
 
         if organism is not None:
@@ -166,6 +167,7 @@ class Version(models.Model):
                                                "loaded from Pubmed server. "
                                                "Saving it in version as None.",
                                                pubmed_id)
+                                pubs_not_loaded.add(pubmed_id)
                                 pub_obj = None
                         if pub_obj:
                             pubs.add(pub_obj.id)
@@ -191,7 +193,7 @@ class Version(models.Model):
 
             formatted_for_db_annotations = frozenset(formatted_for_db_annotations)
 
-        return (formatted_for_db_annotations, genes_not_found)
+        return (formatted_for_db_annotations, genes_not_found, pubs_not_loaded)
 
     # __unicode__ in django explained: https://docs.djangoproject.com/en/dev/ref/models/instances/#unicode
     def __unicode__(self):
