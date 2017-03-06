@@ -9,10 +9,10 @@ django-braces==1.4.0
 django-celery==3.1.17
 django-celery-transactions==0.3.6
 django-fixtureless==1.4.3.3
-django-genes==0.2
+django-genes==0.11
 django-haystack==2.4.0
 django-oauth-toolkit==0.10.0
-django-organisms==0.2
+django-organisms==0.4
 django-taggit==0.13.0
 django-tastypie==0.13.1
 django-transaction-hooks==0.2
