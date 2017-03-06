@@ -205,8 +205,7 @@ class TestKEGGLoaderMethods(TestCase):
         # Note: The name of this KEGG term has changed:
         # http://www.genome.jp/dbget-bin/www_bget?ds:H00001
         self.assertEqual(
-            result['title'], 'Acute lymphoblastic leukemia (ALL) (precursor B'
-                             ' lymphoblastic leukemia/lymphoma)')
+            result['title'], 'B lymphoblastic leukemia/lymphoma')
 
         self.assertTrue('abstract' in result)
 
