@@ -1,0 +1,2 @@
+# some services expect requirements.txt here
+-r requirements/prod.txt

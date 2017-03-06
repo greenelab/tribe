@@ -1,0 +1,15 @@
+<form class="form" style="margin-bottom: 0">       
+    <div class="control-group">
+        <label class="control-label" for="geneset">Select an organism for your collection:</label>
+
+        <select class="form-control italic" id="organism" style="font-style: italic" ng-model="chosenOrgSlug" ng-options="organism.slug as organism.scientific_name for organism in organisms.objects" popover-placement="right" required>
+            <option value="">--- Choose an organism ---</option>
+        </select>
+
+    </div>
+    <br>
+    <div class="clearfix">
+        <button type="button" class="btn btn-success pull-right" ng-click="selectGenes()">Select your genes &nbsp;<i class="fa fa-long-arrow-right"></i></button>
+    </div>
+
+</form>
