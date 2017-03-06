@@ -468,7 +468,8 @@ else:
 ########## ETOOLS CONFIGURATION
 # allows us to query pubmed.
 ETOOLS_CONFIG = {
-    'base_url': 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi',
+    # *Note: E-utilities now require 'https' when making POST requests
+    'base_url': 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi',
     'query_params': {
         'db': 'pubmed',
         'retmode': 'xml',
