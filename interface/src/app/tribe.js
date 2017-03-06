@@ -14,15 +14,32 @@ angular.module( 'tribe', [
   'ui.router',
   'ui.route',
   'ui.bootstrap',
-  'angularSpinner'
+  'angularSpinner',
+  'angulartics',
+  'angulartics.google.analytics'
 ])
 
-.config( function myAppConfig ( $stateProvider, $urlRouterProvider ) {
+.config( function myAppConfig ( $stateProvider, $analyticsProvider ) {
     $stateProvider
       .state('notAuth', {
           url: '/accounts/login/'
       });
-   // $urlRouterProvider.otherwise( '/home' );
+
+    // The next code is straight from the instructions on hooking up
+    // angulartics on an angular app (see docs here:
+    // http://angulartics.github.io and here:
+    // https://github.com/angulartics/angulartics-google-analytics)
+    //
+    // The main index.html file contains (in the <head> section) the same
+    // code that Google Analytics provides by default, except for
+    // the line "ga('send', 'pageview');", as the angulartics
+    // $analyticsProvider now handles the sending of tracking info. 
+
+    // Records pages that don't use $state or $route 
+    $analyticsProvider.firstPageview(true);
+
+    // Records full path
+    $analyticsProvider.withAutoBase(true);
 
 })
 
@@ -45,7 +62,9 @@ angular.module( 'tribe', [
     $rootScope.$stateParams = $stateParams;
 
 
-    $rootScope.$on('$stateChangeStart', function (ev, to, toParams, from, fromParams) {
+    $rootScope.$on(
+      '$stateChangeStart', function (ev, to, toParams, from, fromParams) {
+
         if (requiredLoginStates.indexOf(to['name']) > -1) {
             UserFactory.getPromise().$promise.then( function() {
 
@@ -53,14 +72,19 @@ angular.module( 'tribe', [
 
                     var modalInstance = $modal.open({
                         templateUrl: 'auth/login-modal-box.tpl.html',
-                        controller: ['$scope', '$modalInstance', function( $scope, $modalInstance ) {
-                            $scope.message = "You need to sign in to create a collection.";
+                        controller: [
+                          '$scope', '$modalInstance', function($scope,
+                                                               $modalInstance) {
+                            $scope.message = "You need to sign in to create " +
+                                "a collection.";
                             $scope.credentials = {};
                             $scope.login = function () {
-                                User.login($scope.credentials).$promise.then( function(data) {
+                                User.login($scope.credentials)
+                                  .$promise.then( function(data) {
                                     if (data['success'] === true) {
                                         $rootScope.$broadcast( 'user.update' );
                                         $modalInstance.close(data['success']);
+                                        $window.location.reload();
                                     }
                                 });
                             };

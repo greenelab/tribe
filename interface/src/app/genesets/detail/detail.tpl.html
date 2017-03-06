@@ -46,6 +46,13 @@
                                     {{ collaborator.email }}
                                 </a>
                             </li>
+                            <li class="divider"></li>
+                            <li>
+                              <a ng-href="/#/profile">
+                                <i class="fa fa-share"></i> 
+                                &nbsp;Invite new collaborators
+                              </a>
+                            </li>
                         </ul>
                     </p>
                 </div>
@@ -96,25 +103,29 @@
         <div class="panel panel-default">
             <div class="panel-heading clearfix">
                 <h3 class="panel-title">{{chosenVersion.ver_hash | limitTo:12}}
-                    <span class="btn btn-xs pull-right">
+                    <span class="pull-right">
+
+                        <button class="btn btn-success btn-xs"
+                            tooltip="Create a new version of this collection, with
+                            different genes and/or publications"
+                            ng-if="geneset.editable" ng-click="createNewVersion()">
+                                <i class="fa fa-plus"></i>
+                                 Version
+                        </button>
+
+                        <button class="btn btn-success btn-xs" tooltip="Fork a new 
+                            collection starting from this version." ng-click="forkGeneset()">
+                                <i class="fa fa-code-fork"></i>
+                                 Fork
+                        </button>
+
                         <button class="btn btn-primary btn-xs"
                             ng-click="openDownloadModal(chosenVersion.ver_hash)"
-                            tooltip="Download gene list as csv file">
-                            Download
-                        </button> &nbsp; &nbsp;
+                            tooltip="Download gene and PubMed ID list as csv file">
+                                <i class="fa fa-download"></i>
+                                 Download
+                        </button>
 
-                        <a ui-sref="fork({creator:geneset.creator.username,
-                            slug:geneset.slug, version:chosenVersion.ver_hash})">
-                            <i class="fa fa-code-fork" tooltip="Fork version 
-                                into a new collection."></i>
-                        </a>
-
-                        <a ng-if="geneset.editable" 
-                            ui-sref="use.newversion({creator:geneset.creator.username,
-                            slug:geneset.slug, version:chosenVersion.ver_hash})">
-                            <i class="fa fa-wrench" tooltip="Make a new version from
-                            this one."></i>
-                        </a>
                     </span>
                 </h3>
             </div>

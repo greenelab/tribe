@@ -48,8 +48,9 @@ from tastypie import fields
 from tastypie import http
 from tastypie.authentication import BasicAuthentication, SessionAuthentication, MultiAuthentication
 from tastypie.authorization import DjangoAuthorization, Authorization
-from tastypie.exceptions import Unauthorized, BadRequest
-from tastypie.http import HttpUnauthorized, HttpForbidden
+from tastypie.exceptions import Unauthorized, BadRequest, \
+    NotFound, ImmediateHttpResponse
+from tastypie.http import HttpUnauthorized, HttpForbidden, HttpNotFound
 from tastypie.serializers import Serializer
 from tastypie.cache import SimpleCache
 from tastypie.throttle import CacheDBThrottle
@@ -441,13 +442,9 @@ class GenesetResource(ModelResource):
         if "query" in filters:
             if filters["query"]:  # don't search if the string is empty
                 logger.debug("Filtered by query.")
-                sqs = SearchQuerySet().models(Geneset).filter(content=filters["query"]).load_all()
-                orm_filters["pk__in"] = [i.pk for i in sqs]
-                # TODO: Replace the two lines above with the lines below when
-                # this issue: https://github.com/django-haystack/django-haystack/issues/1019
-                # is merged and closed. Probably django-haystack 2.4
-                #pks = SearchQuerySet().models(Geneset).filter(content=filters["query"]).values_list('pk', flat=True)
-                #orm_filters["pk__in"] = [int(x) for x in pks]
+                pks = SearchQuerySet().models(Geneset).filter(
+                    content=filters["query"]).values_list('pk', flat=True)
+                orm_filters["pk__in"] = [int(x) for x in pks]
 
         if "filter_tags" in filters:
             if filters["filter_tags"]:  # don't search if the string is empty
@@ -712,15 +709,17 @@ class GenesetResource(ModelResource):
             logger.info('Hydrating annotations sent with geneset %s', bundle)
 
             genes_not_found = None
+            pubs_not_loaded = None
             if passed_annotations:
                 # if annotations were passed, add them to a new version
                 logger.info('Annotations were passed to create Geneset, make'
                             ' an initial version with these annotations: %s',
                             passed_annotations)
 
-                formatted_for_db_annotations, genes_not_found =\
-                    version.format_annotations(passed_annotations,
-                                               posted_database, full_pubs)
+                formatted_for_db_annotations, genes_not_found, pubs_not_loaded = \
+                    version.format_annotations(
+                        passed_annotations, posted_database, full_pubs,
+                        organism=bundle.obj.organism.scientific_name)
 
                 version.annotations = formatted_for_db_annotations
                 version.save()
@@ -731,6 +730,10 @@ class GenesetResource(ModelResource):
             if genes_not_found:
                 bundle.data['Warning - The following genes were not found '
                             'in our database'] = list(genes_not_found)
+
+            if pubs_not_loaded:
+                bundle.data['Warning - The following publications could not '
+                            'be loaded'] = list(pubs_not_loaded)
 
         if 'tags' in bundle.data:
             for tag in bundle.data['tags']:
@@ -967,27 +970,57 @@ class VersionResource(ModelResource):
         except KeyError:
             full_pubs = None
 
-        formatted_for_db_annotations, genes_not_found = bundle.obj.format_annotations(passed_annotations, posted_database, full_pubs)
+        geneset_uri = bundle.data['geneset']
+        geneset = None
+        if geneset_uri:
+            geneset = GenesetResource().get_via_uri(geneset_uri, bundle.request)
+
+        formatted_for_db_annotations, genes_not_found, pubs_not_loaded = \
+            bundle.obj.format_annotations(
+                passed_annotations, posted_database, full_pubs,
+                organism=geneset.organism.scientific_name)
 
         if genes_not_found:
-            bundle.data['Warning - The following genes were not found in our database'] = list(genes_not_found)
+            bundle.data['Warning - The following genes were not found in'
+                        ' our database'] = list(genes_not_found)
 
+        if pubs_not_loaded:
+            bundle.data['Warning - The following publications could not '
+                        'be loaded'] = list(pubs_not_loaded)
+
+        logger.debug("Formatted for DB annotations are: %s",
+                     formatted_for_db_annotations)
         bundle.obj.annotations = formatted_for_db_annotations
         return bundle
 
-
     def obj_create(self, bundle, **kwargs):
         """
-        This overrides the Resource's default obj_create method. It checks
-        to see if the Version model itself throws a 'NoParentVersionSpecified'
-        exception when it tries to save the Version (see Version.save() 
-        method).
+        This overrides the Resource's default obj_create method and does
+        a couple of checks. First, it checks whether the geneset_uri passed
+        is in the correct format and corresponds to a Geneset in the
+        database. Second, it checks to see if the Version model itself
+        throws a 'NoParentVersionSpecified' exception when it tries to save
+        the Version (see Version.save() method).
         """
+
+        try:
+            GenesetResource().get_via_uri(bundle.data['geneset'],
+                                          bundle.request)
+        except NotFound:
+            raise BadRequest("The 'geneset' resource URI sent was in a format"
+                             " not supported by the Tribe API.")
+        except Geneset.DoesNotExist:
+            raise ImmediateHttpResponse(response=http.HttpNotFound(
+                "The 'geneset' resource URI sent did not "
+                "match the resource URI for any geneset "
+                "in our database."))
+
         try:
             bundle = super(VersionResource, self).obj_create(bundle, **kwargs)
         except NoParentVersionSpecified:
-            raise BadRequest("This geneset already has at least one version." + \
-                " You must specify the parent version of this new version.")
+            raise BadRequest("This geneset already has at least one version. "
+                             "You must specify the parent version of this new "
+                             "version.")
         return bundle
 
     def download_as_csv(self, request, **kwargs):

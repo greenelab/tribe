@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.conf import settings
 
 from tastypie.api import Api
 
@@ -25,15 +26,20 @@ v1_api.register(CrossrefResource())
 v1_api.register(CrossrefDBResource())
 
 urlpatterns = patterns('',
-    url(r'^$', ensure_csrf_cookie(TemplateView.as_view(template_name="index.html")), name='home'),
+    url(r'^$',
+        ensure_csrf_cookie(TemplateView.as_view(template_name="index.html")),
+        {'ga_code': settings.GA_CODE}, name='home'),
+
     (r'^api/', include(v1_api.urls)),
     (r'^accounts/', include('allauth.urls')),
     (r'^accounts/', include('profiles.urls')),
 
     # OAuth2 provider urls:
-    url(r'^oauth2/', include('oauth2_provider.urls', namespace = 'oauth2_provider')),
+    url(r'^oauth2/', include('oauth2_provider.urls',
+                             namespace='oauth2_provider')),
 
-    # All other urls are handled through AngularJS and 'ui-router' in the interface
+    # All other urls are handled through AngularJS and 'ui-router'
+    # in the interface.
 
 )
 

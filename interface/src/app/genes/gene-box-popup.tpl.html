@@ -17,12 +17,14 @@
       <h5><b>Databases:</b></h5>
 
       Entrez:
-      <a href="http://www.ncbi.nlm.nih.gov/gene/{{entrezid}}">{{entrezid}}</a>
+      <a href="http://www.ncbi.nlm.nih.gov/gene/{{entrezid}}" target="_blank">
+        {{entrezid}}
+      </a>
       <br>
 
       <div ng-repeat="xrid in xrids">
         {{xrid.crossrefdb}}:
-        <a href="{{xrid.db_url}}">{{xrid.xrid}}</a>
+        <a href="{{xrid.db_url}}" target="_blank">{{xrid.xrid}}</a>
         <br>
       </div>
 

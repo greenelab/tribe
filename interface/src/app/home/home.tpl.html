@@ -1,8 +1,17 @@
 <div class="jumbotron">
-
   <p class="lead">
     <strong>Seamlessly mine data across bioinformatics systems.</strong>
-    For biologists, Tribe puts literature search and experimental results to work mining large data compendia. For bioinformatics researchers, Tribe allows biologists to use your webservers seamlessly as part of an analytical pipeline.
+    Tribe stores the findings of your research as collections of genes,
+    also called  gene sets. A user can keep track of the collections and send them
+    directly to other webservers or tools for analyses, translating between different
+    gene identifiers (such as Entrez and Ensembl) if necessary.
+    <br>
+    <br>
+    Tribe also records the different versions of your collections as
+    you edit them, and saves annotations you make to each version so
+    you can go back and reproduce your analyses.
+    To learn more, click <a href={{tribeDocsUrl}} target="_blank">
+    here to read our documentation.</a>
   </p>
 </div>
 
@@ -13,60 +22,184 @@
     <getting-started-form></getting-started-form>
 </div>
 <br>
+<br>
+<div class="row">
+  <p class="lead"><strong>Webservers connected to Tribe</strong></p>
+</div>
+<table class="table table-hover">
+  <tr>
+    <td>
+      <a href="http://giant.princeton.edu" target="_blank" style="color:black">
+        <p class="lead">
+          <strong>GIANT</strong>
+          <img src="/static/assets/webservers_images/GIANT.png"
+            class="img-responsive" alt="Image logo for GIANT webserver" />
+        </p>
+      </a>
+    </td>
+    <td>
+      GIANT is a web server that provides an interactive
+      interface to all 144 human tissue networks through multi-gene queries and
+      sophisticated network visualization. Researchers can query by individual
+      genes or by gene sets of interest to analyze tissue-specific gene functions
+      and interactions. Multi-tissue view allows for rapid examination of the
+      tissue-specific rewiring of functional connections across diverse tissues.
+      GIANT also provides a full NetWAS implementation, allowing users to upload
+      gene-based association P values to receive NetWAS association scores.
+      <a href="http://giant.princeton.edu" target="_blank">
+        http://giant.princeton.edu
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="http://asd.princeton.edu" target="_blank" style="color:black">
+        <img src="/static/assets/webservers_images/ASD.300x300.png"
+          class="img-responsive" alt="Image logo for ASD webserver" />
+      </a>
+    </td>
+    <td>
+      Autism spectrum disorder (ASD) is a major neurodevelopmental disorder with
+      a strong genetic basis. Yet, currently, we only know a small fraction of
+      potentially causal genes. ASD@Princeton presents a genome-wide prediction
+      of autism-associated genes described in the context of a human brain-specific
+      gene interaction network. Created by the Laboratory for Bioinformatics and
+      Functional Genomics in the Lewis-Sigler Institute for Integrative Genomics
+      at Princeton University, this dynamic web-interface also contains cellular
+      pathways, spatiotemporal brain signatures, and CNV intervals linked to ASD.
+      <a href="http://asd.princeton.edu" target="_blank">
+        http://asd.princeton.edu
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="http://fntm.princeton.edu" target="_blank" style="color:black">
+        <p class="lead">
+          <strong>FNTM</strong>
+          <img src="/static/assets/webservers_images/FNTM.png"
+            class="img-responsive" alt="Image logo for FNTM webserver" />
+        </p>
+      </a>
+    </td>
+    <td>
+      Functional Networks of Tissues in Mouse (FNTM) provides biomedical
+      researchers with tissue-specific predictions of functional relationships
+      between proteins in the most widely used model organism for human disease,
+      the laboratory mouse. Users can explore FNTM-predicted functional
+      relationships for their tissues and genes of interest or examine gene
+      function and interaction predictions across multiple tissues, all through
+      an interactive, multi-tissue network browser. FNTM makes predictions based
+      on integration of a variety of functional genomic data, including over
+      13,000 gene expression experiments, and prior knowledge of gene function.
+      FNTM predicts tissue-specific functional relationships in 200 tissues, does
+      not require any registration or installation and is freely available for use at
+      <a href="http://fntm.princeton.edu" target="_blank">
+        http://fntm.princeton.edu
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="http://wisp.princeton.edu" target="_blank" style="color:black">
+        <img src="/static/assets/webservers_images/WISP.png"
+            class="img-responsive" alt="Image logo for WISP webserver" />
+      </a>
+    </td>
+    <td>
+      WISP (worm integrated in specific contexts) provides an interface to
+      the 203 tissue- and cell-type specific functional networks spanning all
+      major tissue systems in worm developed by the Laboratory for
+      Bioinformatics and Functional Genomics in the Lewis-Sigler Institute for
+      Integrative Genomics at Princeton University. Users can query the
+      networks, investigate gene set enrichments in the  resulting subnetworks,
+      and compare subnetworks across multiple tissues and cell-types.
+      <a href="http://wisp.princeton.edu" target="_blank">
+        http://wisp.princeton.edu
+      </a>
+    </td>
+  </tr>
+</table>
+<br>
+<br>
 
 <div class="marketing">
   <div class="row">
-    <div class="col-md-4">
-        <h4><i class="fa fa-group"></i> <a ui-sref="democollab">Work with collaborators.</a></h4>
-        <p class="text-justify">
+    <p class="lead"><strong>If you are a ...</strong></p>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <p class="lead"><strong>Biologist</strong>:
+            <br>
+            Tribe puts literature search and experimental
+            results to work mining large data compendia.
+          </p>
+        </div>
+        <div class="panel-body">
+
+          <h4><i class="fa fa-group"></i> <a ui-sref="democollab">Work with collaborators.</a></h4>
+          <p class="text-justify">
             The idea of collaborative data mining is built into Tribe. Work with
             your partners to store findings in one place. Then use those collections
             to mine large-scale data compendia.
-        </p>
-    </div>
-    <div class="col-md-4">
-        <h4><i class="fa fa-lock"></i> <a ui-sref="demoshare">Control your collections.</a></h4>
-        <p class="text-justify">
+          </p>
+          <br>
+          <h4><i class="fa fa-lock"></i> <a ui-sref="demoshare">Control your collections.</a></h4>
+          <p class="text-justify">
             Tribe's permissions system allows you to control how your collections are
             used. Collections can be public or private, and private collections are
             only shared with people that you specifically authorize.
-        </p>
-    </div>
-    <div class="col-md-4">
-        <h4><i class="fa fa-code-fork"></i> <a ui-sref="demohistory">Keep your history.</a></h4>
-        <p class="text-justify">
+          </p>
+          <br>
+          <h4><i class="fa fa-code-fork"></i> <a ui-sref="demohistory">Keep your history.</a></h4>
+          <p class="text-justify">
             Tribe provides detailed versioning information storing not just
             what you know but also how you got there. Fork public resources and
             add your own findings to quickly build your knowledgebase.
-        </p>
+          </p>
+
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="col-md-4">
-        <h4><i class="fa fa-code"></i> <a ui-sref="democode">Write simple code.</a></h4>
-        <p class="text-justify">
+
+    <div class="col-md-6">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <p class="lead">
+            <strong>Bioinformatics developer</strong>:
+            <br>
+            Tribe allows biologists to use your webservers seamlessly
+            as part of their analytical pipeline.
+          </p>
+        </div> 
+        <div class="panel-body">
+          <h4><i class="fa fa-code"></i> <a ui-sref="democode">Write simple code.</a></h4>
+          <p class="text-justify">
             Tribe's API returns well formed JSON objects, so support for the API
             exists in the languages that you already use. For example, pythonistas
             can use the <a href="http://docs.python-requests.org/en/latest/">requests 
             library</a> for easy access.
-        </p>
-    </div>
-    <div class="col-md-4">
-        <h4><i class="fa fa-comments"></i> <a ui-sref="demoids">Speak one language.</a></h4>
-        <p class="text-justify">
+          </p>
+          <br>
+          <h4><i class="fa fa-comments"></i> <a ui-sref="demoids">Speak one language.</a></h4>
+          <p class="text-justify">
             Tribe's API was designed by computational biologists for computational
             biologists. The Tribe server handles gene name mapping, so all collections
             can be returned with the gene identifiers that you need.
-        </p>
-    </div>
-    <div class="col-md-4">
-        <h4><i class="fa fa-link"></i> <a ui-sref="demolink">Link with Tribe.</a></h4>
-        <p class="text-justify">
+          </p>
+          <br>
+          <h4><i class="fa fa-link"></i> <a ui-sref="demolink">Link with Tribe.</a></h4>
+          <p class="text-justify">
             Link your webserver with Tribe to make it immediately available to
             the broader research community. Users can access their own Tribe collections
             on your server using the <a href="http://oauth.net/2/">OAuth2</a> protocol.
-        </p>
+          </p>
+
+        </div>
+      </div>
     </div>
   </div>
 </div>
-
