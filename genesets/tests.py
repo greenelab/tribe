@@ -17,20 +17,23 @@ from organisms.models import Organism
 from genes.models import Gene, CrossRef, CrossRefDB
 from genesets.models import Geneset
 from versions.models import Version
-from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
-from publications.models import Publication
+from versions.exceptions import (
+    VersionContainsNoneGene, NoParentVersionSpecified
+)
 
 factory = Factory()
 
 # REQUIRES ELASTICSEARCH TO BE SETUP AS THE HAYSTACK PROVIDER.
 TEST_INDEX = {
     'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'ENGINE': 'haystack.backends.elasticsearch_backend.'
+                  'ElasticsearchSearchEngine',
         'URL': 'http://127.0.0.1:9200/',
         'TIMEOUT': 60 * 10,
         'INDEX_NAME': 'test_index',
     },
 }
+
 
 class GenesetTipTestCase(TestCase):
 
@@ -198,12 +201,21 @@ class TestKEGGLoaderMethods(TestCase):
         from genesets.management.commands import genesets_load_kegg
         result = genesets_load_kegg.get_kegg_info(self.KEGG_URL_BASE, 'H00001')
         self.assertTrue('title' in result)
-        self.assertEqual(result['title'],
-                         'Acute lymphoblastic leukemia (ALL) (precursor B lymphoblastic leukemia)')
+
+        # Note: The name of this KEGG term has changed:
+        # http://www.genome.jp/dbget-bin/www_bget?ds:H00001
+        self.assertEqual(
+            result['title'], 'Acute lymphoblastic leukemia (ALL) (precursor B'
+                             ' lymphoblastic leukemia/lymphoma)')
+
         self.assertTrue('abstract' in result)
 
 
-@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX)
+# The Celery settings are needed for updating the Geneset search indexes
+# with Celery in tests. These should be included in every TestCase class
+# where Celery is run.
+@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
+                   CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class GenesetUnregisteredTestCase(ResourceTestCase):
 
     def setUp(self):
@@ -221,6 +233,10 @@ class GenesetUnregisteredTestCase(ResourceTestCase):
         self.geneset3 = Geneset.objects.create(creator=self.user2, title='GO-BP:Test Geneset 3',
                                                organism=self.org1, deleted=False,
                                                abstract='Testing BRCA AURKA.', public=True)
+
+        # This will update the search indexes for the genesets that were just
+        # created, but new genesets will need to have their search indexes
+        # created through the Celery queue.
         call_command('update_index', interactive=False, verbosity=0)
 
     def testEmptyQuery(self):
@@ -257,6 +273,30 @@ class GenesetUnregisteredTestCase(ResourceTestCase):
         self.assertValidJSONResponse(resp)
         self.assertEqual(len(self.deserialize(resp)['objects']), 0)
 
+    def testSearchIndexUpdate(self):
+        """
+        Tests that search indexes get updated when a new object is created.
+
+        Creating a new Gene Ontology Biological Process term, and making
+        it public. This term should get returned when using "GO-BP" as a
+        query.
+        """
+
+        self.geneset4 = Geneset.objects.create(
+            creator=self.user2, title='GO-BP:Test Geneset 4', deleted=False,
+            organism=self.org1, abstract='Testing index.', public=True
+        )
+
+        resp = self.api_client.get('/api/v1/geneset',
+                                   format="json",
+                                   data={'query': 'GO-BP'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 2)
+
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set(["GO-BP:Test Geneset 3", "GO-BP:Test Geneset 4"])
+        self.assertEqual(titles, exp_set)
+
     def tearDown(self):
         User.objects.all().delete()
         Organism.objects.all().delete()
@@ -264,7 +304,11 @@ class GenesetUnregisteredTestCase(ResourceTestCase):
         call_command('clear_index', interactive=False, verbosity=0)
 
 
-@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX)
+# The Celery settings are needed for updating the Geneset search indexes
+# with Celery in tests. These should be included in every TestCase class
+# where Celery is run.
+@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
+                   CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class GenesetRegisteredTestCase(ResourceTestCase):
 
     def setUp(self):
@@ -296,6 +340,10 @@ class GenesetRegisteredTestCase(ResourceTestCase):
         self.geneset2.tags.add("asdf")
         self.geneset1.tags.add("qwerty")
         self.geneset3.tags.add("qwerty")
+
+        # This will update the search indexes for the genesets that were just
+        # created, but new genesets will need to have their search indexes
+        # created through the Celery queue.
         call_command('update_index', interactive=False, verbosity=0)
 
     def testEmptyQuery(self):
@@ -389,6 +437,30 @@ class GenesetRegisteredTestCase(ResourceTestCase):
         exp_set = set([self.geneset1.title, self.geneset3.title])
         self.assertEqual(titles, exp_set)
 
+    def testSearchIndexUpdate(self):
+        """
+        Tests that search indexes get updated when a new object is created.
+
+        Creating a new Gene Ontology Biological Process term, making
+        it private, and checking that user1 (who is logged in), can
+        access it. This term should get returned when using "GO-BP" as a
+        query.
+        """
+
+        self.geneset4 = Geneset.objects.create(
+            creator=self.user1, title='GO-BP:Test Geneset 4', deleted=False,
+            organism=self.org1, abstract='Testing index.', public=False
+        )
+
+        resp = self.api_client.get('/api/v1/geneset',
+                                   format="json",
+                                   data={'query': 'GO-BP'})
+        self.assertValidJSONResponse(resp)
+        self.assertEqual(len(self.deserialize(resp)['objects']), 2)
+
+        titles = set([x['title'] for x in self.deserialize(resp)['objects']])
+        exp_set = set(["GO-BP:Test Geneset 3", "GO-BP:Test Geneset 4"])
+        self.assertEqual(titles, exp_set)
 
     def tearDown(self):
         User.objects.all().delete()
@@ -400,30 +472,63 @@ class GenesetRegisteredTestCase(ResourceTestCase):
 class CreatingRemoteGenesetTestCase(ResourceTestCase):
 
     def setUp(self):
-        super(CreatingRemoteGenesetTestCase, self).setUp() # This part is important
+        # This following 'super' call is important to initialize TestCase
+        super(CreatingRemoteGenesetTestCase, self).setUp()
 
-        self.org1 = Organism.objects.create(common_name="Mouse", scientific_name="Mus musculus", taxonomy_id=10090)
+        self.org1 = Organism.objects.create(common_name="Mouse",
+                                            scientific_name="Mus musculus",
+                                            taxonomy_id=10090,
+                                            slug="mus-musculus")
+        self.org2 = Organism.objects.create(common_name="Human",
+                                            scientific_name="Homo sapiens",
+                                            taxonomy_id=9606,
+                                            slug="homo-sapiens")
+        self.org3 = Organism.objects.create(common_name="Yeast",
+                                            scientific_name="Saccharomyces "
+                                                            "cerevisiae",
+                                            taxonomy_id=4932,
+                                            slug="saccharomyces-cerevisiae")
 
         self.username = "hjkl"
         self.email = "hjkl@example.com"
         self.password = "1234"
-        self.user1 = User.objects.create_user(self.username, self.email, self.password)
+        self.user1 = User.objects.create_user(
+            self.username, self.email, self.password)
 
-        #Create some genes, crossrefdb's and crossrefs
-        xrdb1 = CrossRefDB.objects.create(name="ASDF", url="http://www.example.com")
-        xrdb2 = CrossRefDB.objects.create(name="XRDB2", url="http://www.example.com/2")
+        # Create some genes, crossrefdb's and crossrefs
+        xrdb1 = CrossRefDB.objects.create(name="ASDF",
+                                          url="http://www.example.com")
+        xrdb2 = CrossRefDB.objects.create(name="XRDB2",
+                                          url="http://www.example.com/2")
 
-        self.g1 = Gene.objects.create(entrezid=55982, systematic_name="g1", standard_name="Paxip1", description="asdf", organism=self.org1, aliases="gee1 GEE1")
-        self.g2 = Gene.objects.create(entrezid=18091, systematic_name="g2", standard_name="Nkx2-5", description="asdf", organism=self.org1, aliases="gee2 GEE2")
-        self.g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc", standard_name="Ctnnbip1", description="asdf", organism=self.org1, aliases="gee3 GEE3")
-        self.g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc", standard_name="Wnt10b", description="asdf", organism=self.org1, aliases="gee4 GEE4")
+        self.g1 = Gene.objects.create(entrezid=55982, systematic_name="g1",
+                                      standard_name="Paxip1",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee1 GEE1")
+        self.g2 = Gene.objects.create(entrezid=18091, systematic_name="g2",
+                                      standard_name="Nkx2-5",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee2 GEE2")
+        self.g3 = Gene.objects.create(entrezid=67087, systematic_name="acdc",
+                                      standard_name="Ctnnbip1",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee3 GEE3")
+        self.g4 = Gene.objects.create(entrezid=22410, systematic_name="acdc",
+                                      standard_name="Wnt10b",
+                                      description="asdf",
+                                      organism=self.org1, aliases="gee4 GEE4")
+        self.g5 = Gene.objects.create(entrezid=3388, systematic_name="ICR1",
+                                      standard_name="ICR1",
+                                      organism=self.org2)
+        self.g6 = Gene.objects.create(entrezid=9164906, systematic_name="ICR1",
+                                      standard_name="ICR1",
+                                      organism=self.org3)
         self.gene_entrezid_set = set([55982, 18091, 67087, 22410])
 
-        xref1 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRID1")
-        xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=self.g2, xrid="XRID1")
-        xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRRID1")
-        xref4 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g2, xrid="XRID2")
-
+        CrossRef.objects.create(crossrefdb=xrdb1, gene=self.g1, xrid="XRID1")
+        CrossRef.objects.create(crossrefdb=xrdb2, gene=self.g2, xrid="XRID1")
+        CrossRef.objects.create(crossrefdb=xrdb1, gene=self.g1, xrid="XRRID1")
+        CrossRef.objects.create(crossrefdb=xrdb1, gene=self.g2, xrid="XRID2")
 
     def testSimpleGenesetCreationNoGenes(self):
         """
@@ -555,6 +660,54 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         # check the length of the annotations that were actually found and got saved
         self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
         self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']) - len(not_in_db_genes))
+
+    def testCreateGenesetAmbiguousSymbol(self):
+        """
+        Checking that the GenesetResource's obj_create() method correctly
+        passes the scientific_name of the new geneset's organism to the
+        Version.format_annotations() method, and that this filters out
+        genes for the passed organism (in case there are genes with the
+        same symbol for different organisms). This test is analogous to the
+        CreatingRemoteVersionTestCase.testCreateVersionAmbiguousSymbol()
+        test for the VersionResource in versions/tests.py.
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        # Get the organism uri just as the user would, doing a query to the API
+        org_scientific_name = self.org3.scientific_name
+        org_resp = self.api_client.get('/api/v1/organism', format="json",
+                                       data={'scientific_name': org_scientific_name})
+        org_object = self.deserialize(org_resp)['objects'][0]
+        org_uri = org_object['resource_uri']
+
+        geneset_data = {}
+        geneset_data['organism'] = org_uri
+        geneset_data['title'] = 'Test yeast geneset'
+        geneset_data['abstract'] = 'Adding yeast gene that has the same ' \
+                                   'symbol as a human gene'
+        geneset_data['annotations'] = {'ICR1': [20671152]}
+        geneset_data['xrdb'] = 'Symbol'
+
+        resp = client.post('/api/v1/geneset', format="json", data=geneset_data)
+
+        new_geneset_uri = self.deserialize(resp)['resource_uri']
+
+        gsresp = client.get(
+            new_geneset_uri, format="json",
+            data={'show_tip': 'true', 'full_annotations': 'true'}
+        )
+        self.assertValidJSONResponse(gsresp)
+
+        simplified_annotations = []
+        for annotation in self.deserialize(gsresp)['tip']['annotations']:
+            simple_annot = {}
+            simple_annot['gene'] = annotation['gene']['entrezid']
+            simple_annot['pubs'] = [pub['pmid'] for pub in annotation['pubs']]
+            simplified_annotations.append(simple_annot)
+
+        entrez_annots = [{'gene': 9164906, 'pubs': [20671152]}]
+        self.assertEqual(simplified_annotations, entrez_annots)
 
     def testCreateGenesetWithTags(self):
         """

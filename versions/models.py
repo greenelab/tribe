@@ -1,7 +1,3 @@
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
-
 from django.db import models
 from django.contrib.auth.models import User
 from genes.models import Gene, CrossRef
@@ -14,6 +10,11 @@ from django.utils import timezone
 from django.db import connection
 import cPickle as pickle # For more information on pickling, see: http://docs.python.org/2/library/pickle.html
 import hashlib # See: http://docs.python.org/2/library/hashlib.html
+
+# Import and set logger
+import logging
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 """
 The class 'Version' is a Django model constructor, which is the blueprint for the information that will be stored
@@ -108,24 +109,31 @@ class Version(models.Model):
 
         return super(Version, self).save(*args, **kwargs)
 
-    def format_annotations(self, annots, xrdb, full_pubs):
+    def format_annotations(self, annots, xrdb, full_pubs, organism=None):
         """
         xrdb is the type of gene identifier that the annotations are sent as
         """
         formatted_for_db_annotations = set()
         genes_not_found = set()
+        pubs_not_loaded = set()
         annotation_dict = {}
+
+        if organism is not None:
+            gene_objects_manager = Gene.objects.filter(
+                organism__scientific_name=organism)
+        else:
+            gene_objects_manager = Gene.objects
 
         for key in annots:
             # This loop validates the annotations and gets the actual
             # gene/publication objects
             try:
                 if (xrdb is None):
-                    gene_obj = Gene.objects.get(id=key)
+                    gene_obj = gene_objects_manager.get(id=key)
                 elif (xrdb == 'Entrez'):
-                    gene_obj = Gene.objects.get(entrezid=key)
+                    gene_obj = gene_objects_manager.get(entrezid=key)
                 elif (xrdb == 'Symbol'):
-                    gene_obj = Gene.objects.get(systematic_name=key)
+                    gene_obj = gene_objects_manager.get(systematic_name=key)
                 else:
                     xref_obj = CrossRef.objects.filter(
                             crossrefdb__name=xrdb).get(xrid=key)
@@ -138,15 +146,29 @@ class Version(models.Model):
                         # The full publication database objects were sent
                         pubs.add(publication['id'])
                     else:
-                        pubmed_id = publication  # Only the pubmed IDs were sent
+                        # Only the pubmed IDs were sent
+                        pubmed_id = publication
                         try:
-                            pub_obj = Publication.objects.get(pmid=pubmed_id) # Check to see if it is in the database
-                        except Publication.DoesNotExist: # If it doesn't exit, load it
+                            # Check to see if publication is in the database
+                            pub_obj = Publication.objects.get(pmid=pubmed_id)
+                        except Publication.DoesNotExist:
+                            # If it doesn't exist in the database, load it
+                            logger.info("Pubmed ID %s did not exist in the "
+                                        "database. Loading it now.", pubmed_id)
                             load_pmids([pubmed_id, ])
-                            try: # Try again to see if it is now in the database
+                            try:
+                                # Try again to see if publication is now in
+                                # the database
                                 pub_obj = Publication.objects.get(pmid=pubmed_id)
-                            except Publication.DoesNotExist:  # pubmed_id that was passed probably does not exist
-                                pub_obj=None
+                            except Publication.DoesNotExist:
+                                # Pubmed id that was passed probably does not
+                                # exist
+                                logger.warning("Pubmed ID %s could not be "
+                                               "loaded from Pubmed server. "
+                                               "Saving it in version as None.",
+                                               pubmed_id)
+                                pubs_not_loaded.add(pubmed_id)
+                                pub_obj = None
                         if pub_obj:
                             pubs.add(pub_obj.id)
 
@@ -155,18 +177,23 @@ class Version(models.Model):
             except (Gene.DoesNotExist, CrossRef.DoesNotExist):
                 genes_not_found.add(key)
 
-        if annotation_dict:  # if annotations (genes and publications) exist in the database:
+        if annotation_dict:
+            # if annotations (genes and publications) exist in the database:
             for key in annotation_dict:
-                if annotation_dict[key]: # This is the python way to check if the set is not empty (i.e. there are publications for this gene)
+                # The following statement is the pythonic way to check if the
+                # set is not empty (i.e. there are publications for this gene)
+                if annotation_dict[key]:
+                    # There are publications for this gene - add them as tuples
+                    # to formatted_for_db_annotations set.
                     for pub in annotation_dict[key]:
                         formatted_for_db_annotations.add((key, pub))
                 else:
-                    formatted_for_db_annotations.add((key, None))  # There are no pubs for this gene
+                    # There are no pubs for this gene
+                    formatted_for_db_annotations.add((key, None))
 
             formatted_for_db_annotations = frozenset(formatted_for_db_annotations)
 
-        return (formatted_for_db_annotations, genes_not_found)
-
+        return (formatted_for_db_annotations, genes_not_found, pubs_not_loaded)
 
     # __unicode__ in django explained: https://docs.djangoproject.com/en/dev/ref/models/instances/#unicode
     def __unicode__(self):
@@ -176,8 +203,10 @@ class Version(models.Model):
         version_name = gs + "-" + v_hash
         return version_name # Returns the gene set this version is a part of and the first seven characters of hash.
 
-
     class Meta:
-        ordering = ['geneset', 'commit_date'] # Order the versions of a gene set in chronological order.
+        # Order the versions of a gene set in chronological order.
+        ordering = ['geneset', 'commit_date']
+
+        # Each gene set must have different hashes for each version
+        # to differentiate them.
         unique_together = ('geneset', 'ver_hash')
-        # Each gene set must have different hashes for each version to differentiate them.

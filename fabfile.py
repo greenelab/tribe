@@ -139,10 +139,11 @@ def _restart():
     """
     Restart the service on the server.
 
-    You must have setup sudo for the supervisorctl restart tribe command. See the
-    setup fab file.
+    You must have setup sudo for the supervisorctl restart tribe command.
+    See the setup fab file.
     """
     run('sudo supervisorctl restart tribe')
+    run('sudo supervisorctl restart tribe-celery')
 
 
 def _bower():
@@ -292,45 +293,6 @@ def load_geneinfo(_cfg=PROD_CFG, geneinfo=None, genestxt=None, taxid=None, gi_ta
         else:
             run('python manage.py genes_load_geneinfo --geneinfo_file={0} --tax_id={1} --gi_tax_id={2} --symbol_col={3} --systematic_col={4} --alias_col={5} --unique_xrdb={6}'.format(gi, taxid, gi_taxid, symbol, systematic, alias, uniquexrdb))
 
-
-@task
-def load_network_dab(_cfg=PROD_CFG, dab=None, taxid=None, name=None, fweight=None, xrdb=None, prior=None, new_prior=None):
-    """
-    Upload a .dab network file, load its contents.
-    """
-    if not _cfg:
-        abort('Must set parameters for deploy, use particular script')
-    env.dir = _cfg['dir']
-    env.virt_env = _cfg['virt_env']
-    env.service = _cfg['service']
-
-    if dab is None:
-        abort('No network file was passed. Please provide a .dab file from sleipnir.')
-    run('mkdir -p ~/uploads')
-    s_dab = put(dab, '~/uploads/')[0]
-
-    with cd(env.dir), prefix('source {0}/bin/activate'.format(env.virt_env)):
-        run('python manage.py networks_load_dab --dab_file={0} --tax_id={1} --name="{2}" --fweight={3} --xrdb={4} --prior={5} --new_prior={6}'.format(s_dab, taxid, name, fweight, xrdb, prior, new_prior))
-
-
-@task
-def load_network_dat(_cfg=PROD_CFG, dat=None, taxid=None, name=None, fweight=None, xrdb=None, prior=None, new_prior=None):
-    """
-    Upload a .dat network file, load its contents.
-    """
-    if not _cfg:
-        abort('Must set parameters for deploy, use particular script')
-    env.dir = _cfg['dir']
-    env.virt_env = _cfg['virt_env']
-    env.service = _cfg['service']
-
-    if dat is None:
-        abort('No network file was passed. Please provide a .dab file from sleipnir.')
-    run('mkdir -p ~/uploads')
-    s_dat = put(dat, '~/uploads/')[0]
-
-    with cd(env.dir), prefix('source {0}/bin/activate'.format(env.virt_env)):
-        run('python manage.py networks_load_dat --dat_file={0} --tax_id={1} --name="{2}" --fweight={3} --xrdb={4} --prior={5} --new_prior={6}'.format(s_dat, taxid, name, fweight, xrdb, prior, new_prior))
 
 @task
 def update_haystack_indexes(app_name=None):
