@@ -78,7 +78,9 @@ class Geneset(models.Model):
     def __unicode__(self):
         """
         __unicode__ in django explained:
-        https://docs.djangoproject.com/en/dev/ref/models/instances/#unicode
+        https://docs.djangoproject.com/en/1.8/ref/models/instances/#unicode
+        *Note: As of Django version 1.9, this method gets replaced by
+        "__str__()".
         """
         return self.title
 
