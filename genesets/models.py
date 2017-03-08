@@ -40,8 +40,20 @@ class Geneset(models.Model):
     # Other users can fork a new gene set off of gene sets that are public.
     public = models.BooleanField(default=False)
 
+    # When users 'delete' their genesets via the UI, the Geneset objects don't
+    # actually get deleted from the database, their 'deleted' field just gets
+    # set to True. That way, these Genesets will never show up in any query,
+    # but other Genesets that are forks of that 'deleted' Geneset will not
+    # lose the Foreign Key reference.
     deleted = models.BooleanField(default=False)
+
+    # Users can 'fork', or clone, Genesets. This is similar to the way
+    # repositories are forked in git or mercurial. The 'fork_of' field
+    # keeps track of which Geneset this Geneset is a fork of (if any).
     fork_of = models.ForeignKey('self', editable=False, null=True)
+
+    # Tags can be assigned to Genesets. For example, these tags can be names
+    # of tissues that this Geneset is connected to (e.g. 'adrenal cortex').
     tags = TaggableManager()
 
     # Number of genes in the geneset's tip version
