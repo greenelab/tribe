@@ -41,13 +41,13 @@ class Geneset(models.Model):
     public = models.BooleanField(default=False)
 
     # When users 'delete' their genesets via the UI, the Geneset objects don't
-    # actually get deleted from the database, their 'deleted' field just gets
+    # actually get deleted from the database, their 'deleted' field just get
     # set to True. That way, these Genesets will never show up in any query,
     # but other Genesets that are forks of that 'deleted' Geneset will not
     # lose the Foreign Key reference.
     deleted = models.BooleanField(default=False)
 
-    # Users can 'fork', or clone, Genesets. This is similar to the way
+    # Users can 'fork' (i.e. clone) Genesets. This is similar to the way
     # repositories are forked in git or mercurial. The 'fork_of' field
     # keeps track of which Geneset this Geneset is a fork of (if any).
     fork_of = models.ForeignKey('self', editable=False, null=True)
