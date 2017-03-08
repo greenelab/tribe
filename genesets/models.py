@@ -13,7 +13,6 @@ logger.addHandler(logging.NullHandler())
 
 class Geneset(models.Model):
     """
-    The class 'Geneset' extends Model class in Django.
     Genesets are created by users to save sets of genes that are
     linked in certain processes or pathways. Through versioning
     (see versions/models.py), users can add or subtract genes to
@@ -37,7 +36,7 @@ class Geneset(models.Model):
     # http://stackoverflow.com/questions/427102/what-is-a-slug-in-django
     slug = models.SlugField(help_text="Slugified title field", max_length=75)
 
-    # If true, gene set will be read-accessible to all other users.
+    # If 'public' is true, gene set will be read-accessible to all other users.
     # Other users can fork a new gene set off of gene sets that are public.
     public = models.BooleanField(default=False)
 
