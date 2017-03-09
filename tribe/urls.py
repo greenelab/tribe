@@ -4,9 +4,11 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
 
 from tastypie.api import Api
+
+from organisms.api import OrganismResource
+from genes.api import GeneResource
+
 from genesets.api.resources import UserResource
-from genesets.api.resources import OrganismResource
-from genesets.api.resources import GeneResource
 from genesets.api.resources import GenesetResource
 from genesets.api.resources import VersionResource
 from genesets.api.resources import PublicationResource
