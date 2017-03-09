@@ -39,10 +39,10 @@ class ReturnDesiredXridsTestCase(ResourceTestCase):
 
         self.org1 = factory.create(Organism)
 
-        self.g1 = factory.create(Gene)
-        self.g2 = factory.create(Gene)
-        self.g3 = factory.create(Gene)
-        self.g4 = factory.create(Gene)
+        self.g1 = factory.create(Gene, {'standard_name': 'G1'})
+        self.g2 = factory.create(Gene, {'standard_name': 'G2'})
+        self.g3 = factory.create(Gene, {'standard_name': 'G3'})
+        self.g4 = factory.create(Gene, {'standard_name': 'G4'})
 
         # Need to specify xrdb name. Otherwise, fixtureless might make the
         # name an empty string, which would raise an error.
@@ -999,10 +999,10 @@ class ForkingVersionTestCase(ResourceTestCase):
         self.user1 = User.objects.create_user(self.username, self.email,
                                               self.password)
 
-        self.g1 = factory.create(Gene)
-        self.g2 = factory.create(Gene)
-        self.g3 = factory.create(Gene)
-        self.g4 = factory.create(Gene)
+        self.g1 = factory.create(Gene, {'standard_name': 'G1'})
+        self.g2 = factory.create(Gene, {'standard_name': 'G2'})
+        self.g3 = factory.create(Gene, {'standard_name': 'G3'})
+        self.g4 = factory.create(Gene, {'standard_name': 'G4'})
 
         self.geneset1 = Geneset.objects.create(
                             organism=org1, creator=self.user1,
