@@ -6,7 +6,7 @@
 angular.module('tribe.gene.resource', ['ngResource'])
 
 .factory('Genes', ['$resource', function($resource) {
-  return $resource('/api/v1/gene/:id', {id: '@id'}, {
+  return $resource('/api/v1/gene/:id', {}, {
 
     search: {
       url: '/api/v1/gene/search',
