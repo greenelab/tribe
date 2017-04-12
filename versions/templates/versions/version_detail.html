@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block head_title %} Version Detail {% endblock %}
+
+{% block content %}
+<br>
+<h3>Version Details </h3>
+
+<div ng-app="gs_handler"> 
+    <div ng-controller="VersionDetailController" ng-init="loadByPK({{ version.id }})" >  
+    <table class="table table-bordered" border="2">
+	<tr>
+	<th> Gene Set Title       </th>
+	<th> Version              </th>
+	<th> Organism             </th>
+	<th> Description          </th>
+	</tr>
+	<tr><td>{[{ version.geneset.title }]}</td><td>{[{ version.ver_hash }]}</td><td>{[{ version.organism.scientific_name }]}</td><td>{[{ version.description }]}</td></tr>
+  
+    </table>
+    <br>
+    <br>
+    
+    <table class="table-bordered" border="2" > 
+	<tr><th> Genes in This Version</th></tr>
+	<tr ng-repeat="gene in version.gene_list"> <td>{[{ gene.symbol }]}</td>
+       </tr>
+    </table>
+    <br>
+    <br>
+
+    <div style="position:absolute;left:450px;top:340px;">
+        <form action="{% url 'versions:fork' gs_creator URL_slug ver_hash %}" method="get"> 
+	    {% csrf_token %}
+
+	    <input type="submit" class="btn btn-info" value="Fork a new Gene Set from this version">
+        </form>
+      
+    </div>
+
+    {% if version.is_tip and gs_creator == user %}
+    <div style="position:absolute;left:450px;top:390px;">
+	<form action="{% url 'versions:new_version' gs_creator URL_slug ver_hash %}" method="get"> 
+	{% csrf_token %}
+
+	<input type="submit" class="btn btn-primary" value="Make a new version from this tip"> 
+        </form>
+    </div>
+
+    {% endif %} 
+
+    <div style="position:absolute;left:450px;top:440px;">
+	
+	<button class="btn" ng-click="viewInIMP()" >View these genes in IMP</button> <br>
+
+    </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+

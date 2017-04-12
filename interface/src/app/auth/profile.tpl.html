@@ -1,0 +1,98 @@
+<div class="row">
+    <div class="col-md-12">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">Collaborators</div>
+            <table class="table">
+                <thead><th>User</th><th>Action</th></thead>
+                <tbody>
+                    <tr ng-if="!user.collaborators.length">
+                        <td>You aren't collaborating with anyone yet.</td>
+                    </tr>
+                    <tr ng-repeat="collaborator in user.collaborators">
+                        <td>{{ collaborator.email }}</td>
+                        <td>
+                            <button class="btn btn-default btn-sm"
+                                tooltip="Cancel collaboration"
+                                ng-click="reject(collaborator.email)">
+                                    <i class="fa fa-thumbs-down"
+                                       style="color:SteelBlue">
+                                    </i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">People who have invited you to collaborate</div>
+            <table class="table">
+                <thead><th>User</th><th>Action</th></thead>
+                <tbody>
+                    <tr ng-if="!user.inviteds.length">
+                        <td>No invitations to you are outstanding.</td>
+                    </tr>
+                    <tr ng-repeat="invited in user.inviteds">
+                        <td>{{ invited.email }}</td>
+                        <td>
+                            <button class="btn btn-default btn-sm"
+                                tooltip="Accept invitation"
+                                ng-click="invite(invited.email)">
+                                    <i class="fa fa-thumbs-up"
+                                       style="color:SteelBlue">
+                                    </i>
+                            </button>
+                            &nbsp;
+                            <button class="btn btn-default btn-sm"
+                                tooltip="Decline invitation"
+                                ng-click="reject(invited.email)">
+                                    <i class="fa fa-thumbs-down"
+                                       style="color:SteelBlue">
+                                    </i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">People you have invited to collaborate</div>
+            <table class="table">
+                <thead><th>User</th><th>Action</th></thead>
+                <tbody>
+                    <tr ng-if="!user.invites.length">
+                        <td>You have no outstanding invitations to others.</td>
+                    </tr>
+                    <tr ng-repeat="invite in user.invites">
+                        <td>{{ invite.email }}</td>
+                        <td>
+                            <button class="btn btn-default btn-sm"
+                                tooltip="Cancel invitation"
+                                ng-click="reject(invite.email)">
+                                    <i class="fa fa-thumbs-down"
+                                        style="color:SteelBlue">
+                                    </i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="panel-footer">
+                <form class="form-inline" role="form">
+                    <div class="form-group col-xs-4">
+                        <label class="sr-only" for="email">
+                            Collaborator email address
+                        </label>
+                        <input type="email" class="form-control" id="email"
+                            placeholder="Enter email to invite collaborator."
+                            ng-model="toInvite.email">
+                    </div>
+                    <button type="submit" class="btn btn-default"
+                        ng-click="invite(toInvite.email)">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

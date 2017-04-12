@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block head_title %} Version changes {% endblock %}
+
+{% block content %}
+<br> Version Changes <br><br>
+<table border="2">
+    <tr>
+    <th> Genes Added   </th>
+    <th> Genes Removed </th>
+    </tr>
+    <tr><td>{{ diffplus }}</td><td>{{ diffminus }}</td></tr>
+    </table>
+
+{% endblock %}
+

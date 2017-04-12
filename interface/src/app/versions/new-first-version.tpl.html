@@ -1,0 +1,98 @@
+<div class="row">
+    <div class="col-md-12">
+
+       <div ng-if="addingAnnotations"> 
+            <div class="panel panel-primary">
+                <div class="panel-heading">Add genes to your collection:</div>
+
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Search for genes</div>
+                                <div class="panel-body">
+                                    <div class="col-md-3">
+                                        <form class="form">
+                                            <textarea name="genes" rows="7" ng-model="genesToAdd.query" placeholder="Search genes by symbol or Entrez ID"></textarea>
+                                            <span class="error">{{ errors.name }}</span>
+                                            <button class="btn btn-default" ng-click="searchGenes()" ng-disabled="loadingSearchResults"> Search Genes <i class="fa fa-search"></i></button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-9">	
+                                        <search-result-table></search-result-table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" ng-if="!addingPublications">
+                        <div class="col-sm-8">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">Annotations in new collection <button class="btn btn-primary btn-xs navbar-right" ng-click="editPublications()">Edit publications</button></div>
+                                <div class="panel-body">
+                                    <generic-annotation-list annotations="all" genes="genes" editable="true" remove-gene="removeGene"></generic-annotation-list>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" ng-if="addingPublications">
+                        <div class="col-sm-8">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">Annotations in new collection  <button class="btn btn-primary btn-xs navbar-right" ng-click="editGenes()"> Remove genes </button></div>
+                                <div class="panel-body">
+                                    <extended-annotation-list annotations="all" genes="genes" remove-gene="removeGene" pubstate="'current'"> </extended-annotation-list>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="panel-footer">
+                    <div class="form-controls">
+                        <button class="btn btn-primary" ng-click="goToHome()"> <i class="fa fa-long-arrow-left"></i> &nbsp;Previous</button>
+                        <button class="btn btn-primary pull-right" ng-click="next()">Choose a collection title &nbsp;<i class="fa fa-long-arrow-right"></i></button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div ng-if="!addingAnnotations">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Choose a collection title and abstract:</div>
+
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" class="form-control" placeholder="Enter title" ng-model="geneset.title" required>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="abst">Abstract</label>
+                        <textarea id="abstr" rows="3" class="form-control" ng-model="geneset.abstract" placeholder="Enter an abstract"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="checkbox" ng-model="geneset.public"> &nbsp; Make collection public
+                    </div>
+
+                </div>
+
+                <div class="panel-footer">
+                    <div class="form-controls">
+                        <button class="btn btn-primary" ng-click="previous()"><i class="fa fa-long-arrow-left"></i> &nbsp;Previous</button>
+
+                        <button type="button" class="btn btn-success pull-right" ng-click="save()">Create collection! &nbsp;<i class="fa fa-check"></i></button>
+
+                    </div>
+                </div>
+
+            </div>
+        </div> 
+
+    </div>
+</div>
