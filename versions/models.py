@@ -133,7 +133,12 @@ class Version(models.Model):
                 elif (xrdb == 'Entrez'):
                     gene_obj = gene_objects_manager.get(entrezid=key)
                 elif (xrdb == 'Symbol'):
-                    gene_obj = gene_objects_manager.get(systematic_name=key)
+                    try:
+                        gene_obj = gene_objects_manager.get(
+                            standard_name=key)
+                    except Gene.DoesNotExist:
+                        gene_obj = gene_objects_manager.get(
+                            systematic_name=key)
                 else:
                     xref_obj = CrossRef.objects.filter(
                             crossrefdb__name=xrdb).get(xrid=key)
