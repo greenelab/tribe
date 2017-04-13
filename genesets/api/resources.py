@@ -975,8 +975,8 @@ class VersionResource(ModelResource):
         if geneset_uri:
             geneset = GenesetResource().get_via_uri(geneset_uri, bundle.request)
 
-        formatted_for_db_annotations, genes_not_found, pubs_not_loaded = \
-            bundle.obj.format_annotations(
+        (formatted_for_db_annotations, genes_not_found, pubs_not_loaded,
+            multiple_genes_found) = bundle.obj.format_annotations(
                 passed_annotations, posted_database, full_pubs,
                 organism=geneset.organism.scientific_name)
 
@@ -987,6 +987,11 @@ class VersionResource(ModelResource):
         if pubs_not_loaded:
             bundle.data['Warning - The following publications could not '
                         'be loaded'] = list(pubs_not_loaded)
+
+        if multiple_genes_found:
+            bundle.data[
+                'Warning - The following gene identifiers sent found multiple'
+                ' gene objects in the database'] = list(multiple_genes_found)
 
         logger.debug("Formatted for DB annotations are: %s",
                      formatted_for_db_annotations)

@@ -553,6 +553,11 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
                                       standard_name="ICR1",
                                       organism=self.org3)
 
+        self.g7 = factory.create(
+            Gene, {'standard_name': self.g1.standard_name,
+                   'organism': self.org1}
+        )
+
         xref1 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRID1")
         xref2 = CrossRef.objects.create(crossrefdb = xrdb2, gene=self.g2, xrid="XRID1")
         xref3 = CrossRef.objects.create(crossrefdb = xrdb1, gene=self.g1, xrid="XRRID1")
@@ -975,12 +980,28 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
                          "The 'geneset' resource URI sent did not match the "
                          "resource URI for any geneset in our database.")
 
-    def tearDown(self):
-        User.objects.all().delete()
-        Organism.objects.all().delete()
-        Geneset.objects.all().delete()
-        Version.objects.all().delete()
-        Publication.objects.all().delete()
+    def testSameAnnotationGeneStdName(self):
+        """
+        Create a new geneset version, which contains an ambiguous gene standard
+        name in its annotations. Check that it comes back in a list of
+        'multiple_genes_found'
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        version_data = {}
+        version_data['geneset'] = '/api/v1/geneset/' + str(self.geneset1.pk)
+        version_data['description'] = 'Adding ambiguous standard_name'
+        version_data['annotations'] = {self.g7.standard_name: [20671152]}
+        version_data['xrdb'] = 'Symbol'
+
+        resp = client.post('/api/v1/version', format="json", data=version_data)
+        self.assertHttpCreated(resp)
+        self.assertEqual(self.deserialize(resp)[
+            'Warning - The following gene identifiers sent found multiple gene'
+            ' objects in the database'], [self.g7.standard_name])
+
+        self.assertEqual(self.deserialize(resp)['annotations'], [])
 
 
 class ForkingVersionTestCase(ResourceTestCase):
@@ -1086,11 +1107,3 @@ class ForkingVersionTestCase(ResourceTestCase):
             forked_version_set.add(version.ver_hash)
 
         self.assertEqual(original_version_set, forked_version_set)
-
-
-    def tearDown(self):
-        User.objects.all().delete()
-        Organism.objects.all().delete()
-        Geneset.objects.all().delete()
-        Version.objects.all().delete()
-        Publication.objects.all().delete()
