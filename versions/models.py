@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import MultipleObjectsReturned
 from genes.models import Gene, CrossRef
 from genesets.models import Geneset
 from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
@@ -115,6 +116,7 @@ class Version(models.Model):
         """
         formatted_for_db_annotations = set()
         genes_not_found = set()
+        multiple_genes_found = set()
         pubs_not_loaded = set()
         annotation_dict = {}
 
@@ -182,6 +184,9 @@ class Version(models.Model):
             except (Gene.DoesNotExist, CrossRef.DoesNotExist):
                 genes_not_found.add(key)
 
+            except (MultipleObjectsReturned):
+                multiple_genes_found.add(key)
+
         if annotation_dict:
             # if annotations (genes and publications) exist in the database:
             for key in annotation_dict:
@@ -198,7 +203,8 @@ class Version(models.Model):
 
             formatted_for_db_annotations = frozenset(formatted_for_db_annotations)
 
-        return (formatted_for_db_annotations, genes_not_found, pubs_not_loaded)
+        return (formatted_for_db_annotations, genes_not_found, pubs_not_loaded,
+                multiple_genes_found)
 
     # __unicode__ in django explained: https://docs.djangoproject.com/en/dev/ref/models/instances/#unicode
     def __unicode__(self):
