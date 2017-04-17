@@ -716,8 +716,8 @@ class GenesetResource(ModelResource):
                             ' an initial version with these annotations: %s',
                             passed_annotations)
 
-                formatted_for_db_annotations, genes_not_found, pubs_not_loaded = \
-                    version.format_annotations(
+                (formatted_for_db_annotations, genes_not_found, pubs_not_loaded,
+                    multiple_genes_found) = version.format_annotations(
                         passed_annotations, posted_database, full_pubs,
                         organism=bundle.obj.organism.scientific_name)
 
