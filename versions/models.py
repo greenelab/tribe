@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.exceptions import MultipleObjectsReturned
 from genes.models import Gene, CrossRef
 from genesets.models import Geneset
 from versions.exceptions import VersionContainsNoneGene, NoParentVersionSpecified
@@ -184,7 +183,7 @@ class Version(models.Model):
             except (Gene.DoesNotExist, CrossRef.DoesNotExist):
                 genes_not_found.add(key)
 
-            except (MultipleObjectsReturned):
+            except (Gene.MultipleObjectsReturned):
                 multiple_genes_found.add(key)
 
         if annotation_dict:
