@@ -984,7 +984,7 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         """
         Create a new geneset version, which contains an ambiguous gene standard
         name in its annotations. Check that it comes back in a list of
-        'multiple_genes_found'
+        'multiple_genes_found'.
         """
         client = TestApiClient()
         client.client.login(username=self.username, password=self.password)
@@ -1001,6 +1001,8 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
             'Warning - The following gene identifiers sent found multiple gene'
             ' objects in the database'], [self.g7.standard_name])
 
+        # Check that the ambiguous gene symbol was not added to the annotations
+        # (since Tribe did not know which gene the user meant).
         self.assertEqual(self.deserialize(resp)['annotations'], [])
 
 
