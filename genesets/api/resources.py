@@ -710,6 +710,7 @@ class GenesetResource(ModelResource):
 
             genes_not_found = None
             pubs_not_loaded = None
+            multiple_genes_found = None
             if passed_annotations:
                 # if annotations were passed, add them to a new version
                 logger.info('Annotations were passed to create Geneset, make'
@@ -734,6 +735,11 @@ class GenesetResource(ModelResource):
             if pubs_not_loaded:
                 bundle.data['Warning - The following publications could not '
                             'be loaded'] = list(pubs_not_loaded)
+
+            if multiple_genes_found:
+                bundle.data['Warning - The following gene identifiers '
+                            'sent found multiple gene objects in the '
+                            'database'] = list(multiple_genes_found)
 
         if 'tags' in bundle.data:
             for tag in bundle.data['tags']:
