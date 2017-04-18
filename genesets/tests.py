@@ -754,28 +754,43 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
 class GenesetSlugTestCase(ResourceTestCase):
 
     def setUp(self):
-        super(GenesetSlugTestCase, self).setUp() # This part is important
+        super(GenesetSlugTestCase, self).setUp()
 
-        self.org1 = Organism.objects.create(common_name="Mouse",
-            scientific_name="Mus musculus", taxonomy_id=10090)
+        self.org1 = Organism.objects.create(
+            common_name="Mouse", scientific_name="Mus musculus",
+            taxonomy_id=10090
+        )
 
         self.username = "hjkl"
         self.email = "hjkl@example.com"
         self.password = "1234"
         self.user1 = User.objects.create_user(self.username, self.email,
                                               self.password)
+        self.user2 = factory.create(User)
 
-        self.g1 = Gene.objects.create(entrezid=18128, systematic_name="g1",
-            standard_name="Notch1", description="notch 1", organism=self.org1,
-            aliases="Mis6 N1 Tan1")
-        self.g2 = Gene.objects.create(entrezid=13819, systematic_name="g2",
-            standard_name="Epas1", description="endothelial PAS domain protein 1",
+        self.g1 = Gene.objects.create(
+            entrezid=18128, systematic_name="g1", standard_name="Notch1",
+            description="notch 1", organism=self.org1, aliases="Mis6 N1 Tan1")
+        self.g2 = Gene.objects.create(
+            entrezid=13819, systematic_name="g2", standard_name="Epas1",
+            description="endothelial PAS domain protein 1",
             organism=self.org1, aliases="HIF-2alpha HIF2A")
-        self.g3 = Gene.objects.create(entrezid=15251, systematic_name="g3",
+        self.g3 = Gene.objects.create(
+            entrezid=15251, systematic_name="g3",
             standard_name="Hif1a",
             description="hypoxia inducible factor 1, alpha subunit",
             organism=self.org1, aliases="HIF1alpha MOP1")
 
+        # Create two genesets with the same title, which will create the same
+        # slug. However, they will have different creators, so this will
+        # satisfy the unique_together database requirement of 'slug' and
+        # 'creator'.
+        self.geneset1 = Geneset.objects.create(
+            creator=self.user1, title='TestGenesetABCDEFG', organism=self.org1,
+            abstract='', public=True)
+        self.geneset2 = Geneset.objects.create(
+            creator=self.user2, title='TestGenesetABCDEFG', organism=self.org1,
+            abstract='', public=True)
 
     def testRemoteCreationSameSlug(self):
         """
@@ -792,7 +807,8 @@ class GenesetSlugTestCase(ResourceTestCase):
         geneset1_data['abstract'] = 'SampleAbstract1'
         geneset1_data['annotations'] = {self.g1.entrezid: [18299578]}
 
-        resp = client.post('/api/v1/geneset', format="json", data=geneset1_data)
+        resp = client.post('/api/v1/geneset', format="json",
+                           data=geneset1_data)
         self.assertHttpCreated(resp)
 
         geneset2_data = {}
@@ -800,15 +816,16 @@ class GenesetSlugTestCase(ResourceTestCase):
         geneset2_data['title'] = 'SampleSameSlug'
         geneset2_data['abstract'] = 'SampleAbstract2'
         geneset2_data['annotations'] = {self.g2.entrezid: [14608355, 17284606],
-                                       self.g3.entrezid: [12832481]}
+                                        self.g3.entrezid: [12832481]}
 
-        resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
+        resp = client.post('/api/v1/geneset', format="json",
+                           data=geneset2_data)
         self.assertHttpBadRequest(resp)
-        self.assertEqual(resp.content, 'There is already one collection'\
-            ' with this url created by this account. Please choose a different'\
-            ' collection title. For more information, see our documentation '\
-            'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
-
+        self.assertEqual(resp.content, (
+            'There is already one collection with this url created by this '
+            'account. Please choose a different collection title. For more '
+            'information, see our documentation here: ' + settings.DOCS_URL +
+            'using_tribe.html#collection-urls'))
 
     def testRemoteCreationVeryLongTitles(self):
         """
@@ -833,7 +850,8 @@ class GenesetSlugTestCase(ResourceTestCase):
         geneset1_data['public'] = True
         geneset1_data['annotations'] = {self.g1.entrezid: [18299578]}
 
-        resp = client.post('/api/v1/geneset', format="json", data=geneset1_data)
+        resp = client.post('/api/v1/geneset', format="json",
+                           data=geneset1_data)
         self.assertHttpCreated(resp)
 
         geneset2_data = {}
@@ -850,11 +868,28 @@ class GenesetSlugTestCase(ResourceTestCase):
             'oxidative stress, a state often resulting from exposure...'
         geneset2_data['public'] = True
         geneset2_data['annotations'] = {self.g2.entrezid: [14608355, 17284606],
-                                       self.g3.entrezid: [12832481]}
+                                        self.g3.entrezid: [12832481]}
 
-        resp = client.post('/api/v1/geneset', format="json", data=geneset2_data)
+        resp = client.post('/api/v1/geneset', format="json",
+                           data=geneset2_data)
         self.assertHttpBadRequest(resp)
-        self.assertEqual(resp.content, 'There is already one collection'\
-            ' with this url created by this account. Please choose a different'\
-            ' collection title. For more information, see our documentation '\
-            'here: ' + settings.DOCS_URL + 'using_tribe.html#collection-urls')
+        self.assertEqual(resp.content, (
+            'There is already one collection with this url created by this '
+            'account. Please choose a different collection title. For more '
+            'information, see our documentation here: ' + settings.DOCS_URL +
+            'using_tribe.html#collection-urls'))
+
+    def testGettingSameSlugGeneset(self):
+        """
+        Test to check that users successfully get the only one, desired
+        geneset when they fetch it by creator username and slug (even if
+        another geneset exists in the database with the same slug).
+        """
+        client = TestApiClient()
+        client.client.login(username=self.username, password=self.password)
+
+        geneset1_url = ('/api/v1/geneset/' + self.username +
+                        '/testgenesetabcdefg/')
+
+        resp = client.get(geneset1_url, format="json")
+        self.assertValidJSONResponse(resp)
