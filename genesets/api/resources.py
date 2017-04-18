@@ -458,8 +458,12 @@ class GenesetResource(ModelResource):
     # http://django-tastypie.readthedocs.org/en/latest/cookbook.html?highlight=prepend_urls#using-non-pk-data-for-your-urls
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<creator__username>[\w.-]+)/(?P<slug>[\w.-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
-            url(r"^(?P<resource_name>%s)/(?P<creator__username>[\w.-]+)/(?P<slug>[\w.-]+)/invite%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('invite_team'), name="api_invite_team"),
+            url(r"^(?P<resource_name>%s)/(?P<creator>[\w.-]+)/(?P<slug>[\w.-]+)%s$" %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<creator>[\w.-]+)/(?P<slug>[\w.-]+)/invite%s$" %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('invite_team'), name="api_invite_team"),
         ]
 
     def hydrate_creator(self, bundle):
@@ -746,6 +750,15 @@ class GenesetResource(ModelResource):
                 bundle.obj.tags.add(tag)
 
         return bundle
+
+    def obj_get(self, bundle, **kwargs):
+        if 'creator' in kwargs:
+            try:
+                gs_creator = User.objects.get(username=kwargs['creator'])
+                kwargs['creator'] = gs_creator
+            except(User.DoesNotExist):
+                del kwargs['creator']
+        return super(GenesetResource, self).obj_get(bundle, **kwargs)
 
     def get_object_list(self, request):
         return super(GenesetResource, self).get_object_list(request).filter(deleted=False)
