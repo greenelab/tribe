@@ -892,4 +892,9 @@ class GenesetSlugTestCase(ResourceTestCase):
                         '/testgenesetabcdefg/')
 
         resp = client.get(geneset1_url, format="json")
+
+        # Check that we get a 200 HTTP response instead of a
+        # 300 response (Multiple Objects Returned)
         self.assertValidJSONResponse(resp)
+        creator = self.deserialize(resp)['creator']
+        self.assertEqual(creator['username'], self.username)
