@@ -3,7 +3,6 @@ Version tests
 """
 import string
 
-from django.test import TestCase
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 
@@ -19,6 +18,65 @@ from publications.utils import load_pmids
 
 from fixtureless import Factory
 factory = Factory()
+
+
+class ReturnVersionResourceTestCase(ResourceTestCase):
+
+    def setUp(self):
+        super(ReturnVersionResourceTestCase, self).setUp()
+
+        # Need to specify username, otherwise will get error:
+        # 'Invalid resource lookup data provided (mismatched type)'
+        # when using a fixtureless username in the url (weird characters).
+        self.user1 = factory.create(User, {'username': 'asdf'})
+        self.user2 = factory.create(User, {'username': 'qwerty'})
+
+        self.org1 = factory.create(Organism)
+
+        # Create two genesets with the same title, which will create the same
+        # slug. However, they will have different creators, so this will
+        # satisfy the unique_together database requirement of 'slug' and
+        # 'creator'. Then make two versions that have the same 'ver_hash'.
+        self.geneset1 = Geneset.objects.create(
+            creator=self.user1, title='TestGenesetABCDEFG', organism=self.org1,
+            abstract='', public=True)
+        self.geneset2 = Geneset.objects.create(
+            creator=self.user2, title='TestGenesetABCDEFG', organism=self.org1,
+            abstract='', public=True)
+
+        self.version1 = factory.create(Version, {
+            'geneset': self.geneset1,
+            'creator': self.user1,
+            'ver_hash': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            'parent': None,
+            'annotations': frozenset([])
+        })
+        self.version2 = factory.create(Version, {
+            'geneset': self.geneset2,
+            'creator': self.user2,
+            'ver_hash': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            'parent': None,
+            'annotations': frozenset([])
+        })
+
+        self.client = TestApiClient()
+
+    def testReturnByGenesetUrlAndHash(self):
+        """
+        Testing that versions get returned properly when requesting by geneset
+        creator & slug and version hash in the URL.
+        """
+        desired_version_url = ('/api/v1/version/' + self.user1.username +
+                               '/' + self.geneset1.slug + '/' +
+                               self.version1.ver_hash)
+
+        response = self.client.get(desired_version_url, format="json")
+
+        # Check that we get a 200 HTTP response instead of a
+        # 300 response (Multiple Objects Returned)
+        self.assertValidJSONResponse(response)
+        creator = self.deserialize(response)['creator']
+        self.assertEqual(creator['username'], self.user1.username)
 
 
 class ReturnDesiredXridsTestCase(ResourceTestCase):
