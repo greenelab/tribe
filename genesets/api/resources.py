@@ -458,10 +458,14 @@ class GenesetResource(ModelResource):
     # http://django-tastypie.readthedocs.org/en/latest/cookbook.html?highlight=prepend_urls#using-non-pk-data-for-your-urls
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<creator>[\w.-]+)/(?P<slug>[\w.-]+)%s$" %
+            url(r"^(?P<resource_name>%s)/"
+                r"(?P<creator__username>[\w.-]+)/"
+                r"(?P<slug>[\w.-]+)%s$" %
                 (self._meta.resource_name, trailing_slash()),
                 self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
-            url(r"^(?P<resource_name>%s)/(?P<creator>[\w.-]+)/(?P<slug>[\w.-]+)/invite%s$" %
+            url(r"^(?P<resource_name>%s)/"
+                r"(?P<creator__username>[\w.-]+)/"
+                r"(?P<slug>[\w.-]+)/invite%s$" %
                 (self._meta.resource_name, trailing_slash()),
                 self.wrap_view('invite_team'), name="api_invite_team"),
         ]
@@ -752,12 +756,13 @@ class GenesetResource(ModelResource):
         return bundle
 
     def obj_get(self, bundle, **kwargs):
-        if 'creator' in kwargs:
+        if 'creator__username' in kwargs:
             try:
-                gs_creator = User.objects.get(username=kwargs['creator'])
+                gs_creator = User.objects.get(username=kwargs['creator__username'])
                 kwargs['creator'] = gs_creator
             except(User.DoesNotExist):
-                del kwargs['creator']
+                pass
+            del kwargs['creator__username']
         return super(GenesetResource, self).obj_get(bundle, **kwargs)
 
     def get_object_list(self, request):
@@ -1103,6 +1108,21 @@ class VersionResource(ModelResource):
                                 ", ".join(pubmed_id_list)])
 
         return response
+
+    def obj_get(self, bundle, **kwargs):
+        if 'geneset__creator__username' and 'geneset__slug'in kwargs:
+            creator_username = kwargs['geneset__creator__username']
+            gs_slug = kwargs['geneset__slug']
+            try:
+                geneset = Geneset.objects.get(
+                    creator__username=creator_username, slug=gs_slug)
+                kwargs['geneset'] = geneset
+            except(Geneset.DoesNotExist):
+                pass
+
+            del kwargs['geneset__creator__username']
+            del kwargs['geneset__slug']
+        return super(VersionResource, self).obj_get(bundle, **kwargs)
 
 
 """
