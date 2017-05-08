@@ -91,17 +91,21 @@ class UserAuthorization(Authorization):
     def delete_detail(self, object_list, bundle):
         raise Unauthorized("Sorry, deleting is not possible.")
 
-#Returns only the username. For use with Genesets and Versions.
+
 class BasicUserResource(ModelResource):
+    """
+    Returns only the username. For use with Genesets and Versions.
+    """
     username = fields.CharField(attribute='username')
-    id       = fields.IntegerField(attribute='id')
+    id = fields.IntegerField(attribute='id')
     alt_username = fields.CharField()
 
     class Meta:
         queryset = User.objects.all()
-        fields = ['username',]
+        fields = ['username', ]
         detail_uri_name = 'username'
-        authorization = UserAuthorization() # Defined above
+        authorization = UserAuthorization()  # Defined above
+        filtering = {'username': ALL}
 
     def dehydrate_alt_username(self, bundle):
         # This method will check to see if the user is a temporary user.
