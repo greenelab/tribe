@@ -751,10 +751,10 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
                          set(geneset_data['tags']))
 
 
-class GenesetSlugTestCase(ResourceTestCase):
+class GenesetSlugAndCreatorTestCase(ResourceTestCase):
 
     def setUp(self):
-        super(GenesetSlugTestCase, self).setUp()
+        super(GenesetSlugAndCreatorTestCase, self).setUp()
 
         self.org1 = Organism.objects.create(
             common_name="Mouse", scientific_name="Mus musculus",
@@ -898,3 +898,34 @@ class GenesetSlugTestCase(ResourceTestCase):
         self.assertValidJSONResponse(resp)
         creator = self.deserialize(resp)['creator']
         self.assertEqual(creator['username'], self.username)
+
+    def testFilteringByCreatorUsername(self):
+        """
+        Test to check that users successfully get the only one, desired
+        geneset when they make a request to the geneset list API url but
+        filter by creator username.
+        """
+
+        client = TestApiClient()
+
+        parameters = {'creator__username': self.username}
+
+        resp = client.get('/api/v1/geneset/', format="json", data=parameters)
+
+        # Check that we get a 200 HTTP response, containing only one geneset
+        self.assertValidJSONResponse(resp)
+        resp_dict = self.deserialize(resp)
+
+        self.assertEqual(resp_dict['meta']['total_count'], 1)
+        self.assertEqual(len(resp_dict['objects']), 1)
+        self.assertEqual(resp_dict['objects'][0]['creator']['username'],
+                         self.username)
+
+        resp2 = client.get('/api/v1/geneset/', format="json")
+
+        # Check that we get a 200 HTTP response, containing only one geneset
+        self.assertValidJSONResponse(resp2)
+        resp2_dict = self.deserialize(resp2)
+
+        self.assertEqual(resp2_dict['meta']['total_count'], 2)
+        self.assertEqual(len(resp2_dict['objects']), 2)
