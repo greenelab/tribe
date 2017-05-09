@@ -912,7 +912,7 @@ class GenesetSlugAndCreatorTestCase(ResourceTestCase):
 
         resp = client.get('/api/v1/geneset/', format="json", data=parameters)
 
-        # Check that we get a 200 HTTP response, containing only one geneset
+        # Check that we get a 200 HTTP response, containing only one geneset.
         self.assertValidJSONResponse(resp)
         resp_dict = self.deserialize(resp)
 
@@ -921,9 +921,10 @@ class GenesetSlugAndCreatorTestCase(ResourceTestCase):
         self.assertEqual(resp_dict['objects'][0]['creator']['username'],
                          self.username)
 
+        # Check that if we do not pass any parameters (and therefore do
+        # not filter by creator__username), we get a 200 HTTP response,
+        # containing two genesets.
         resp2 = client.get('/api/v1/geneset/', format="json")
-
-        # Check that we get a 200 HTTP response, containing two genesets
         resp2_dict = self.deserialize(resp2)
 
         self.assertEqual(resp2_dict['meta']['total_count'], 2)
