@@ -923,8 +923,7 @@ class GenesetSlugAndCreatorTestCase(ResourceTestCase):
 
         resp2 = client.get('/api/v1/geneset/', format="json")
 
-        # Check that we get a 200 HTTP response, containing only one geneset
-        self.assertValidJSONResponse(resp2)
+        # Check that we get a 200 HTTP response, containing two genesets
         resp2_dict = self.deserialize(resp2)
 
         self.assertEqual(resp2_dict['meta']['total_count'], 2)
