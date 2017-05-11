@@ -1,16 +1,22 @@
 """
 Geneset tests
 """
+from datetime import datetime
+import random
+import string
+import mock
 
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.core.management import call_command
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
 
 from fixtureless import Factory
 
-from tastypie.test import ResourceTestCase, TestApiClient
+from tastypie.test import (
+    ResourceTestCase, ResourceTestCaseMixin, TestApiClient)
 import haystack
 
 from organisms.models import Organism
@@ -33,6 +39,11 @@ TEST_INDEX = {
         'INDEX_NAME': 'test_index',
     },
 }
+
+
+def ver_hash_generator():
+    return ''.join(random.choice(string.ascii_lowercase + string.digits)
+                   for i in range(40))
 
 
 class GenesetTipTestCase(TestCase):
@@ -929,3 +940,87 @@ class GenesetSlugAndCreatorTestCase(ResourceTestCase):
 
         self.assertEqual(resp2_dict['meta']['total_count'], 2)
         self.assertEqual(len(resp2_dict['objects']), 2)
+
+
+class FilterGenesetByDateTestCase(ResourceTestCaseMixin, TestCase):
+
+    def setUp(self):
+        super(FilterGenesetByDateTestCase, self).setUp()
+
+        self.geneset1 = factory.create(Geneset, {'public': True,
+                                                 'fork_of': None})
+        self.geneset2 = factory.create(Geneset, {'public': True,
+                                                 'fork_of': None})
+
+        # This method of making django believe it is a different date and
+        # time than it really is now was taken from here:
+        # https://devblog.kogan.com/blog/testing-auto-now-datetime-fields-in-django
+        # This is necessary to save the date we want in the commit_date field,
+        # since it has the 'auto_now_add' argument set to True.
+        with mock.patch('django.utils.timezone.now') as mock_now:
+            mock_now.return_value = timezone.make_aware(
+                datetime(2005, 7, 14), timezone.get_current_timezone())
+
+            self.version1a = factory.create(
+                Version, {'geneset': self.geneset1,
+                          'parent': None,
+                          'annotations': frozenset([(1, 1)]),
+                          'ver_hash': ver_hash_generator()})
+
+            mock_now.return_value = timezone.make_aware(
+                datetime(2007, 7, 14), timezone.get_current_timezone())
+
+            self.version1b = factory.create(
+                Version, {'geneset': self.geneset1,
+                          'parent': self.version1a,
+                          'annotations': frozenset([(1, 1), (1, 2)]),
+                          'ver_hash': ver_hash_generator()})
+
+            mock_now.return_value = timezone.make_aware(
+                datetime(2011, 7, 14), timezone.get_current_timezone())
+
+            self.version1c = factory.create(
+                Version, {'geneset': self.geneset1,
+                          'parent': self.version1b,
+                          'annotations': frozenset([(1, 1), (1, 3)]),
+                          'ver_hash': ver_hash_generator()})
+
+        # Go back to using the current time for all of the following versions
+        # being created.
+        self.version2a = factory.create(
+            Version, {'geneset': self.geneset2,
+                      'parent': None,
+                      'annotations': frozenset([(1, 1)]),
+                      'ver_hash': ver_hash_generator()})
+        self.version2b = factory.create(
+            Version, {'geneset': self.geneset2,
+                      'parent': self.version2a,
+                      'annotations': frozenset([(1, 1), (1, 2)]),
+                      'ver_hash': ver_hash_generator()})
+        self.version2c = factory.create(
+            Version, {'geneset': self.geneset2,
+                      'parent': self.version2b,
+                      'annotations': frozenset([(1, 1), (1, 3)]),
+                      'ver_hash': ver_hash_generator()})
+
+    def testGetGenesetVersionsByDate(self):
+        """
+        Test to check that only the genesets and versions created and
+        modified before the date passed in the parameters (as
+        'modified_before') get returned.
+        """
+
+        client = TestApiClient()
+
+        parameters = {'modified_before': '12/31/10', 'show_versions': 'true'}
+
+        resp = client.get('/api/v1/geneset/', format='json', data=parameters)
+
+        # Check that we get a 200 HTTP response, containing only one geneset.
+        self.assertValidJSONResponse(resp)
+        resp_dict = self.deserialize(resp)
+        print(resp_dict)
+
+        self.assertEqual(resp_dict['meta']['total_count'], 1)
+        self.assertEqual(len(resp_dict['objects']), 1)
+        self.assertEqual(len(resp_dict['objects'][0]['versions']), 2)

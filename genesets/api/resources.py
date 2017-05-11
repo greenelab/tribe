@@ -14,6 +14,7 @@ import logging
 logger = logging.getLogger('genesets.api')
 from copy import deepcopy
 import csv
+from datetime import datetime
 
 # Django imports
 from django.db import IntegrityError
@@ -396,6 +397,21 @@ def GetTip(gs):
         return vers[0]
 
 
+def filter_geneset_versions(bundle):
+    modified_before = bundle.request.GET.get('modified_before', None)
+    if modified_before:
+        modified_before = datetime.strptime(modified_before, "%m/%d/%y")
+        versions = (Version.objects
+                    .filter(geneset=bundle.obj)
+                    .filter(commit_date__lte=modified_before)
+                    .order_by('-commit_date'))
+    else:
+        versions = (Version.objects
+                    .filter(geneset=bundle.obj)
+                    .order_by('-commit_date'))
+    return versions
+
+
 class GenesetResource(ModelResource):
     title       = fields.CharField(attribute='title')
     creator     = fields.ForeignKey(BasicUserResource, 'creator', full=True)
@@ -406,7 +422,7 @@ class GenesetResource(ModelResource):
     public      = fields.BooleanField(attribute='public')
     editable    = fields.BooleanField(readonly=True)
     participants= fields.ListField(readonly=True, use_in=lambda bundle: bundle.request.GET.get('show_team', None) == 'true', null=True)
-    versions    = fields.ToManyField('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_detail=True, full_list=False, attribute=lambda bundle: Version.objects.filter(geneset=bundle.obj).order_by('-commit_date'), use_in=lambda bundle: bundle.request.GET.get('show_versions', None) == 'true', null=True)
+    versions    = fields.ToManyField('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_detail=True, full_list=False, attribute=lambda bundle: filter_geneset_versions(bundle), use_in=lambda bundle: bundle.request.GET.get('show_versions', None) == 'true', null=True)
     tip         = fields.ForeignKey('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_list=True, attribute=lambda bundle: bundle.obj.get_tip(), use_in=lambda bundle: bundle.request.GET.get('show_tip', None) == 'true', null=True)
     tags        = fields.ListField(attribute='tag_prop', readonly=True, null=True)
 
@@ -770,7 +786,21 @@ class GenesetResource(ModelResource):
         return super(GenesetResource, self).obj_get(bundle, **kwargs)
 
     def get_object_list(self, request):
-        return super(GenesetResource, self).get_object_list(request).filter(deleted=False)
+        obj_list = (super(GenesetResource, self)
+                    .get_object_list(request)
+                    .filter(deleted=False))
+
+        modified_before = request.GET.get('modified_before', None)
+        if modified_before:
+            modified_before = datetime.strptime(modified_before, "%m/%d/%y")
+
+            eligible_geneset_ids = (Version.objects
+                                    .filter(commit_date__lte=modified_before)
+                                    .values_list('geneset_id', flat=True))
+            gs_id_set = set(eligible_geneset_ids)
+
+            obj_list = obj_list.filter(id__in=gs_id_set)
+        return obj_list
 
     def delete_detail(self, request, **kwargs):
         # Overriding delete_detail method to change the status of genesets to 'deleted'
