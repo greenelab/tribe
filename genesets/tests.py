@@ -1016,11 +1016,13 @@ class FilterGenesetByDateTestCase(ResourceTestCaseMixin, TestCase):
 
         resp = client.get('/api/v1/geneset/', format='json', data=parameters)
 
-        # Check that we get a 200 HTTP response, containing only one geneset.
+        # Check that we get a 200 HTTP response.
         self.assertValidJSONResponse(resp)
         resp_dict = self.deserialize(resp)
-        print(resp_dict)
 
+        # Check that we only get one geneset back.
         self.assertEqual(resp_dict['meta']['total_count'], 1)
         self.assertEqual(len(resp_dict['objects']), 1)
+
+        # Check that only 2 of the 3 geneset versions get returned.
         self.assertEqual(len(resp_dict['objects'][0]['versions']), 2)
