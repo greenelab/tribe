@@ -422,7 +422,19 @@ class GenesetResource(ModelResource):
     public      = fields.BooleanField(attribute='public')
     editable    = fields.BooleanField(readonly=True)
     participants= fields.ListField(readonly=True, use_in=lambda bundle: bundle.request.GET.get('show_team', None) == 'true', null=True)
-    versions    = fields.ToManyField('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_detail=True, full_list=False, attribute=lambda bundle: filter_geneset_versions(bundle), use_in=lambda bundle: bundle.request.GET.get('show_versions', None) == 'true', null=True)
+
+    # The 'versions' field is a ToManyField to the GenesetVersionResource.
+    # It will only be filled when the GET parameter 'show_versions' is
+    # set to 'true', and it will get filled out by the
+    # 'filter_geneset_versions()' function above. The reason we use the
+    # 'filter_geneset_versions()' is that we want to be able to order versions
+    # by commit_date and also filter them by date if a 'modified_before'
+    # parameter is present.
+    versions = fields.ToManyField(
+        'genesets.api.resources.GenesetVersionResource', readonly=True,
+        full=True, full_detail=True, full_list=False, null=True,
+        attribute=lambda bundle: filter_geneset_versions(bundle),
+        use_in=lambda bundle: bundle.request.GET.get('show_versions', None) == 'true')
     tip         = fields.ForeignKey('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_list=True, attribute=lambda bundle: bundle.obj.get_tip(), use_in=lambda bundle: bundle.request.GET.get('show_tip', None) == 'true', null=True)
     tags        = fields.ListField(attribute='tag_prop', readonly=True, null=True)
 
