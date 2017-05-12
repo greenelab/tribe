@@ -959,7 +959,7 @@ class FilterGenesetByDateTestCase(ResourceTestCaseMixin, TestCase):
         # since it has the 'auto_now_add' argument set to True.
         with mock.patch('django.utils.timezone.now') as mock_now:
             mock_now.return_value = timezone.make_aware(
-                datetime(2005, 7, 14), timezone.get_current_timezone())
+                datetime(2005, 1, 1), timezone.get_current_timezone())
 
             self.version1a = factory.create(
                 Version, {'geneset': self.geneset1,
@@ -968,7 +968,7 @@ class FilterGenesetByDateTestCase(ResourceTestCaseMixin, TestCase):
                           'ver_hash': ver_hash_generator()})
 
             mock_now.return_value = timezone.make_aware(
-                datetime(2007, 7, 14), timezone.get_current_timezone())
+                datetime(2007, 1, 1), timezone.get_current_timezone())
 
             self.version1b = factory.create(
                 Version, {'geneset': self.geneset1,
@@ -977,7 +977,7 @@ class FilterGenesetByDateTestCase(ResourceTestCaseMixin, TestCase):
                           'ver_hash': ver_hash_generator()})
 
             mock_now.return_value = timezone.make_aware(
-                datetime(2011, 7, 14), timezone.get_current_timezone())
+                datetime(2011, 1, 1), timezone.get_current_timezone())
 
             self.version1c = factory.create(
                 Version, {'geneset': self.geneset1,
