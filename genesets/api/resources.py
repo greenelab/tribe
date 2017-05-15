@@ -432,7 +432,7 @@ class GenesetResource(ModelResource):
     # parameter is present.
     versions = fields.ToManyField(
         'genesets.api.resources.GenesetVersionResource', readonly=True,
-        full=True, full_detail=True, full_list=False, null=True,
+        full=True, full_detail=True, full_list=True, null=True,
         attribute=lambda bundle: filter_geneset_versions(bundle),
         use_in=lambda bundle: bundle.request.GET.get('show_versions', None) == 'true')
     tip         = fields.ForeignKey('genesets.api.resources.GenesetVersionResource', readonly=True, full=True, full_list=True, attribute=lambda bundle: bundle.obj.get_tip(), use_in=lambda bundle: bundle.request.GET.get('show_tip', None) == 'true', null=True)
