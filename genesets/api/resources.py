@@ -400,7 +400,7 @@ def GetTip(gs):
 def filter_geneset_versions(bundle):
     modified_before = bundle.request.GET.get('modified_before', None)
     if modified_before:
-        modified_before = datetime.strptime(modified_before, "%m/%d/%y")
+        modified_before = datetime.strptime(modified_before, "%m-%d-%y")
         versions = (Version.objects
                     .filter(geneset=bundle.obj)
                     .filter(commit_date__lte=modified_before)
@@ -804,7 +804,7 @@ class GenesetResource(ModelResource):
 
         modified_before = request.GET.get('modified_before', None)
         if modified_before:
-            modified_before = datetime.strptime(modified_before, "%m/%d/%y")
+            modified_before = datetime.strptime(modified_before, "%m-%d-%y")
 
             eligible_geneset_ids = (Version.objects
                                     .filter(commit_date__lte=modified_before)
