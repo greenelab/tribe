@@ -1012,7 +1012,7 @@ class FilterGenesetByDateTestCase(ResourceTestCaseMixin, TestCase):
 
         client = TestApiClient()
 
-        parameters = {'modified_before': '12/31/10', 'show_versions': 'true'}
+        parameters = {'modified_before': '12-31-10', 'show_versions': 'true'}
 
         resp = client.get('/api/v1/geneset/', format='json', data=parameters)
 
