@@ -1,0 +1,11 @@
+*~
+*.pyc
+tribeenv
+pickles
+interface/build/
+interface/bin/
+interface/node_modules/
+interface/vendor/
+data/
+docs/build/
+*secrets.ini
