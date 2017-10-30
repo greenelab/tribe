@@ -51,6 +51,7 @@ def get_secret_key():
 
 # Where the app lives on the server
 WEB_LOCATION = '/home/tribe/tribe'
+
 # Configuration for the production envuronment
 PROD_CFG = {
     'dir': WEB_LOCATION,
@@ -92,16 +93,17 @@ def initial_setup_and_check():
         execute(_check_env)
 
 
-def _hg_pull():
+def _git_pull():
     """
-    Pull from mercurial.
+    Pull using git.
 
-    Pull code from repo, to 'tag' if supplied, or else tip.
+    Pull code from repo to specified 'branch' or 'tag', if supplied,
+    or else to 'master' branch.
     """
     tag_name = prompt(
-        'To what tag should we pull (default "tip")?',
-        default="tip",)
-    run('hg pull && hg checkout -C {tag} && hg update'.format(
+        'To what branch or tag should we pull (default "master")?',
+        default="master",)
+    run('git pull && git checkout -f {tag}'.format(
         tag=tag_name,
     ))
 
@@ -194,7 +196,7 @@ def _run_deploy(_cfg=None):
 
     with cd(env.dir), prefix('source {0}/bin/activate'.format(env.virt_env)):
         execute(_check_env)
-        execute(_hg_pull)
+        execute(_git_pull)
         execute(_pip_install)
         execute(_migrate)
 
@@ -213,8 +215,8 @@ def deploy():
     Deploy to production.
 
     This runs the set of deployment methods. This checks the environment,
-    pulls updates from mercurial, pip-installs production, migrates, and
-    then restarts the tribe instance using supervisorctl.
+    pulls updates from git repository, pip-installs production, migrates,
+    and then restarts the tribe instance using supervisorctl.
     """
     if not confirm('You are deploying to production. Do you mean to be?'):
         abort('Aborting at user request')
