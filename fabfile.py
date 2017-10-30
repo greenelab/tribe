@@ -100,8 +100,8 @@ def _git_pull():
     Pull code from repo, to 'tag' if supplied, or else tip.
     """
     tag_name = prompt(
-        'To what tag should we pull (default "tip")?',
-        default="tip",)
+        'To what branch or tag should we pull (default "master")?',
+        default="master",)
     run('git pull && git checkout -f {tag}'.format(
         tag=tag_name,
     ))
