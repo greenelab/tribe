@@ -97,7 +97,8 @@ def _git_pull():
     """
     Pull using git.
 
-    Pull code from repo, to 'tag' if supplied, or else tip.
+    Pull code from repo to specified 'branch' or 'tag', if supplied,
+    or else to 'master' branch.
     """
     tag_name = prompt(
         'To what branch or tag should we pull (default "master")?',
