@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Make sure the script is being run from the directory where this file
+# and 'manage.py' are
+script_directory=`dirname "${BASH_SOURCE[0]}" | xargs realpath`
+cd $script_directory
+
 # Create organism records
 python manage.py organisms_create_or_update --taxonomy_id=9606 \
     --scientific_name="Homo sapiens" --common_name="Human"
@@ -18,7 +25,7 @@ python manage.py organisms_create_or_update --taxonomy_id=7955 \
 python manage.py organisms_create_or_update --taxonomy_id=208964 \
     --scientific_name="Pseudomonas aeruginosa" --common_name="Pseudomonas aeruginosa"
 
-#CREATE XRDBS
+# Create records for cross-reference databases (such as Ensembl)
 python manage.py genes_add_xrdb --name=Ensembl \
     --URL=http://www.ensembl.org/Gene/Summary?g=_REPL_
 python manage.py genes_add_xrdb --name=Entrez \
@@ -57,7 +64,7 @@ python manage.py genes_add_xrdb --name=PseudoCAP \
 # Next steps download gene_info files, unzip them, and load them to the
 # database for each organism
 
-#HUMAN
+# Human
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz
 gunzip -c data/Homo_sapiens.gene_info.gz > \
@@ -68,7 +75,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=2 \
     --symbol_col=2
 
-#BAKER'S YEAST
+# Yeast
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Fungi/Saccharomyces_cerevisiae.gene_info.gz
 gunzip -c data/Saccharomyces_cerevisiae.gene_info.gz > \
@@ -80,7 +87,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=3 \
     --symbol_col=2
 
-#MOUSE
+# Mouse
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Mus_musculus.gene_info.gz
 gunzip -c data/Mus_musculus.gene_info.gz > \
@@ -91,7 +98,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=2 \
     --symbol_col=2
 
-#RAT
+# Rat
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Rattus_norvegicus.gene_info.gz
 gunzip -c data/Rattus_norvegicus.gene_info.gz > \
@@ -102,7 +109,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=2 \
     --symbol_col=2
 
-#C. elegans
+# C. elegans
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz
 gunzip -c data/Caenorhabditis_elegans.gene_info.gz > \
@@ -119,7 +126,7 @@ python manage.py genes_load_wb \
     --wb_url=ftp://ftp.wormbase.org/pub/wormbase/releases/WS243/species/c_elegans/PRJNA13758/c_elegans.PRJNA13758.WS243.xrefs.txt.gz \
     --taxonomy_id=6239
 
-#ARABIDOPSIS
+# Arabidopsis
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Plants/Arabidopsis_thaliana.gene_info.gz
 gunzip -c data/Arabidopsis_thaliana.gene_info.gz > \
@@ -130,7 +137,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=3 \
     --symbol_col=2
 
-#FLY
+# Fly
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Drosophila_melanogaster.gene_info.gz
 gunzip -c data/Drosophila_melanogaster.gene_info.gz > \
@@ -141,7 +148,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=3 \
     --symbol_col=2
 
-#ZEBRAFISH
+# Zebrafish
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Non-mammalian_vertebrates/Danio_rerio.gene_info.gz
 gunzip -c data/Danio_rerio.gene_info.gz > \
@@ -152,7 +159,7 @@ python manage.py genes_load_geneinfo \
     --systematic_col=2 \
     --symbol_col=2
 
-#PSEUDOMONAS
+# Pseudomonas
 wget -P data/ -N \
     ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Archaea_Bacteria/Pseudomonas_aeruginosa_PAO1.gene_info.gz
 gunzip -c data/Pseudomonas_aeruginosa_PAO1.gene_info.gz > \
@@ -164,7 +171,7 @@ python manage.py genes_load_geneinfo \
     --symbol_col=2 \
     --put_systematic_in_xrdb=PseudoCAP
 
-#UNIPROT IDENTIFIERS
+# Uniprot Identifiers
 wget -P data/ -N \
     ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.dat.gz
 zgrep "GeneID" data/idmapping.dat.gz > data/uniprot_entrez.txt
