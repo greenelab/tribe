@@ -4,12 +4,11 @@
 
   <div class="popover-inner">
   
-
-    <div class="popover-title" >
+    <div class="popover-title">
       <b>{{ title }}</b>
     </div>
 
-    <div class="popover-content" >
+    <div class="popover-content">
 
       <h5><b>Description:</b></h5>
         {{description}} 
@@ -23,7 +22,7 @@
       <br>
 
       <div ng-repeat="xrid in xrids">
-        {{xrid.crossrefdb}}:
+        {{xrid.crossrefdb.name}}:
         <a href="{{xrid.db_url}}" target="_blank">{{xrid.xrid}}</a>
         <br>
       </div>
@@ -32,10 +31,6 @@
         <h5><b>Aliases:</b></h5>
         {{aliases}}
       </div>
-
     </div>
-
   </div>
-
 </div>
-

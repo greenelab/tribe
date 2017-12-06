@@ -7,23 +7,23 @@ from tastypie.api import Api
 
 from organisms.api import OrganismResource
 from genes.api import GeneResource
+from genes.api import CrossRefResource
+from genes.api import CrossRefDBResource
 
 from genesets.api.resources import UserResource
 from genesets.api.resources import GenesetResource
 from genesets.api.resources import VersionResource
 from genesets.api.resources import PublicationResource
-from genesets.api.resources import CrossrefResource
-from genesets.api.resources import CrossrefDBResource
 
 v1_api = Api()
 v1_api.register(UserResource())
 v1_api.register(OrganismResource())
 v1_api.register(GeneResource())
+v1_api.register(CrossRefResource())
+v1_api.register(CrossRefDBResource())
 v1_api.register(GenesetResource())
 v1_api.register(VersionResource())
 v1_api.register(PublicationResource())
-v1_api.register(CrossrefResource())
-v1_api.register(CrossrefDBResource())
 
 urlpatterns = patterns('',
     url(r'^$',

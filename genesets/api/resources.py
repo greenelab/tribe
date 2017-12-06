@@ -1199,31 +1199,35 @@ class GenesetVersionResource(VersionResource):
 
 
 class PublicationResource(ModelResource):
-    pmid     = fields.IntegerField(attribute='pmid', null=True)
-    title    = fields.CharField(attribute='title')
-    authors  = fields.CharField(attribute='authors')
-    date     = fields.DateField(attribute='date')
-    journal  = fields.CharField(attribute='journal')
-    volume   = fields.CharField(attribute='volume', null=True)
-    pages    = fields.CharField(attribute='pages', null=True)
-    issue    = fields.CharField(attribute='issue', null=True)
+    pmid = fields.IntegerField(attribute='pmid', null=True)
+    title = fields.CharField(attribute='title')
+    authors = fields.CharField(attribute='authors')
+    date = fields.DateField(attribute='date')
+    journal = fields.CharField(attribute='journal')
+    volume = fields.CharField(attribute='volume', null=True)
+    pages = fields.CharField(attribute='pages', null=True)
+    issue = fields.CharField(attribute='issue', null=True)
 
     class Meta:
         queryset = Publication.objects.all()
         always_return_data = True
-        fields = ['id', 'pmid', 'title', 'authors', 'date', 'journal', 'volume', 'pages', 'issue']
+        fields = ['id', 'pmid', 'title', 'authors', 'date', 'journal',
+                  'volume', 'pages', 'issue']
         allowed_methods = ['get']
-        filtering     = {
+        filtering = {
             'pmid': ALL,
             'title': ALL,
             'authors': ALL,
-            'date': ALL,}
+            'date': ALL
+        }
 
-    # URL that allows access by username and slug combined
+    # URL that allows access by pmid
     # http://django-tastypie.readthedocs.org/en/latest/cookbook.html?highlight=prepend_urls#using-non-pk-data-for-your-urls
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<pmid>[\w.-]+)%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<pmid>[\w.-]+)%s$" %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
 
     def get_detail(self, request, **kwargs):
@@ -1231,29 +1235,3 @@ class PublicationResource(ModelResource):
         if pmid is not None:
             load_pmids([pmid, ])
         return super(PublicationResource, self).get_detail(request, **kwargs)
-
-class CrossrefResource(ModelResource):
-    xrid       = fields.CharField(attribute='xrid')
-    crossrefdb = fields.CharField(attribute='crossrefdb')
-    gene       = fields.ToOneField(GeneResource, 'gene')
-    db_url     = fields.CharField(attribute='specific_url')
-
-    class Meta:
-        queryset = CrossRef.objects.all()
-        fields = ['xrid', 'gene']
-        allowed_methods = ['get']
-        filtering     = {
-            'xrid': ALL,
-            'crossrefdb': ALL,
-            'gene': ALL_WITH_RELATIONS }
-
-
-class CrossrefDBResource(ModelResource):
-    name = fields.CharField(attribute='name')
-    url = fields.CharField(attribute='url')
-
-    class Meta:
-        queryset = CrossRefDB.objects.all()
-        allowed_methods = ['get']
-        filtering = {'name': ALL,
-                     'url': ALL}
