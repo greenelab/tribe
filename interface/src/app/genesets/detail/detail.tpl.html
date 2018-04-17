@@ -9,7 +9,7 @@
                         tooltip="This collection is not public."></i>
                     {{ geneset.title }}
                     <button type="button" class="btn btn-sm btn-danger
-                        pull-right" ng-if="geneset.editable" 
+                        pull-right" ng-if="geneset.editable"
                         ng-click="openDeleteModal()" tooltip="Delete collection">
                         <i class="fa fa-trash-o" ></i>&nbsp;&nbsp;Delete
                     </button>
@@ -49,7 +49,7 @@
                             <li class="divider"></li>
                             <li>
                               <a ng-href="/#/profile">
-                                <i class="fa fa-share"></i> 
+                                <i class="fa fa-share"></i>
                                 &nbsp;Invite new collaborators
                               </a>
                             </li>
@@ -70,8 +70,8 @@
                     <h3 class="panel-title">Versions</h3>
                 </div>
                 <div class="list-group panel-body">
-                    <a class="list-group-item" ng-repeat="version in 
-                        geneset.versions" ng-click="showVersion($index)">
+                    <a class="list-group-item" ng-repeat="version in
+                        geneset.versions" ng-click="showVersion(version.ver_hash)">
                         <p class="list-group-item-text">
                             <span ng-if="$first" class="label label-primary"
                                 tooltip="Some webservers that analyze Tribe
@@ -83,17 +83,17 @@
                                 chosenVersion.ver_hash }">
                                 {{version.ver_hash | limitTo:12}}
                             </span>
-                            {{version.description}} 
+                            {{version.description}}
                         </p>
                         <i>Gene count: {{ version.genes.length }}</i>
                         <div class="commit-meta">
-                            Version by 
+                            Version by
                             <span class="author">
                                 {{version.creator.username}}
-                            </span> 
+                            </span>
                             on {{version.commit_date | date: 'MMM d, y @ h:mm a' }}.
                         </div>
-                    </a> 
+                    </a>
                 </div>
             </div>
         </div>
@@ -113,7 +113,7 @@
                                  Version
                         </button>
 
-                        <button class="btn btn-success btn-xs" tooltip="Fork a new 
+                        <button class="btn btn-success btn-xs" tooltip="Fork a new
                             collection starting from this version." ng-click="forkGeneset()">
                                 <i class="fa fa-code-fork"></i>
                                  Fork
@@ -140,11 +140,11 @@
                                     {{annotation.gene.standard_name}}
                                 </a>
                             </p>
-                        </td> 
+                        </td>
                         <td><pub-list pubs="annotation.pubs"></pub-list>
                     </tr>
                 </table>
-            </div> 
+            </div>
         </div>
     </div>
 </div>
