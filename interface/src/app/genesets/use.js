@@ -278,17 +278,18 @@ angular
       $scope.chosenVersion = Versions.get(verParams);
       $location.search({ version: chosenVersionHash });
     };
+  
     $scope.geneset.$promise.then(function(data) {
       var initialVersion = $scope.geneset.versions[0]["ver_hash"];
       var versionParam = $location.search().version;
 
       if (versionParam) {
-        var matchingVersions = $scope.geneset.versions.filter(function(
+        var found = $scope.geneset.versions.find(function(
           version
         ) {
           return version.ver_hash === versionParam;
         });
-        if (matchingVersions.length) {
+        if (found) {
           initialVersion = versionParam;
         }
       }
