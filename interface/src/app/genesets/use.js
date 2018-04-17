@@ -276,6 +276,7 @@ angular
         xrids_requested: true
       };
       $scope.chosenVersion = Versions.get(verParams);
+      $location.search({ version: chosenVersionHash });
     };
     $scope.geneset.$promise.then(function(data) {
       var initialVersion = $scope.geneset.versions[0]["ver_hash"];
