@@ -9,10 +9,10 @@
       rel="stylesheet">
 
     <!-- compiled CSS --><% styles.forEach( function ( file ) { %>
-    <link rel="stylesheet" type="text/css" href="/static/<%= file %>" /><% }); %>
+    <link rel="stylesheet" type="text/css" href="<%= file %>" /><% }); %>
 
     <!-- compiled JavaScript --><% scripts.forEach( function ( file ) { %>
-    <script type="text/javascript" src="/static/<%= file %>"></script><% }); %>
+    <script type="text/javascript" src="<%= file %>"></script><% }); %>
 
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -93,9 +93,9 @@
         <div class="footer-inner row">
           <p class="text-center text-muted">
             <small>
-              tribe-interface v<%= version %> &copy; 2017 
-              <a href="http://www.greenelab.com/">Greene Laboratory</a>; 
-              <a href="http://www.med.upenn.edu/">Perelman School of Medicine</a> 
+              tribe-interface v<%= version %> &copy; 2017
+              <a href="http://www.greenelab.com/">Greene Laboratory</a>;
+              <a href="http://www.med.upenn.edu/">Perelman School of Medicine</a>
               at the
               <a href="http://www.upenn.edu/">University of Pennsylvania</a>.
             </small>
