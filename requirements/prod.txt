@@ -1,3 +1,3 @@
 # definitely try to keep this as empty as possible, so that production is like dev
 -r base.txt
-gunicorn==19.3.0
+gunicorn==19.9.0
