@@ -22,6 +22,7 @@ SETTINGS_INI_FILES = normpath(join(SETTINGS_ROOT, 'settings'))
 path.append(PROJECT_ROOT)
 ########## END PATH CONFIGURATION
 
+
 ########## CODESHIP CONFIG
 cs = os.environ.get('CODESHIP_SETTINGS')
 if cs == 'YES':
@@ -43,6 +44,7 @@ if cs == 'YES':
     cs_config.write(cs_config_fh)
     cs_config_fh.close()
 ########## END CODESHIP CONFIG
+
 
 ########## INI CONFIGURATION
 secrets = SafeConfigParser()
@@ -271,6 +273,7 @@ LOCAL_APPS = [
 
 ########## END APP CONFIGURATION
 
+
 # RAVEN CONFIGURATION
 if secrets.has_section('raven'):
     print("Raven Enabled")
@@ -283,8 +286,6 @@ if secrets.has_section('raven'):
         #'release': raven.fetch_git_sha(dirname(__file__)),
     }
 
-# GOOGLE ANALYTICS
-GOOGLE_ANALYTICS_KEY = secrets.get('ga', 'GOOGLE_ANALYTICS_KEY')
 
 # HAYSTACK CONFIGURATION
 if config.has_section('haystack'):
@@ -428,7 +429,6 @@ else:
 
 
 ########## EMAIL CONFIGURATION
-
 if config.has_section('email'):
     # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -468,6 +468,7 @@ else:
 #}
 ########## END CACHE CONFIGURATION
 
+
 ########## ETOOLS CONFIGURATION
 # allows us to query pubmed.
 ETOOLS_CONFIG = {
@@ -486,6 +487,7 @@ ETOOLS_CONFIG = {
 }
 ########## END ETOOLS CONFIGURATION
 
+
 ########## TASTYPIE CONFIGURATION
 # make angular and tastypie work together happily
 # http://stackoverflow.com/questions/10555962/enable-django-and-tastypie-support-for-trailing-slashes
@@ -494,12 +496,14 @@ TASTYPIE_ALLOW_MISSING_SLASH = True
 APPEND_SLASH = False
 ########## END TASTYPIE CONFIGURATION
 
+
 ########## DOGSLOW CONFIGURATION
 DOGSLOW = config.getboolean('dogslow', 'ENABLED')
 DOGSLOW_LOGGER = 'dogslow'
 DOGSLOW_LOG_TO_SENTRY = True
 DOGSLOW_LOG_LEVEL = 'WARNING'
 ########## END DOGSLOW CONFIGURATION
+
 
 ########## OAUTH CONFIGURATION
 if config.has_section('oauth'):
@@ -509,6 +513,7 @@ if config.has_section('oauth'):
     }
     OAUTH_ACCESS_TOKEN_MODEL = config.get('oauth', 'OAUTH_ACCESS_TOKEN_MODEL')
 ########## END OAUTH CONFIGURATION
+
 
 ########## ALLAUTH CONFIGURATION
 AUTHENTICATION_BACKENDS = (
@@ -528,16 +533,20 @@ if config.has_section('allauth'):
     ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = config.get('allauth', 'ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL')
 ########## END ALLAUTH CONFIGURATION
 
+
 ########## LOGIN REDIRECT
 LOGIN_REDIRECT_URL = '/#/home'
+
 
 ########## DOCS CONFIGURATION
 if config.has_section('documentation'):
     DOCS_URL = config.get('documentation', 'DOCS_URL')
 ########## END DOCS CONFIGURATION
 
-# GOOGLE ANALYTICS CONFIGURATION
-if config.has_section('google analytics'):
-    GA_CODE = config.get('google analytics', 'GA_CODE')
+
+########## GOOGLE ANALYTICS CONFIGURATION
+if secrets.has_section('google analytics'):
+    GA_CODE = secrets.get('google analytics', 'GA_CODE')
 else:
     GA_CODE = ''
+########## END GOOGLE ANALYTICS CONFIGURATION
