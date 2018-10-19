@@ -1,7 +1,6 @@
 angular.module( 'tribe', [
   'ngCookies',
   'templates-app',
-  'templates-common',
   'tribe.home',
   'tribe.demo',
   'tribe.build',
@@ -33,9 +32,9 @@ angular.module( 'tribe', [
     // The main index.html file contains (in the <head> section) the same
     // code that Google Analytics provides by default, except for
     // the line "ga('send', 'pageview');", as the angulartics
-    // $analyticsProvider now handles the sending of tracking info. 
+    // $analyticsProvider now handles the sending of tracking info.
 
-    // Records pages that don't use $state or $route 
+    // Records pages that don't use $state or $route
     $analyticsProvider.firstPageview(true);
 
     // Records full path
@@ -94,7 +93,7 @@ angular.module( 'tribe', [
                                 $state.go(from, fromParams);
                                 $modalInstance.dismiss('cancel');
                             };
-                        }]              
+                        }]
                     });
 
                     modalInstance.result.then(function (success) {
@@ -114,19 +113,19 @@ angular.module( 'tribe', [
 
                 }
 
-              else { //continue 
+              else { //continue
               }
 
             });
         }
     });
 
-    
+
     // These next lines tell the interface not to automatically redirect to home if user tries to log in
     // or an external link sent them to one of the geneset pages.
 
-    if ($state['current']['name'] === '') { // Will only redirect if there is no state 
-      if (window.location.pathname.startsWith('/accounts') || window.location.pathname.startsWith('/oauth2') || $location.$$path.startsWith('/use') || $location.$$path.startsWith('/build') ) {} // Will not redirect if user wants to log in, or the user is sent from an outside link  TODO - it is pretty hacky, fix 
+    if ($state['current']['name'] === '') { // Will only redirect if there is no state
+      if (window.location.pathname.startsWith('/accounts') || window.location.pathname.startsWith('/oauth2') || $location.$$path.startsWith('/use') || $location.$$path.startsWith('/build') ) {} // Will not redirect if user wants to log in, or the user is sent from an outside link  TODO - it is pretty hacky, fix
       else {
           $state.go('home');
       }
@@ -143,4 +142,3 @@ angular.module( 'tribe', [
 })
 
 ;
-

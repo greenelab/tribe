@@ -7,7 +7,7 @@ angular.module('tribe.gene.search', [
     'tribe.gene.resource',
     'tribe.versions.new'
     ])
-    
+
     .factory( 'SearchResults', function( $rootScope, Genes ) {
         var queries = [];
         var searchResults = {};
@@ -56,7 +56,7 @@ angular.module('tribe.gene.search', [
         };
     })
 
-   
+
     // Directive for table containing search results
     .directive('searchResultTable', function( SearchResults, Annotations ) {
         return {
@@ -69,7 +69,7 @@ angular.module('tribe.gene.search', [
                 $scope.searchResults = SearchResults.getSearchResults();
                 $scope.loadingSearchResults = false;
 
-                $scope.addAllNonAmbiguous = function() {  
+                $scope.addAllNonAmbiguous = function() {
                 // Function to automatically add all genes that only have one search result
                     var searchResults = SearchResults.getSearchResults();
                     for (var key in searchResults) {
@@ -80,19 +80,19 @@ angular.module('tribe.gene.search', [
                                 Annotations.addGene(gene);
                                 SearchResults.remove(key);
                             }
-                        }            
+                        }
                     }
                 };
 
 
-                $scope.removeNotFound = function() {  
+                $scope.removeNotFound = function() {
                 // Function to get rid of all the queries that returned no results.
                     var searchResults = SearchResults.getSearchResults();
                     for (var key in searchResults) {
                         var results = searchResults[key];
                         if (results['found'].length === 0) {
                             SearchResults.remove(key);
-                        }            
+                        }
                     }
                 };
 
@@ -112,7 +112,7 @@ angular.module('tribe.gene.search', [
                 scope.$on('results.searchResultsReturned', function() {
                     scope.loadingSearchResults = false;
                 });
-        
+
                 //Watch for page changes and update
                 scope.$watch('currentPage', function() {
                     var begin = ((scope.currentPage-1)*scope.itemsPerPage), end = begin + scope.itemsPerPage;
@@ -125,7 +125,7 @@ angular.module('tribe.gene.search', [
             templateUrl: 'genes/search-result-table.tpl.html'
         };
     })
-    
+
     // Directive for button where user does not find a result
     // Should remove entire row from list
     .directive('noResultButton', function( SearchResults ) {
@@ -136,7 +136,7 @@ angular.module('tribe.gene.search', [
                     // and isn't using ng-* listeners we need to
                     // wrap things in $apply()
                     // http://jimhoskins.com/2012/12/17/angularjs-and-apply.html
-                    scope.$apply( function() { 
+                    scope.$apply( function() {
                         SearchResults.remove( scope.query );
                     });
                 });
@@ -167,7 +167,7 @@ angular.module('tribe.gene.search', [
             templateUrl: 'genes/gene-result-button.tpl.html'
         };
     })
-    
+
     // Directive for button to get more options, should get
     // next page of search results for this query from the server
     .directive('moreResultButton', function( SearchResults ) {
@@ -186,12 +186,12 @@ angular.module('tribe.gene.search', [
             },
             replace: true,
             restrict: "E",
-            scope: false, 
+            scope: false,
             templateUrl: 'genes/more-result-button.tpl.html'
         };
     })
 
-    // Directive for button to get previous search results 
+    // Directive for button to get previous search results
     .directive('previousResultButton', function( SearchResults ) {
         return {
 
@@ -208,11 +208,11 @@ angular.module('tribe.gene.search', [
             },
             replace: true,
             restrict: "E",
-            scope: false, 
+            scope: false,
             templateUrl: 'genes/previous-result-button.tpl.html'
         };
     })
-    
+
     // Directive for search buttonset, has buttons for handling
     // search results
     .directive('searchButtonset', function( SearchResults ) {
@@ -223,11 +223,14 @@ angular.module('tribe.gene.search', [
                 $scope.found = $scope.results.found;
                 var begin, end;
                 $scope.updatePage = function(page) {
-                    begin = ((page-1)*3), end=begin+3;
+                    begin = (page - 1) * 3;
+		    end = begin + 3;
                     $scope.pageGenes = $scope.found.slice(begin, end);
-                    $scope.additionalPages = (end < $scope.found.length);// Boolean, telling whether or not there is (are) any additional result page(s)
-                    $scope.previousPages = (begin > 0);// Boolean, telling whether or not there is (are) any previous page(s)
+                    $scope.additionalPages = (end < $scope.found.length);
+		    // Boolean, telling whether or not there is (are) any additional result page(s)
 
+                    $scope.previousPages = (begin > 0);
+		    // Boolean, telling whether or not there is (are) any previous page(s)
                 };
                 $scope.updatePage($scope.pageDict.page);
 

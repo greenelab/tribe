@@ -1,11 +1,14 @@
 *~
 *.pyc
+data/
+docs/build/
 tribeenv
 pickles
+*secrets.ini
+static
+tribe/templates/index.html
+interface/npm-debug.log
 interface/build/
 interface/bin/
 interface/node_modules/
 interface/vendor/
-data/
-docs/build/
-*secrets.ini
