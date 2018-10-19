@@ -22,6 +22,28 @@ SETTINGS_INI_FILES = normpath(join(SETTINGS_ROOT, 'settings'))
 path.append(PROJECT_ROOT)
 ########## END PATH CONFIGURATION
 
+########## CODESHIP CONFIG
+cs = os.environ.get('CODESHIP_SETTINGS')
+if cs == 'YES':
+    pg_user = os.environ.get('PG_USER')
+    pg_pass = os.environ.get('PG_PASSWORD')
+    cs_secret = SafeConfigParser()
+    cs_secret.read(normpath(join(SETTINGS_INI_FILES, 'example_secrets.ini')))
+    import random
+    cs_secret.set('secrets', 'SECRET_KEY', str(random.randint(0, 1000000)))
+    cs_secret.set('database', 'DATABASE_PASSWORD', pg_pass)
+    cs_secret.set('configfile', 'FILE_NAME', 'test.ini')
+    cs_secret_fh = open(normpath(join(SETTINGS_INI_FILES, 'secrets.ini')), 'w')
+    cs_secret.write(cs_secret_fh)
+    cs_secret_fh.close()
+    cs_config = SafeConfigParser()
+    cs_config.read(normpath(join(SETTINGS_INI_FILES, 'test_template.ini')))
+    cs_config.set('database', 'DATABASE_USER', pg_user)
+    cs_config_fh = open(normpath(join(SETTINGS_INI_FILES, 'test.ini')), 'w')
+    cs_config.write(cs_config_fh)
+    cs_config_fh.close()
+########## END CODESHIP CONFIG
+
 ########## INI CONFIGURATION
 secrets = SafeConfigParser()
 secrets.read(normpath(join(SETTINGS_INI_FILES, 'secrets.ini')))
@@ -139,8 +161,8 @@ STATICFILES_FINDERS = (
 
 ########## SITE CONFIGURATION
 # Hosts/domain names that are valid for this site.
-# To make the customization easier, it is a combination of the values in
-# secrets and config files.
+# To make customization easier, it is a combination of the values in
+# secrets.ini and config file.
 ALLOWED_HOSTS = [x.strip() for x in config.get('debug', 'ALLOWED_HOSTS').split(',')]
 
 if secrets.has_section('debug'):
