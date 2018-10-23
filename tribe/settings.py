@@ -91,7 +91,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 ########## DATABASE CONFIGURATION
 DATABASE_USER = config.get('database', 'DATABASE_USER')
 DATABASE_PASSWORD = secrets.get('database', 'DATABASE_PASSWORD')
-DATABASE_HOST = config.get('database', 'DATABASE_HOST')
+DATABASE_HOST = secrets.get('database', 'DATABASE_HOST')
 DATABASE_PORT = config.get('database', 'DATABASE_PORT')
 DATABASE_ENGINE = config.get('database', 'DATABASE_ENGINE')
 
@@ -162,9 +162,14 @@ STATICFILES_FINDERS = (
 
 
 ########## SITE CONFIGURATION
-# Hosts/domain names that are valid for this site
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = tuple([x.strip() for x in config.get('debug', 'ALLOWED_HOSTS').split(',')])
+# Hosts/domain names that are valid for this site.
+# To make customization easier, it is a combination of the values in
+# secrets.ini and config file.
+ALLOWED_HOSTS = [x.strip() for x in config.get('debug', 'ALLOWED_HOSTS').split(',')]
+
+if secrets.has_section('debug'):
+    ALLOWED_HOSTS += [x.strip() for x in secrets.get('debug', 'ALLOWED_HOSTS').split(',')]
+
 ########## END SITE CONFIGURATION
 
 
@@ -268,6 +273,7 @@ LOCAL_APPS = [
 
 ########## END APP CONFIGURATION
 
+
 # RAVEN CONFIGURATION
 if secrets.has_section('raven'):
     print("Raven Enabled")
@@ -280,8 +286,6 @@ if secrets.has_section('raven'):
         #'release': raven.fetch_git_sha(dirname(__file__)),
     }
 
-# GOOGLE ANALYTICS
-GOOGLE_ANALYTICS_KEY = secrets.get('ga', 'GOOGLE_ANALYTICS_KEY')
 
 # HAYSTACK CONFIGURATION
 if config.has_section('haystack'):
@@ -425,7 +429,6 @@ else:
 
 
 ########## EMAIL CONFIGURATION
-
 if config.has_section('email'):
     # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -465,6 +468,7 @@ else:
 #}
 ########## END CACHE CONFIGURATION
 
+
 ########## ETOOLS CONFIGURATION
 # allows us to query pubmed.
 ETOOLS_CONFIG = {
@@ -483,6 +487,7 @@ ETOOLS_CONFIG = {
 }
 ########## END ETOOLS CONFIGURATION
 
+
 ########## TASTYPIE CONFIGURATION
 # make angular and tastypie work together happily
 # http://stackoverflow.com/questions/10555962/enable-django-and-tastypie-support-for-trailing-slashes
@@ -491,12 +496,14 @@ TASTYPIE_ALLOW_MISSING_SLASH = True
 APPEND_SLASH = False
 ########## END TASTYPIE CONFIGURATION
 
+
 ########## DOGSLOW CONFIGURATION
 DOGSLOW = config.getboolean('dogslow', 'ENABLED')
 DOGSLOW_LOGGER = 'dogslow'
 DOGSLOW_LOG_TO_SENTRY = True
 DOGSLOW_LOG_LEVEL = 'WARNING'
 ########## END DOGSLOW CONFIGURATION
+
 
 ########## OAUTH CONFIGURATION
 if config.has_section('oauth'):
@@ -506,6 +513,7 @@ if config.has_section('oauth'):
     }
     OAUTH_ACCESS_TOKEN_MODEL = config.get('oauth', 'OAUTH_ACCESS_TOKEN_MODEL')
 ########## END OAUTH CONFIGURATION
+
 
 ########## ALLAUTH CONFIGURATION
 AUTHENTICATION_BACKENDS = (
@@ -525,16 +533,20 @@ if config.has_section('allauth'):
     ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = config.get('allauth', 'ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL')
 ########## END ALLAUTH CONFIGURATION
 
+
 ########## LOGIN REDIRECT
 LOGIN_REDIRECT_URL = '/#/home'
+
 
 ########## DOCS CONFIGURATION
 if config.has_section('documentation'):
     DOCS_URL = config.get('documentation', 'DOCS_URL')
 ########## END DOCS CONFIGURATION
 
-# GOOGLE ANALYTICS CONFIGURATION
-if config.has_section('google analytics'):
-    GA_CODE = config.get('google analytics', 'GA_CODE')
+
+########## GOOGLE ANALYTICS CONFIGURATION
+if secrets.has_section('google analytics'):
+    GA_CODE = secrets.get('google analytics', 'GA_CODE')
 else:
     GA_CODE = ''
+########## END GOOGLE ANALYTICS CONFIGURATION
