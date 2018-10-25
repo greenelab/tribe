@@ -160,9 +160,7 @@ STATICFILES_FINDERS = (
 
 ########## SITE CONFIGURATION
 # Hosts/domain names that are valid for this site.
-# To make customization easier, it is a combination of the values in
-# secrets.ini and config file.
-ALLOWED_HOSTS = [x.strip() for x in config.get('debug', 'ALLOWED_HOSTS').split()]
+ALLOWED_HOSTS = config.get('debug', 'ALLOWED_HOSTS').split()
 ########## END SITE CONFIGURATION
 
 

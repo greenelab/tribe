@@ -12,7 +12,7 @@ class ConfigTest(TestCase):
         config = get_config(config_dir, filename)
 
         # Test options that are specified only in 'unit_test_secrets.ini'
-        self.assertEqual(config.get('secrets', 'SECRET_KEY'), 'kkk')
+        self.assertEqual(config.get('secrets', 'SECRET_KEY'), 'k#%(x)s$y')
         self.assertEqual(config.get('database', 'DATABASE_PASSWORD'), 'bbb')
 
         # Test options that are specified only in the included file.
@@ -21,7 +21,7 @@ class ConfigTest(TestCase):
 
         # Test options that are specified in both unit_test_secrets.ini
         # and its included file. (unit_test_secrets.ini should always
-        # takes precedence.)
+        # take precedence.)
         self.assertEqual(config.get('database', 'DATABASE_HOST'), 'aaa')
         self.assertEqual(config.get('debug', 'ALLOWED_HOSTS'),
                          'localhost 127.0.0.1')
