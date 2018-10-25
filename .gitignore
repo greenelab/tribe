@@ -4,7 +4,7 @@ data/
 docs/build/
 tribeenv
 pickles
-*secrets.ini
+secrets.ini
 static
 tribe/templates/index.html
 interface/npm-debug.log
