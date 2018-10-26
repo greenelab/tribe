@@ -22,6 +22,7 @@ class ConfigTest(TestCase):
         # Test options that are specified in both unit_test_secrets.ini
         # and its included file. (unit_test_secrets.ini should always
         # take precedence.)
+        self.assertEqual(config.get('database', 'DATABASE_NAME'), '')
         self.assertEqual(config.get('database', 'DATABASE_HOST'), 'aaa')
         self.assertEqual(config.get('debug', 'ALLOWED_HOSTS'),
                          'localhost 127.0.0.1')

@@ -9,32 +9,32 @@ def get_config(config_dir, filename):
 
     <filename> is assumed to be in `ini` format, and is parsed by
     RawConfigParser (instead of ConfigParser or SafeConfigParser) to
-    avoid "%" interpolation when an option's value includes "%"
-    character (such as password strings).  Please see more details at:
-    https://docs.python.org/2/library/configparser.html
+    avoid accidental '%' interpolation when an option's value includes
+    '%' character (such as password strings).  Please see more details
+    at: https://docs.python.org/2/library/configparser.html
 
-    If the input file has "[include]" section, also read that included
-    file from config_dir directory.  The final configuration will be a
-    combination of these two files.  For options that are specified in
-    both <filename> and the included file, values in <filename> always
+    If "[include]" section exists in <filename> and the value of
+    "FILE_NAME" option in this section is not empty, also read included
+    file from <config_dir> directory.  The final configuration will be
+    a combination of these two files.  For options that are specified in
+    both <filename> and included file, values in <filename> will always
     take precedence.
     """
-    secrets = RawConfigParser()
-    secrets.read(normpath(join(config_dir, filename)))
+    config = RawConfigParser()
+    config.read(normpath(join(config_dir, filename)))
 
-    # If input file doesn't have "[config file]" section, we're done.
-    if not secrets.has_section('include'):
-        return secrets
+    # If "[include]" section exists, and its "FILE_NAME" option is not
+    # empty, parse the "FILE_NAME" in ini format and merge its values
+    # into config.
+    if config.has_section('include') and config.get('include', 'FILE_NAME'):
+        included_filename = config.get('include', 'FILE_NAME')
+        secondary_config = RawConfigParser()
+        secondary_config.read(normpath(join(config_dir, included_filename)))
+        for section in secondary_config.sections():
+            if not config.has_section(section):
+                config.add_section(section)
+            for option, value in secondary_config.items(section):
+                if not config.has_option(section, option):
+                    config.set(section, option, value)
 
-    included_filename = secrets.get('include', 'FILE_NAME')
-    extra_config = RawConfigParser()
-    extra_config.read(normpath(join(config_dir, included_filename)))
-
-    merged_config = extra_config
-    for section in secrets.sections():
-        if not merged_config.has_section(section):
-            merged_config.add_section(section)
-        for key, value in secrets.items(section):
-            merged_config.set(section, key, value)
-
-    return merged_config
+    return config
