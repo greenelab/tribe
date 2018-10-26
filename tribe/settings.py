@@ -1,10 +1,12 @@
 """Common settings and globals."""
 
 import datetime
-from os.path import abspath, dirname, join, normpath
 import os
-from sys import path
 from ConfigParser import SafeConfigParser
+from os.path import abspath, dirname, join, normpath
+from sys import path
+
+from helper import get_config
 
 ########## PATH CONFIGURATION
 # Absolute filesystem path to the Django project directory:
@@ -14,8 +16,8 @@ PROJECT_ROOT = dirname(dirname(abspath(__file__)))
 SITE_NAME = 'tribe'
 
 # Settings files
-SETTINGS_ROOT = dirname(abspath(__file__))
-SETTINGS_INI_FILES = normpath(join(SETTINGS_ROOT, 'settings'))
+settings_root = dirname(abspath(__file__))
+config_dir = normpath(join(settings_root, 'config'))
 
 # Add our project to our pythonpath, this way we don't need to type our project
 # name in our dotted import paths:
@@ -29,37 +31,32 @@ if cs == 'YES':
     pg_user = os.environ.get('PG_USER')
     pg_pass = os.environ.get('PG_PASSWORD')
     cs_secret = SafeConfigParser()
-    cs_secret.read(normpath(join(SETTINGS_INI_FILES, 'example_secrets.ini')))
+    cs_secret.read(normpath(join(config_dir, 'example_secrets.ini')))
     import random
     cs_secret.set('secrets', 'SECRET_KEY', str(random.randint(0, 1000000)))
     cs_secret.set('database', 'DATABASE_PASSWORD', pg_pass)
-    cs_secret.set('configfile', 'FILE_NAME', 'test.ini')
-    cs_secret_fh = open(normpath(join(SETTINGS_INI_FILES, 'secrets.ini')), 'w')
+    cs_secret.set('include', 'FILE_NAME', 'test.ini')
+    cs_secret_fh = open(normpath(join(config_dir, 'secrets.ini')), 'w')
     cs_secret.write(cs_secret_fh)
     cs_secret_fh.close()
     cs_config = SafeConfigParser()
-    cs_config.read(normpath(join(SETTINGS_INI_FILES, 'test_template.ini')))
+    cs_config.read(normpath(join(config_dir, 'test_template.ini')))
     cs_config.set('database', 'DATABASE_USER', pg_user)
-    cs_config_fh = open(normpath(join(SETTINGS_INI_FILES, 'test.ini')), 'w')
+    cs_config_fh = open(normpath(join(config_dir, 'test.ini')), 'w')
     cs_config.write(cs_config_fh)
     cs_config_fh.close()
 ########## END CODESHIP CONFIG
 
 
 ########## INI CONFIGURATION
-secrets = SafeConfigParser()
-secrets.read(normpath(join(SETTINGS_INI_FILES, 'secrets.ini')))
-
-config = SafeConfigParser()
-# make sure to set the correct file name in the secrets.ini
-config.read(normpath(join(SETTINGS_INI_FILES, secrets.get('configfile', 'FILE_NAME'))))
+config = get_config(config_dir, 'secrets.ini')
 ########## END INI CONFIGURATION
 
 
 ########## SECRET CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 # Note: This key only used for development and testing.
-SECRET_KEY = secrets.get('secrets', 'SECRET_KEY')
+SECRET_KEY = config.get('secrets', 'SECRET_KEY')
 ########## END SECRET CONFIGURATION
 
 ########## DEBUG CONFIGURATION
@@ -90,8 +87,8 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 ########## DATABASE CONFIGURATION
 DATABASE_USER = config.get('database', 'DATABASE_USER')
-DATABASE_PASSWORD = secrets.get('database', 'DATABASE_PASSWORD')
-DATABASE_HOST = secrets.get('database', 'DATABASE_HOST')
+DATABASE_PASSWORD = config.get('database', 'DATABASE_PASSWORD')
+DATABASE_HOST = config.get('database', 'DATABASE_HOST')
 DATABASE_PORT = config.get('database', 'DATABASE_PORT')
 DATABASE_ENGINE = config.get('database', 'DATABASE_ENGINE')
 
@@ -163,13 +160,7 @@ STATICFILES_FINDERS = (
 
 ########## SITE CONFIGURATION
 # Hosts/domain names that are valid for this site.
-# To make customization easier, it is a combination of the values in
-# secrets.ini and config file.
-ALLOWED_HOSTS = [x.strip() for x in config.get('debug', 'ALLOWED_HOSTS').split(',')]
-
-if secrets.has_section('debug'):
-    ALLOWED_HOSTS += [x.strip() for x in secrets.get('debug', 'ALLOWED_HOSTS').split(',')]
-
+ALLOWED_HOSTS = config.get('debug', 'ALLOWED_HOSTS').split()
 ########## END SITE CONFIGURATION
 
 
@@ -275,12 +266,12 @@ LOCAL_APPS = [
 
 
 # RAVEN CONFIGURATION
-if secrets.has_section('raven'):
+if config.has_section('raven'):
     print("Raven Enabled")
     LOCAL_APPS.append('raven.contrib.django.raven_compat')
     import raven
     RAVEN_CONFIG = {
-        'dsn': secrets.get('raven', 'RAVEN_DSN'),
+        'dsn': config.get('raven', 'RAVEN_DSN'),
         # TODO: Figure out a way to do mercurial commit check
         # instead of git
         #'release': raven.fetch_git_sha(dirname(__file__)),
@@ -437,7 +428,7 @@ if config.has_section('email'):
     EMAIL_HOST = config.get('email', 'EMAIL_HOST')
 
     # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-host-password
-    EMAIL_HOST_PASSWORD = secrets.get('email', 'EMAIL_HOST_PASSWORD')
+    EMAIL_HOST_PASSWORD = config.get('email', 'EMAIL_HOST_PASSWORD')
 
     # See: https://docs.djangoproject.com/en/dev/ref/settings/#email-host-user
     EMAIL_HOST_USER = config.get('email', 'EMAIL_HOST_USER')
@@ -545,8 +536,8 @@ if config.has_section('documentation'):
 
 
 ########## GOOGLE ANALYTICS CONFIGURATION
-if secrets.has_section('google analytics'):
-    GA_CODE = secrets.get('google analytics', 'GA_CODE')
+if config.has_section('google analytics'):
+    GA_CODE = config.get('google analytics', 'GA_CODE')
 else:
     GA_CODE = ''
 ########## END GOOGLE ANALYTICS CONFIGURATION
