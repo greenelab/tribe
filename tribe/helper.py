@@ -24,8 +24,8 @@ def get_config(config_dir, filename):
     config.read(normpath(join(config_dir, filename)))
 
     # If "[include]" section exists, and its "FILE_NAME" option is not
-    # empty, parse the "FILE_NAME" in ini format and merge its values
-    # into config.
+    # empty, parse the value of "FILE_NAME" in ini format and merge its
+    # values into config.
     if config.has_section('include') and config.get('include', 'FILE_NAME'):
         included_filename = config.get('include', 'FILE_NAME')
         secondary_config = RawConfigParser()
