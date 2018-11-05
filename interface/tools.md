@@ -88,7 +88,7 @@ First, we tell Grunt which tasks we might want to use:
 
 ```js
 // ...
-grunt.loadNpmTasks('grunt-recess');
+grunt.loadNpmTasks('grunt-less');
 grunt.loadNpmTasks('grunt-contrib-clean');
 grunt.loadNpmTasks('grunt-contrib-copy');
 grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -134,7 +134,7 @@ $ grunt karma:continuous
 $ grunt concat
 $ grunt ngmin:dist
 $ grunt uglify
-$ grunt recess
+$ grunt less
 $ grunt index
 $ grunt copy
 ```
@@ -220,4 +220,3 @@ through the [main README](README.md) to dive another level deeper and apply what
 you've learned for great good. I promise it will all make sense it short order.
 
 Happy programming!
-
