@@ -1,7 +1,7 @@
 {
   "author": "GreeneLab",
   "name": "tribe-frontend",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Tribe web server",
   "homepage": "https://tribe.greenelab.com",
   "license": "(MIT OR BSD-3-Clause)",
@@ -36,13 +36,12 @@
     "grunt-html2js": "^0.5.1",
     "grunt-karma": "^3.0.0",
     "grunt-ngmin": "^0.0.3",
-    "grunt-recess": "~1.0.1",
     "jasmine-core": "^2.4.1",
-    "karma": "^3.0.0",
-    "karma-jasmine": "^1.1.1",
+    "karma": "^3.1.1",
     "karma-chrome-launcher": "^2.0.0",
     "karma-coffee-preprocessor": "^1.0.1",
     "karma-firefox-launcher": "^1.0.0",
+    "karma-jasmine": "^1.1.1",
     "karma-phantomjs-launcher": "^1.0.1",
     "karma-safari-launcher": "^1.0.0"
   }
