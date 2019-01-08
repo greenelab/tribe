@@ -38,7 +38,7 @@ angular.module( 'tribe', [
     $analyticsProvider.firstPageview(true);
 
     // Disbale virtual pageview tracking, see: http://angulartics.github.io
-    //$analyticsProvider.virtualPageviews(false);
+    $analyticsProvider.virtualPageviews(false);
 
     // Records full path
     $analyticsProvider.withAutoBase(true);
