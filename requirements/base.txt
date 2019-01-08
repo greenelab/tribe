@@ -18,7 +18,7 @@ django-taggit==0.13.0
 django-tastypie==0.13.1
 django-transaction-hooks==0.2
 django-uuidfield==0.5.0
-Django==1.8.11
+Django==1.8.19
 dogslow==0.9.7
 elasticsearch==2.4.1
 kombu==3.0.35

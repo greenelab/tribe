@@ -25,9 +25,9 @@ angular.module( 'tribe', [
       });
 
     // The next code is straight from the instructions on hooking up
-    // angulartics on an angular app (see docs here:
-    // http://angulartics.github.io and here:
-    // https://github.com/angulartics/angulartics-google-analytics)
+    // angulartics on an angular app.  See the following docs:
+    // - http://angulartics.github.io
+    // - https://github.com/angulartics/angulartics-google-analytics
     //
     // The main index.html file contains (in the <head> section) the same
     // code that Google Analytics provides by default, except for
@@ -36,6 +36,9 @@ angular.module( 'tribe', [
 
     // Records pages that don't use $state or $route
     $analyticsProvider.firstPageview(true);
+
+    // Disbale virtual pageview tracking, see: http://angulartics.github.io
+    //$analyticsProvider.virtualPageviews(false);
 
     // Records full path
     $analyticsProvider.withAutoBase(true);
@@ -132,10 +135,18 @@ angular.module( 'tribe', [
     }
 })
 
-.controller( 'TribeCtrl', function ( $scope, $location, $modal ) {
+.controller('TribeCtrl', function($scope, $location, $modal, $analytics) {
   $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
-    if ( angular.isDefined( toState.data.pageTitle ) ) {
-      $scope.pageTitle = toState.data.pageTitle + ' | Tribe' ;
+    if (angular.isDefined(toState.data.pageTitle)) {
+      $scope.pageTitle = toState.data.pageTitle + ' | Tribe';
+
+      // Use setTimeout() to ensure that Google Analytics gets updated pageTitle.
+      // See more details at:
+      // https://github.com/angulartics/angulartics/issues/112#issuecomment-60341150
+      setTimeout(function() {
+        // Use url() method instead of path() to record parameters
+        $analytics.pageTrack($location.url());
+      }, 0);
     }
   });
 
