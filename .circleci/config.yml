@@ -11,7 +11,7 @@ jobs:
           POSTGRES_USER: root
 
       # Secondary docker container for Elasticsearch service
-      - image: elasticsearch:2.4.6
+      #- image: elasticsearch:2.4.6
 
     working_directory: ~/tribe
 
