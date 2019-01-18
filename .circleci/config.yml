@@ -20,11 +20,11 @@ jobs:
           command: |
             cp circleci_config.ini secrets.ini
       - run:
-          name: Set up Elsaticsearch
+          name: Set up Elasticsearch
           working_directory: /tmp
           command: |
             apt update && apt upgrade -y
-            apt install openjdk-8-jre-headless wget -y
+            apt install git wget openjdk-8-jre-headless -y
             wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.6/elasticsearch-2.4.6.deb
             apt install ./elasticsearch-2.4.6.deb
             echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml
