@@ -18,11 +18,16 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Create configuration file
+          working_directory: ~/tribe/tribe/config
+          command: |
+            cp circleci_config.ini secrets.ini
+      - run:
           name: backend tests
           command: |
             apt update && apt upgrade -y
             apt install postgresql-client python-pip -y
-            createuser -h localhost --superuser ubuntu
+            createuser -h localhost --superuser tribe
             createdb -h localhost circleci_test
             pip install -r requirements.txt
             python manage.py test
