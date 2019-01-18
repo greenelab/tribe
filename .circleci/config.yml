@@ -14,11 +14,9 @@ jobs:
 
     steps:
       - checkout
-      - run:
-          name: Create configuration file
-          working_directory: ~/tribe/tribe/config
-          command: |
-            cp circleci_config.ini secrets.ini
+      # The generic docker image "elasticsearch" doesn't allow us to customize
+      # "index.max_result_window" option (without which some unit tests will
+      # fail), so we have to install Elasticsearch manually.
       - run:
           name: Set up Elasticsearch
           working_directory: /tmp
@@ -29,6 +27,11 @@ jobs:
             apt install ./elasticsearch-2.4.6.deb
             echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml
             /etc/init.d/elasticsearch restart
+      - run:
+          name: Create Django configuration file
+          working_directory: ~/tribe/tribe/config
+          command: |
+            cp circleci_config.ini secrets.ini
       - run:
           name: Backend tests
           command: |
