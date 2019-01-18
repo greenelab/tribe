@@ -340,10 +340,6 @@ module.exports = function(grunt) {
         configFile: "<%= build_dir %>/karma-unit.js"
       },
       unit: {
-        runnerPort: 9101,
-        background: true
-      },
-      continuous: {
         singleRun: true
       }
     },
@@ -530,6 +526,13 @@ module.exports = function(grunt) {
   grunt.registerTask("watch", ["clean", "build", "delta"]);
 
   /**
+   * The `test:unit` and `test` tasks run all unit tests (specified by
+   * *.spec.js files in "interface/src/app/" directory).
+   */
+  grunt.registerTask('test:unit', ['karmaconfig', 'karma:unit']);
+  grunt.registerTask('test', ['test:unit']);
+
+  /**
    * The default task is to build and compile.
    */
   grunt.registerTask("default", ["build", "compile"]);
@@ -550,7 +553,7 @@ module.exports = function(grunt) {
     "copy:build_appjs",
     "copy:build_vendorjs",
     "index:build",
-    "karmaconfig"
+    "test"
   ]);
 
   /**

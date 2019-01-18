@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  tests:
+    docker:
+      # Primary docker container where the tests will be run
+      - image: ubuntu:18.04
+
+      # Secondary docker container for database service
+      - image: postgres:9.5.14
+        environment:
+          POSTGRES_USER: root
+
+      # Secondary docker container for Elasticsearch service
+      - image: elasticsearch:2.4.6
+
+    working_directory: ~/tribe
+
+    steps:
+      - checkout
+      - run:
+          name: backend tests
+          command: |
+            apt update && apt upgrade -y
+            apt install postgresql-client python-pip -y
+            createuser -h localhost --superuser ubuntu
+            createdb -h localhost circleci_test
+            pip install -r requirements.txt
+            python manage.py test
+      - run:
+          name: frontend tests
+          working_directory: ~/tribe/interface
+          command: |
+            apt install node.js npm -y
+            npm -g install grunt-cli karma-cli bower
+            npm install
+            bower install --allow-root
+            grunt build
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - tests
