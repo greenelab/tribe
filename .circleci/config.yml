@@ -10,9 +10,6 @@ jobs:
         environment:
           POSTGRES_USER: root
 
-      # Secondary docker container for Elasticsearch service
-      #- image: elasticsearch:2.4.6
-
     working_directory: ~/tribe
 
     steps:
@@ -23,16 +20,25 @@ jobs:
           command: |
             cp circleci_config.ini secrets.ini
       - run:
-          name: backend tests
+          name: Set up Elsaticsearch
+          working_directory: /tmp
           command: |
             apt update && apt upgrade -y
+            apt install openjdk-8-jre-headless wget -y
+            wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.6/elasticsearch-2.4.6.deb
+            apt install ./elasticsearch-2.4.6.deb
+            echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml
+            /etc/init.d/elasticsearch restart
+      - run:
+          name: Backend tests
+          command: |
             apt install postgresql-client python-pip -y
             createuser -h localhost --superuser tribe
             createdb -h localhost circleci_test
             pip install -r requirements.txt
             python manage.py test
       - run:
-          name: frontend tests
+          name: Frontend tests
           working_directory: ~/tribe/interface
           command: |
             apt install node.js npm -y
