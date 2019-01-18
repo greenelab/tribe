@@ -1,0 +1,57 @@
+version: 2
+jobs:
+  tests:
+    docker:
+      # Primary docker container where the tests will be run
+      - image: ubuntu:18.04
+
+      # Secondary docker container for database service
+      - image: postgres:9.5.14
+        environment:
+          POSTGRES_USER: root
+
+    working_directory: ~/tribe
+
+    steps:
+      - checkout
+      # The generic docker image "elasticsearch" doesn't allow us to customize
+      # "index.max_result_window" option (without which some unit tests will
+      # fail), so we have to install Elasticsearch manually.
+      - run:
+          name: Set up Elasticsearch
+          working_directory: /tmp
+          command: |
+            apt update && apt upgrade -y
+            apt install git wget openjdk-8-jre-headless -y
+            wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.6/elasticsearch-2.4.6.deb
+            apt install ./elasticsearch-2.4.6.deb
+            echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml
+            /etc/init.d/elasticsearch restart
+      - run:
+          name: Create Django configuration file
+          working_directory: ~/tribe/tribe/config
+          command: |
+            cp circleci_config.ini secrets.ini
+      - run:
+          name: Backend tests
+          command: |
+            apt install postgresql-client python-pip -y
+            createuser -h localhost --superuser tribe
+            createdb -h localhost circleci_test
+            pip install -r requirements.txt
+            python manage.py test
+      - run:
+          name: Frontend tests
+          working_directory: ~/tribe/interface
+          command: |
+            apt install node.js npm -y
+            npm -g install grunt-cli karma-cli bower
+            npm install
+            bower install --allow-root
+            grunt build
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - tests

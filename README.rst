@@ -1,8 +1,6 @@
 Tribe
 =======
 
-.. image:: https://codeship.com/projects/23408950-6f8f-0133-5997-368ef2487360/status?branch=default
-
 Welcome to Tribe!
 ------------------------------------
 Tribe is an open-source webserver that allows for easy, reproducible genomics analyses between different webservers. It allows for web-browser access via our web interface or programatic access via our API. You can visit Tribe at https://tribe.greenelab.com
@@ -17,5 +15,5 @@ You can check out our video tutorials on our YouTube page: https://www.youtube.c
 
 Full Tribe documentation:
 --------------------------
-Tribe's full documentation is hosted at Read the Docs, and you can check it out here:  
+Tribe's full documentation is hosted at Read the Docs, and you can check it out here:
 http://tribe-greenelab.readthedocs.org

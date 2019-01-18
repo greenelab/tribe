@@ -340,10 +340,6 @@ module.exports = function(grunt) {
         configFile: "<%= build_dir %>/karma-unit.js"
       },
       unit: {
-        runnerPort: 9101,
-        background: true
-      },
-      continuous: {
         singleRun: true
       }
     },
@@ -441,7 +437,7 @@ module.exports = function(grunt) {
        */
       jssrc: {
         files: ["<%= app_files.js %>"],
-        tasks: ["jshint:src", "karma:unit:run", "copy:build_appjs"]
+        tasks: ["jshint:src", "karma:unit", "copy:build_appjs"]
       },
 
       /**
@@ -453,7 +449,7 @@ module.exports = function(grunt) {
         tasks: [
           "coffeelint:src",
           "coffee:source",
-          "karma:unit:run",
+          "karma:unit",
           "copy:build_appjs"
         ]
       },
@@ -497,7 +493,7 @@ module.exports = function(grunt) {
        */
       jsunit: {
         files: ["<%= app_files.jsunit %>"],
-        tasks: ["jshint:test", "karma:unit:run"],
+        tasks: ["jshint:test", "karma:unit"],
         options: {
           livereload: false
         }
@@ -509,7 +505,7 @@ module.exports = function(grunt) {
        */
       coffeeunit: {
         files: ["<%= app_files.coffeeunit %>"],
-        tasks: ["coffeelint:test", "karma:unit:run"],
+        tasks: ["coffeelint:test", "karma:unit"],
         options: {
           livereload: false
         }
@@ -528,6 +524,13 @@ module.exports = function(grunt) {
    */
   grunt.renameTask("watch", "delta");
   grunt.registerTask("watch", ["clean", "build", "delta"]);
+
+  /**
+   * The `test:unit` and `test` tasks run all unit tests (specified by
+   * *.spec.js files in "interface/src/app/" directory).
+   */
+  grunt.registerTask('test:unit', ['karmaconfig', 'karma:unit']);
+  grunt.registerTask('test', ['test:unit']);
 
   /**
    * The default task is to build and compile.
@@ -550,7 +553,7 @@ module.exports = function(grunt) {
     "copy:build_appjs",
     "copy:build_vendorjs",
     "index:build",
-    "karmaconfig"
+    "test"
   ]);
 
   /**
