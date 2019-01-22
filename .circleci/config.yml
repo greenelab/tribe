@@ -6,9 +6,12 @@ jobs:
       - image: ubuntu:18.04
 
       # Secondary docker container for database service
-      - image: postgres:9.5.14
+      - image: postgres:9.6.11
         environment:
           POSTGRES_USER: root
+
+      # Secondary docker container for database service
+      - image: elasticsearch:2.4.6
 
     working_directory: ~/tribe
 
@@ -18,15 +21,11 @@ jobs:
       # "index.max_result_window" option (without which some unit tests will
       # fail), so we have to install Elasticsearch manually.
       - run:
-          name: Set up Elasticsearch
+          name: Configure Elasticsearch
           working_directory: /tmp
           command: |
-            apt update && apt upgrade -y
-            apt install git wget openjdk-8-jre-headless -y
-            wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.6/elasticsearch-2.4.6.deb
-            apt install ./elasticsearch-2.4.6.deb
-            echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml
-            /etc/init.d/elasticsearch restart
+            curl -X PUT "localhost:9200/_settings" -H 'Content-Type: application/json' \
+            -d'{"index" : {"max_result_window" : 20000}}'
       - run:
           name: Create Django configuration file
           working_directory: ~/tribe/tribe/config
@@ -35,6 +34,7 @@ jobs:
       - run:
           name: Backend tests
           command: |
+            apt update && apt upgrade -y
             apt install postgresql-client python-pip -y
             createuser -h localhost --superuser tribe
             createdb -h localhost circleci_test
