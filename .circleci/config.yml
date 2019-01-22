@@ -10,8 +10,9 @@ jobs:
         environment:
           POSTGRES_USER: root
 
-      # Secondary docker container for database service
+      # Secondary docker container for Elasticsearch service
       - image: elasticsearch:2.4.6
+        command: [echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml]
 
     working_directory: ~/tribe
 
@@ -26,8 +27,8 @@ jobs:
           command: |
             apt update && apt upgrade -y
             apt install curl -y
-            curl -X PUT "localhost:9200/_settings" -H 'Content-Type: application/json' \
-            -d'{"index" : {"max_result_window" : 20000}}'
+            #curl -XPUT "localhost:9200/test_index"
+            #curl -XPUT "localhost:9200/_settings" -d '{"index.max_result_window" : 20000}'
       - run:
           name: Create Django configuration file
           working_directory: ~/tribe/tribe/config
