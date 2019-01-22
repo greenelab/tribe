@@ -12,7 +12,7 @@ jobs:
 
       # Secondary docker container for Elasticsearch service
       - image: elasticsearch:2.4.6
-        command: echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml
+        command: 'echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml'
 
     working_directory: ~/tribe
 
