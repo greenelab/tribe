@@ -25,29 +25,6 @@ path.append(PROJECT_ROOT)
 ########## END PATH CONFIGURATION
 
 
-########## CODESHIP CONFIG
-cs = os.environ.get('CODESHIP_SETTINGS')
-if cs == 'YES':
-    pg_user = os.environ.get('PG_USER')
-    pg_pass = os.environ.get('PG_PASSWORD')
-    cs_secret = SafeConfigParser()
-    cs_secret.read(normpath(join(config_dir, 'example_secrets.ini')))
-    import random
-    cs_secret.set('secrets', 'SECRET_KEY', str(random.randint(0, 1000000)))
-    cs_secret.set('database', 'DATABASE_PASSWORD', pg_pass)
-    cs_secret.set('include', 'FILE_NAME', 'test.ini')
-    cs_secret_fh = open(normpath(join(config_dir, 'secrets.ini')), 'w')
-    cs_secret.write(cs_secret_fh)
-    cs_secret_fh.close()
-    cs_config = SafeConfigParser()
-    cs_config.read(normpath(join(config_dir, 'test_template.ini')))
-    cs_config.set('database', 'DATABASE_USER', pg_user)
-    cs_config_fh = open(normpath(join(config_dir, 'test.ini')), 'w')
-    cs_config.write(cs_config_fh)
-    cs_config_fh.close()
-########## END CODESHIP CONFIG
-
-
 ########## INI CONFIGURATION
 config = get_config(config_dir, 'secrets.ini')
 ########## END INI CONFIGURATION

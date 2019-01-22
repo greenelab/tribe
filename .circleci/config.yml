@@ -12,24 +12,12 @@ jobs:
 
       # Secondary docker container for Elasticsearch service
       - image: elasticsearch:2.4.6
-        #command: 'echo "index.max_result_window: 20000" >> /etc/elasticsearch/elasticsearch.yml'
         command: [elasticsearch, '--index.max_result_window', '20000']
 
     working_directory: ~/tribe
 
     steps:
       - checkout
-      # The generic docker image "elasticsearch" doesn't allow us to customize
-      # "index.max_result_window" option (without which some unit tests will
-      # fail), so we have to install Elasticsearch manually.
-      - run:
-          name: Configure Elasticsearch
-          working_directory: /tmp
-          command: |
-            apt update && apt upgrade -y
-            apt install curl -y
-            #curl -XPUT "localhost:9200/test_index"
-            #curl -XPUT "localhost:9200/_settings" -d '{"index.max_result_window" : 20000}'
       - run:
           name: Create Django configuration file
           working_directory: ~/tribe/tribe/config
@@ -38,7 +26,8 @@ jobs:
       - run:
           name: Backend tests
           command: |
-            apt install postgresql-client python-pip -y
+            apt update && apt upgrade -y
+            apt install postgresql-client python-pip git -y
             createuser -h localhost --superuser tribe
             createdb -h localhost circleci_test
             pip install -r requirements.txt
