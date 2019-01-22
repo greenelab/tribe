@@ -24,6 +24,8 @@ jobs:
           name: Configure Elasticsearch
           working_directory: /tmp
           command: |
+            apt update && apt upgrade -y
+            apt install curl -y
             curl -X PUT "localhost:9200/_settings" -H 'Content-Type: application/json' \
             -d'{"index" : {"max_result_window" : 20000}}'
       - run:
@@ -34,7 +36,6 @@ jobs:
       - run:
           name: Backend tests
           command: |
-            apt update && apt upgrade -y
             apt install postgresql-client python-pip -y
             createuser -h localhost --superuser tribe
             createdb -h localhost circleci_test
