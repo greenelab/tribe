@@ -3,7 +3,6 @@ Management utility to create users.
 """
 
 import re
-from optparse import make_option
 from django.contrib.auth import get_user_model
 from django.core import exceptions
 from django.core.management.base import BaseCommand, CommandError
@@ -21,13 +20,20 @@ def is_valid_email(value):
         raise exceptions.ValidationError(_('Enter a valid e-mail address.'))
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--username', dest='username', default=None,
-            help='Specifies the username.'),
-        make_option('--email', dest='email', default=None,
-            help='Specifies the email address.'),
-    )
     help = 'Used to create a user.'
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--username',
+            dest='username',
+            help='Specifies the username.'
+        )
+
+        parser.add_argument(
+            '--email',
+            dest='email',
+            help='Specifies the email address.'
+        )
 
     def handle(self, *args, **options):
         username = options.get('username', None)

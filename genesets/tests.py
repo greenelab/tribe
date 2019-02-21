@@ -12,11 +12,8 @@ from django.core.management import call_command
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
-
 from fixtureless import Factory
-
-from tastypie.test import (
-    ResourceTestCase, ResourceTestCaseMixin, TestApiClient)
+from tastypie.test import ResourceTestCaseMixin, TestApiClient
 import haystack
 
 from organisms.models import Organism
@@ -63,7 +60,7 @@ class GenesetTipTestCase(TestCase):
         version1 = Version.objects.create(
             geneset=geneset1, creator=user1, description="First version.", annotations=gene_frozenset1)
         version2 = Version.objects.create(
-            geneset=geneset1, creator=user1, description="Tip version.", 
+            geneset=geneset1, creator=user1, description="Tip version.",
             annotations=gene_frozenset2, parent=version1)
 
     def testGetTip(self):
@@ -107,7 +104,7 @@ class GenesetTipTestCase(TestCase):
         # https://docs.djangoproject.com/en/dev/topics/testing/tools/#exceptions
         with self.assertRaises(NoParentVersionSpecified):
             Version.objects.create(geneset=geneset1, creator=geneset1.creator,
-                                   description="Testing None gene.", 
+                                   description="Testing None gene.",
                                    annotations=none_gene_frozenset)
 
 
@@ -123,7 +120,7 @@ class GenesetTipTestCase(TestCase):
 
         with self.assertRaises(VersionContainsNoneGene):
             Version.objects.create(geneset=geneset1, creator=geneset1.creator,
-                                   description="Testing None gene.", 
+                                   description="Testing None gene.",
                                    annotations=none_gene_frozenset,
                                    parent=geneset1.get_tip())
 
@@ -226,7 +223,7 @@ class TestKEGGLoaderMethods(TestCase):
 # where Celery is run.
 @override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
                    CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-class GenesetUnregisteredTestCase(ResourceTestCase):
+class GenesetUnregisteredTestCase(ResourceTestCaseMixin, TestCase):
 
     def setUp(self):
         haystack.connections.reload('default')
@@ -319,7 +316,7 @@ class GenesetUnregisteredTestCase(ResourceTestCase):
 # where Celery is run.
 @override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
                    CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-class GenesetRegisteredTestCase(ResourceTestCase):
+class GenesetRegisteredTestCase(ResourceTestCaseMixin, TestCase):
 
     def setUp(self):
         haystack.connections.reload('default')
@@ -479,7 +476,7 @@ class GenesetRegisteredTestCase(ResourceTestCase):
         call_command('clear_index', interactive=False, verbosity=0)
 
 
-class CreatingRemoteGenesetTestCase(ResourceTestCase):
+class CreatingRemoteGenesetTestCase(ResourceTestCaseMixin):
 
     def setUp(self):
         # This following 'super' call is important to initialize TestCase
@@ -646,7 +643,7 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         geneset_data['public'] = True
         geneset_data['xrdb'] = 'Entrez'
 
-        geneset_data['annotations'] = {55982: [20671152, 19583951], 
+        geneset_data['annotations'] = {55982: [20671152, 19583951],
                                        18091: [8887666], 67087: [], 22410:[]}
 
         not_in_db_genes = set([7915, 57494, 64902])  # These three do not exist in the database
@@ -666,7 +663,7 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
         gsresp = self.api_client.get('/api/v1/geneset', format="json", data={'show_tip': 'true', 'full_annotations': 'true'})
         self.assertValidJSONResponse(gsresp)
 
-        # Check some of the data that has been hydrated/dehydrated for this geneset, 
+        # Check some of the data that has been hydrated/dehydrated for this geneset,
         # check the length of the annotations that were actually found and got saved
         self.assertEqual(self.deserialize(gsresp)['objects'][0]['title'], geneset_data['title'])
         self.assertEqual(len(self.deserialize(gsresp)['objects'][0]['tip']['annotations']), len(geneset_data['annotations']) - len(not_in_db_genes))
@@ -762,7 +759,7 @@ class CreatingRemoteGenesetTestCase(ResourceTestCase):
                          set(geneset_data['tags']))
 
 
-class GenesetSlugAndCreatorTestCase(ResourceTestCase):
+class GenesetSlugAndCreatorTestCase(ResourceTestCaseMixin):
 
     def setUp(self):
         super(GenesetSlugAndCreatorTestCase, self).setUp()
