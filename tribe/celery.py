@@ -23,6 +23,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.update(
     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
+    CELERY_ACCEPT_CONTENT=['pickle', 'json', 'yaml']
 )
 
 
