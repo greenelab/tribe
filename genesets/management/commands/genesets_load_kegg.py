@@ -41,6 +41,7 @@ def get_kegg_version(kegg_base):
         return None
     return release
 
+
 def get_kegg_members(kegg_base, organism, record_type):
     kegg_members = requests.get(kegg_base + '/link/' + organism + '/' + record_type.lower())
     kegg_iter = kegg_members.iter_lines()
@@ -51,6 +52,7 @@ def get_kegg_members(kegg_base, organism, record_type):
         geneid = toks[1].split(':')[1]   # gene listed second, has prefix
         results[group].add(geneid)
     return results
+
 
 def get_kegg_info(kegg_base, identifier):
     kegg_record = requests.get(kegg_base + '/get/' + identifier)
@@ -65,6 +67,7 @@ def get_kegg_info(kegg_base, identifier):
         if not 'abstract' in result:
             result['abstract'] = ''
     return result
+
 
 class Command(BaseCommand):
     help = ('Load KEGG annotations for the listed organism and assign them ' +

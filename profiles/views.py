@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login
-from django.core.context_processors import csrf
 from django.contrib.auth.models import User
 from allauth.utils import generate_unique_username
 
@@ -16,7 +15,7 @@ def create_temporary_acct(request):
             try:
                 # The next few lines number Temporary Users's usernames.
                 # If we have a lot of traffic, we might have to change this in case multiple temporary
-                # accounts want to be created at the exact same time (as this would violate the 
+                # accounts want to be created at the exact same time (as this would violate the
                 # unique=True constraint for username)
                 latest_temp_num = int(latest_temp_user.username[13:])
                 latest_temp_num += 1
@@ -44,11 +43,11 @@ def convert_to_full_acct(request):
         form = UpgradeUserForm(request.POST)
 
         try:
-            profile = Profile.objects.get(user=user) # Check that there is a profile for this user 
+            profile = Profile.objects.get(user=user) # Check that there is a profile for this user
         except:
             return render(request, 'invalid_acct.html', {})
-              
-        if (user.is_authenticated() and profile.temporary_acct):        
+
+        if (user.is_authenticated() and profile.temporary_acct):
             if form.is_valid():
                 email = form.cleaned_data['email']
                 new_password = form.cleaned_data['password']
@@ -74,4 +73,3 @@ def convert_to_full_acct(request):
     else:
         form = UpgradeUserForm()
     return render(request, 'upgrade_temp_acct.html', {'form': form})
-

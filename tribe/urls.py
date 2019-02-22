@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
@@ -25,14 +25,14 @@ v1_api.register(GenesetResource())
 v1_api.register(VersionResource())
 v1_api.register(PublicationResource())
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$',
         ensure_csrf_cookie(TemplateView.as_view(template_name="index.html")),
         {'ga_code': settings.GA_CODE}, name='home'),
 
-    (r'^api/', include(v1_api.urls)),
-    (r'^accounts/', include('allauth.urls')),
-    (r'^accounts/', include('profiles.urls')),
+    url(r'^api/', include(v1_api.urls)),
+    url(r'^accounts/', include('allauth.urls')),
+    url(r'^accounts/', include('profiles.urls')),
 
     # OAuth2 provider urls:
     url(r'^oauth2/', include('oauth2_provider.urls',
@@ -41,7 +41,7 @@ urlpatterns = patterns('',
     # All other urls are handled through AngularJS and 'ui-router'
     # in the interface.
 
-)
+]
 
 def handler500(request):
    """
