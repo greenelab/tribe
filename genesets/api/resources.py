@@ -125,7 +125,6 @@ class BasicUserResource(ModelResource):
             return username
 
 
-
 class EmailUserResource(ModelResource):
     username     = fields.CharField(attribute='username')
     email        = fields.CharField(attribute='email')

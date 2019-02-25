@@ -6,13 +6,13 @@ from django.contrib.auth.models import User
 from organisms.models import Organism
 from genesets.models import Geneset
 from fixtureless import Factory
-from tastypie.test import ResourceTestCase, TestApiClient
+from tastypie.test import ResourceTestCaseMixin, TestApiClient
 from oauth2_provider.models import Application
 from django.test import Client
 import json
 
 
-class UserBasicLoginTestCase(ResourceTestCase):
+class UserBasicLoginTestCase(ResourceTestCaseMixin):
     """
     Test basic API access to user objects if users are/are not logged in (using
     the test-client login method).
@@ -62,7 +62,7 @@ class UserBasicLoginTestCase(ResourceTestCase):
         User.objects.all().delete()
 
 
-class UserCreationTestCase(ResourceTestCase):
+class UserCreationTestCase(ResourceTestCaseMixin):
     """
     Test that users can be created from json objects through API UserResource
     """
@@ -178,7 +178,7 @@ class UserCreationTestCase(ResourceTestCase):
         User.objects.all().delete()
 
 
-class UserLoginLogoutTestCase(ResourceTestCase):
+class UserLoginLogoutTestCase(ResourceTestCaseMixin):
     """
     Test user login/logout through API UserResource method
     """
@@ -388,7 +388,7 @@ class UserLoginLogoutTestCase(ResourceTestCase):
         User.objects.all().delete()
 
 
-class OAuthTokenTestCase(ResourceTestCase):
+class OAuthTokenTestCase(ResourceTestCaseMixin):
 
     """
     Test authentication using OAuth token.
@@ -411,15 +411,15 @@ class OAuthTokenTestCase(ResourceTestCase):
         # Create the organism 'Human' in the database (not using factory, since it needs to have a resource uri)
         org = Organism.objects.create(common_name="Human", scientific_name="Homo sapiens", slug="homo-sapiens", taxonomy_id=9606)
 
-        self.client_application = Application.objects.create(name='testapp', 
-            client_id='1111111111111111111111111111111111111111', 
-            client_secret='22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 
+        self.client_application = Application.objects.create(name='testapp',
+            client_id='1111111111111111111111111111111111111111',
+            client_secret='22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222',
             client_type='confidential', authorization_grant_type='password',
             redirect_uris='', user=self.user1)
 
-        self.bad_application = Application.objects.create(name='testapp2', 
-            client_id='3333333333333333333333333333333333333333', 
-            client_secret='44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444', 
+        self.bad_application = Application.objects.create(name='testapp2',
+            client_id='3333333333333333333333333333333333333333',
+            client_secret='44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444',
             client_type='confidential', authorization_grant_type='client-credentials',
             redirect_uris='', user=self.user1)
 
@@ -452,7 +452,7 @@ class OAuthTokenTestCase(ResourceTestCase):
         client = Client()
 
         payload = {'grant_type': 'password', 'username': self.username,
-                   'password': self.password, 'client_id': self.client_application.client_id, 
+                   'password': self.password, 'client_id': self.client_application.client_id,
                    'client_secret': self.client_application.client_secret}
 
         r1 = client.post('/oauth2/token/', payload)
@@ -467,7 +467,7 @@ class OAuthTokenTestCase(ResourceTestCase):
                          Authorization='OAuth ' + access_token)
 
         self.assertValidJSONResponse(r2)
-        self.assertEqual(self.deserialize(r2)['objects'][0]['username'], 
+        self.assertEqual(self.deserialize(r2)['objects'][0]['username'],
                          self.username)
 
 
@@ -475,7 +475,7 @@ class OAuthTokenTestCase(ResourceTestCase):
         client = Client()
 
         payload = {'grant_type': 'password', 'username': self.username,
-                   'password': self.password, 'client_id': self.client_application.client_id, 
+                   'password': self.password, 'client_id': self.client_application.client_id,
                    'client_secret': self.client_application.client_secret}
 
         r1 = client.post('/oauth2/token/', payload)
@@ -508,7 +508,7 @@ class OAuthTokenTestCase(ResourceTestCase):
         # OAuth token and check that title of geneset we created matches.
         r3 = client.get('/api/v1/geneset', Authorization='OAuth ' + access_token)
         self.assertValidJSONResponse(r3)
-        self.assertEqual(self.deserialize(r3)['objects'][0]['title'], 
+        self.assertEqual(self.deserialize(r3)['objects'][0]['title'],
                         post_geneset_data['title'])
 
 
@@ -521,7 +521,7 @@ class OAuthTokenTestCase(ResourceTestCase):
         client = Client()
 
         payload = {'grant_type': 'client_credentials', 'username': self.username,
-                   'password': self.password, 'client_id': self.bad_application.client_id, 
+                   'password': self.password, 'client_id': self.bad_application.client_id,
                    'client_secret': self.bad_application.client_secret}
 
         r1 = client.post('/oauth2/token/', payload)

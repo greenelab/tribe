@@ -6,7 +6,7 @@ import string
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 
-from tastypie.test import ResourceTestCase, TestApiClient
+from tastypie.test import ResourceTestCaseMixin, TestApiClient
 
 from organisms.models import Organism
 from genes.models import Gene, CrossRef, CrossRefDB
@@ -20,7 +20,7 @@ from fixtureless import Factory
 factory = Factory()
 
 
-class ReturnVersionResourceTestCase(ResourceTestCase):
+class ReturnVersionResourceTestCase(ResourceTestCaseMixin):
 
     def setUp(self):
         super(ReturnVersionResourceTestCase, self).setUp()
@@ -79,7 +79,7 @@ class ReturnVersionResourceTestCase(ResourceTestCase):
         self.assertEqual(creator['username'], self.user1.username)
 
 
-class ReturnDesiredXridsTestCase(ResourceTestCase):
+class ReturnDesiredXridsTestCase(ResourceTestCaseMixin):
     """
     Testing that version annotations are returned using requested
     gene cross-reference identifier. In turn, this checks the API methods in
@@ -273,7 +273,7 @@ class ReturnDesiredXridsTestCase(ResourceTestCase):
                          'database.')
 
 
-class DownloadVersionAsCSVTestCase(ResourceTestCase):
+class DownloadVersionAsCSVTestCase(ResourceTestCaseMixin):
     """
     Testing the API endpoint that returns gene/publication list as
     tab-separated *.csv file for a specific geneset/collection version.
@@ -550,7 +550,7 @@ class DownloadVersionAsCSVTestCase(ResourceTestCase):
                          'database.')
 
 
-class CreatingRemoteVersionTestCase(ResourceTestCase):
+class CreatingRemoteVersionTestCase(ResourceTestCaseMixin):
 
     def setUp(self):
         # This following 'super' call is important to initialize TestCase
@@ -676,7 +676,7 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
 
     def testSimpleVersionCreationNoAnnots(self):
         """
-        Simple test to create a new version with no annotations - 
+        Simple test to create a new version with no annotations -
         This should return a 400 Bad Request Error, stating that new
         versions must have annotations
         """
@@ -1064,7 +1064,7 @@ class CreatingRemoteVersionTestCase(ResourceTestCase):
         self.assertEqual(self.deserialize(resp)['annotations'], [])
 
 
-class ForkingVersionTestCase(ResourceTestCase):
+class ForkingVersionTestCase(ResourceTestCaseMixin):
 
     def setUp(self):
         # This line is important to set up the test case!
