@@ -3,6 +3,7 @@ Tests for user creation/authentication through REST API.
 
 """
 from django.contrib.auth.models import User
+from django.test import TestCase
 from organisms.models import Organism
 from genesets.models import Geneset
 from fixtureless import Factory
@@ -12,7 +13,7 @@ from django.test import Client
 import json
 
 
-class UserBasicLoginTestCase(ResourceTestCaseMixin):
+class UserBasicLoginTestCase(ResourceTestCaseMixin, TestCase):
     """
     Test basic API access to user objects if users are/are not logged in (using
     the test-client login method).
@@ -62,7 +63,7 @@ class UserBasicLoginTestCase(ResourceTestCaseMixin):
         User.objects.all().delete()
 
 
-class UserCreationTestCase(ResourceTestCaseMixin):
+class UserCreationTestCase(ResourceTestCaseMixin, TestCase):
     """
     Test that users can be created from json objects through API UserResource
     """
@@ -178,7 +179,7 @@ class UserCreationTestCase(ResourceTestCaseMixin):
         User.objects.all().delete()
 
 
-class UserLoginLogoutTestCase(ResourceTestCaseMixin):
+class UserLoginLogoutTestCase(ResourceTestCaseMixin, TestCase):
     """
     Test user login/logout through API UserResource method
     """
@@ -388,7 +389,7 @@ class UserLoginLogoutTestCase(ResourceTestCaseMixin):
         User.objects.all().delete()
 
 
-class OAuthTokenTestCase(ResourceTestCaseMixin):
+class OAuthTokenTestCase(ResourceTestCaseMixin, TestCase):
 
     """
     Test authentication using OAuth token.

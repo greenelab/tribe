@@ -6,9 +6,8 @@ to extract each of the API components into their respective reusable modules.
 """
 
 from django.contrib.auth.models import User
-
+from django.test import TestCase
 from fixtureless import Factory
-
 from tastypie.test import ResourceTestCaseMixin, TestApiClient
 
 from organisms.models import Organism
@@ -20,7 +19,7 @@ from collaborations.utils import get_collaborators, get_invites, get_inviteds
 factory = Factory()
 
 
-class ShareFromTestCase(ResourceTestCaseMixin):
+class ShareFromTestCase(ResourceTestCaseMixin, TestCase):
 
     """
     Test that collaborators can share.
@@ -110,7 +109,7 @@ class ShareFromTestCase(ResourceTestCaseMixin):
         Collaboration.objects.all().delete()
 
 
-class NoCollaborationShareFromTestCase(ResourceTestCaseMixin):
+class NoCollaborationShareFromTestCase(ResourceTestCaseMixin, TestCase):
 
     """
     Test that non-collaborating users can't share genesets.
@@ -188,7 +187,7 @@ class NoCollaborationShareFromTestCase(ResourceTestCaseMixin):
         Geneset.objects.all().delete()
 
 
-class ShareReverseRequestTestCase(ResourceTestCaseMixin):
+class ShareReverseRequestTestCase(ResourceTestCaseMixin, TestCase):
 
     """
     Test that collaborators cannot add themselves to genesets they don't own yet.
@@ -274,7 +273,7 @@ class ShareReverseRequestTestCase(ResourceTestCaseMixin):
         Collaboration.objects.all().delete()
 
 
-class CollaborationTestCase(ResourceTestCaseMixin):
+class CollaborationTestCase(ResourceTestCaseMixin, TestCase):
 
     """
     Test that users can create collaborations.
