@@ -142,7 +142,6 @@ class GenesetTipTestCase(TestCase):
                                    parent=geneset1.get_tip())
 
 
-
 class TestKEGGLoaderMethods(TestCase):
     KEGG_URL_BASE = 'http://rest.kegg.jp'
 
@@ -228,6 +227,7 @@ class GenesetUnregisteredTestCase(ResourceTestCaseMixin, TestCase):
     def setUp(self):
         haystack.connections.reload('default')
         super(GenesetUnregisteredTestCase, self).setUp()
+
         self.org1 = factory.create(Organism)
         self.user1 = factory.create(User)
         self.user2 = factory.create(User)
@@ -424,7 +424,11 @@ class GenesetRegisteredTestCase(ResourceTestCaseMixin, TestCase):
 
         Uses "asdf" to check that only geneset1 is returned.
         """
-        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'BRCA', 'filter_tags': 'asdf'})
+        resp = self.api_client.get(
+            '/api/v1/geneset',
+            format="json",
+            data={'query': 'BRCA', 'filter_tags': 'asdf'}
+        )
         self.assertValidJSONResponse(resp)
         self.assertEqual(len(self.deserialize(resp)['objects']), 1)
         titles = set([x['title'] for x in self.deserialize(resp)['objects']])
@@ -437,7 +441,11 @@ class GenesetRegisteredTestCase(ResourceTestCaseMixin, TestCase):
 
         Uses "qwerty" to check that genesets 1 and 3 are returned.
         """
-        resp = self.api_client.get('/api/v1/geneset', format="json", data={'query': 'BRCA', 'filter_tags': 'qwerty'})
+        resp = self.api_client.get(
+            '/api/v1/geneset',
+            format="json",
+            data={'query': 'BRCA', 'filter_tags': 'qwerty'}
+        )
         self.assertValidJSONResponse(resp)
         self.assertEqual(len(self.deserialize(resp)['objects']), 2)
         titles = set([x['title'] for x in self.deserialize(resp)['objects']])
