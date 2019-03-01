@@ -23,7 +23,6 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.middleware.csrf import _sanitize_token, constant_time_compare
-from django.utils.http import same_origin
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from django.template.defaultfilters import slugify
@@ -124,7 +123,6 @@ class BasicUserResource(ModelResource):
             return 'TemporaryUser'
         else:
             return username
-
 
 
 class EmailUserResource(ModelResource):
@@ -832,7 +830,7 @@ class GenesetResource(ModelResource):
 
             # Check for delete_detail authorization first, which is more stringent than the update_detail authorization
             # (as user needs to be the geneset author in order to delete)
-            self.authorized_delete_detail(self.get_object_list(bundle.request), bundle) 
+            self.authorized_delete_detail(self.get_object_list(bundle.request), bundle)
             updated_bundle = self.obj_update(bundle=bundle, **self.remove_api_resource_names(kwargs))
             return http.HttpNoContent()
 
@@ -858,7 +856,7 @@ class VersionAuthorization(Authorization):
         else:
             return can_edit_geneset(bundle.obj.geneset, bundle.request.user)
 
-    def update_list(self, object_list, bundle): 
+    def update_list(self, object_list, bundle):
         # Users are not able to update versions;
         # They can only create new versions in their gene sets.
         raise Unauthorized("Versions cannot be modified after they are created.")
@@ -1180,9 +1178,13 @@ class GenesetVersionResource(VersionResource):
     geneset   = fields.ForeignKey(GenesetResource, 'geneset', full=False)
     genes     = fields.ListField(null=True)
     parent    = fields.ToOneField('self', 'parent', null=True, full=False)
-    annotations = fields.ListField(null=True, use_in=lambda bundle: bundle.request.GET.get('full_annotations', None) == 'true')
+    annotations = fields.ListField(
+        null=True,
+        use_in=lambda bundle: bundle.request.GET.get('full_annotations', None) == 'true'
+    )
 
     class Meta:
+        queryset = Version.objects.all()
         max_limit = None
 
         # The resource_name Meta option is very important! It is required

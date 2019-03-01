@@ -27,16 +27,26 @@ For more information on Django model fields, see: https://docs.djangoproject.com
 """
 
 class FrozenSetField(models.TextField):
-# For more information on writing custom model fields, see: https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/
+    """For more information on writing custom model fields, see:
+    https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/
+    """
 
-    description = "Extends TextField (from Django model fields) to store the genes in the set as a pickled set of primary keys."
+    description = ("Extends TextField (from Django model fields) to store " +
+                   "the genes in the set as a pickled set of primary keys."
+    )
 
-    __metaclass__ = models.SubfieldBase
-    # see: https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#the-subfieldbase-metaclass
+    def from_db_value(self, value, expression, connection, context):
+        """`models.SubfieldBase` has been deprecated since Django 1.8+:
+        https://docs.djangoproject.com/en/1.8/howto/custom-model-fields/#converting-values-to-python-objects
+        from_db_value() method is used to replace it.
+        """
+        return self.to_python(value)
 
     def to_python(self, value):
-    # This method converts the data stored in the database into a python object. In this case, it is a pickled data stream.
-    # See: https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#django.db.models.Field.to_python
+        """This method converts the data stored in the database into a python
+        object. In this case, it is a pickled data stream. See:
+        https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#django.db.models.Field.to_python
+        """
         if isinstance(value, basestring) and value:
             value = pickle.loads(str(value))
         elif not value:
@@ -44,16 +54,18 @@ class FrozenSetField(models.TextField):
         return value
 
     def get_prep_value(self, value):
-    # The reverse of to_python. This 'pickles' the frozenset.
-    # See: https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#django.db.models.Field.get_prep_value
+        """The reverse of to_python. This 'pickles' the frozenset.  See:
+        https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#django.db.models.Field.get_prep_value
+        """
         if value is None:
             return None
         value = frozenset(value)
         return pickle.dumps(value)
 
     def value_to_string(self, obj):
-    # Used by serializers to output the data in this field as a string.  See:
-    # https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#converting-field-data-for-serialization
+        """Used by serializers to output the data in this field as a string.  See:
+        https://docs.djangoproject.com/en/1.5/howto/custom-model-fields/#converting-field-data-for-serialization
+        """
         value = self._get_val_from_obj(obj)
         return self.get_db_prep_value(value, connection)
 
