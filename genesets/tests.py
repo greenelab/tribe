@@ -484,7 +484,7 @@ class GenesetRegisteredTestCase(ResourceTestCaseMixin, TestCase):
         call_command('clear_index', interactive=False, verbosity=0)
 
 
-class CreatingRemoteGenesetTestCase(ResourceTestCaseMixin):
+class CreatingRemoteGenesetTestCase(ResourceTestCaseMixin, TestCase):
 
     def setUp(self):
         # This following 'super' call is important to initialize TestCase
@@ -767,7 +767,7 @@ class CreatingRemoteGenesetTestCase(ResourceTestCaseMixin):
                          set(geneset_data['tags']))
 
 
-class GenesetSlugAndCreatorTestCase(ResourceTestCaseMixin):
+class GenesetSlugAndCreatorTestCase(ResourceTestCaseMixin, TestCase):
 
     def setUp(self):
         super(GenesetSlugAndCreatorTestCase, self).setUp()
