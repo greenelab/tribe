@@ -1178,9 +1178,13 @@ class GenesetVersionResource(VersionResource):
     geneset   = fields.ForeignKey(GenesetResource, 'geneset', full=False)
     genes     = fields.ListField(null=True)
     parent    = fields.ToOneField('self', 'parent', null=True, full=False)
-    annotations = fields.ListField(null=True, use_in=lambda bundle: bundle.request.GET.get('full_annotations', None) == 'true')
+    annotations = fields.ListField(
+        null=True,
+        use_in=lambda bundle: bundle.request.GET.get('full_annotations', None) == 'true'
+    )
 
     class Meta:
+        queryset = Version.objects.all()
         max_limit = None
 
         # The resource_name Meta option is very important! It is required
