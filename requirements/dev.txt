@@ -1,6 +1,6 @@
 # put packages for development here
 -r base.txt
-ecdsa==0.13
+ecdsa==0.13.3
 exam==0.10.5
 Fabric==1.10.1
 paramiko==2.4.2
