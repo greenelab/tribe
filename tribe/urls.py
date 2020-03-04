@@ -50,10 +50,8 @@ def handler500(request):
    Templates: '500.html'
    Context: None
    """
-   from django.template import Context, loader
+   from django.template import loader
    from django.http import HttpResponseServerError
 
    t = loader.get_template('500.html') # 500.html template needs to be created
-   return HttpResponseServerError(t.render(Context({
-       'request': request,
-   })))
+   return HttpResponseServerError(t.render({'request': request}))

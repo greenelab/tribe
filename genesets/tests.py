@@ -219,9 +219,11 @@ class TestKEGGLoaderMethods(TestCase):
 
 # The Celery settings are needed for updating the Geneset search indexes
 # with Celery in tests. These should be included in every TestCase class
-# where Celery is run.
-@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
-                   CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+# where Celery is run. "CELERY_ALWAYS_EAGER" setting is removed here because
+# it has been deprecated since Celery 4.0.
+@override_settings(
+    HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
+)
 class GenesetUnregisteredTestCase(ResourceTestCaseMixin, TestCase):
 
     def setUp(self):
@@ -294,6 +296,9 @@ class GenesetUnregisteredTestCase(ResourceTestCaseMixin, TestCase):
             organism=self.org1, abstract='Testing index.', public=True
         )
 
+        # Update search indexes manually
+        call_command('update_index', interactive=False, verbosity=0)
+
         resp = self.api_client.get('/api/v1/geneset',
                                    format="json",
                                    data={'query': 'GO-BP'})
@@ -313,9 +318,11 @@ class GenesetUnregisteredTestCase(ResourceTestCaseMixin, TestCase):
 
 # The Celery settings are needed for updating the Geneset search indexes
 # with Celery in tests. These should be included in every TestCase class
-# where Celery is run.
-@override_settings(HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_ALWAYS_EAGER=True,
-                   CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+# where Celery is run. "CELERY_ALWAYS_EAGER" setting is removed here because
+# it has been deprecated since Celery 4.0.
+@override_settings(
+    HAYSTACK_CONNECTIONS=TEST_INDEX, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
+)
 class GenesetRegisteredTestCase(ResourceTestCaseMixin, TestCase):
 
     def setUp(self):
@@ -466,6 +473,9 @@ class GenesetRegisteredTestCase(ResourceTestCaseMixin, TestCase):
             creator=self.user1, title='GO-BP:Test Geneset 4', deleted=False,
             organism=self.org1, abstract='Testing index.', public=False
         )
+
+        # Update search index manually
+        call_command('update_index', interactive=False, verbosity=0)
 
         resp = self.api_client.get('/api/v1/geneset',
                                    format="json",
@@ -773,8 +783,10 @@ class GenesetSlugAndCreatorTestCase(ResourceTestCaseMixin, TestCase):
         super(GenesetSlugAndCreatorTestCase, self).setUp()
 
         self.org1 = Organism.objects.create(
-            common_name="Mouse", scientific_name="Mus musculus",
-            taxonomy_id=10090
+            common_name="Mouse",
+            scientific_name="Mus musculus",
+            taxonomy_id=10090,
+            slug="mus-musculus"
         )
 
         self.username = "hjkl"

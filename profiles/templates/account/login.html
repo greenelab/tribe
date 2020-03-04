@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load account %}
-{% load url from future %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
@@ -43,7 +42,7 @@ for a {{site_name}} account and sign in below:{% endblocktrans %}</p>
 </br>
 </br>
   <button class="primaryAction btn btn-primary" type="submit">{% trans "Sign In" %}</button>
-  &nbsp; or&nbsp;  
+  &nbsp; or&nbsp;
   <a href="/#/home" type="button">Cancel</a>
 </form>
 

@@ -1077,9 +1077,12 @@ class ForkingVersionTestCase(ResourceTestCaseMixin, TestCase):
         # This line is important to set up the test case!
         super(ForkingVersionTestCase, self).setUp()
 
-        org1 = Organism.objects.create(common_name="Mouse",
-                                       scientific_name="Mus musculus",
-                                       taxonomy_id=10090)
+        org1 = Organism.objects.create(
+            common_name="Mouse",
+            scientific_name="Mus musculus",
+            taxonomy_id=10090,
+            slug='mus-musculus'
+        )
 
         self.username = "asdf"
         self.email = "asdf@example.com"
@@ -1147,7 +1150,7 @@ class ForkingVersionTestCase(ResourceTestCaseMixin, TestCase):
 
         # Create data for geneset/version fork
         forked_geneset = {}
-        forked_geneset['title'] = 'Fork of' + original_geneset['title']
+        forked_geneset['title'] = 'Fork of ' + original_geneset['title']
         forked_geneset['organism'] = original_geneset['organism']['resource_uri']
         forked_geneset['abstr'] = original_geneset['abstract']
         forked_geneset['public'] = False
