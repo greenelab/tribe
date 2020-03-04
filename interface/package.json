@@ -20,8 +20,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "braces": ">=2.3.1",
-    "clean-css": ">=4.1.11",
     "grunt": "^1.0.4",
     "grunt-bump": "^0.8.0",
     "grunt-coffeelint": "^0.0.16",
@@ -46,7 +44,6 @@
     "karma-firefox-launcher": "^1.0.0",
     "karma-jasmine": "^1.1.1",
     "karma-phantomjs-launcher": "^1.0.1",
-    "karma-safari-launcher": "^1.0.0",
-    "set-value": ">=2.0.1"
+    "karma-safari-launcher": "^1.0.0"
   }
 }
