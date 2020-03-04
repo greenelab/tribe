@@ -230,9 +230,11 @@ class UserResource(ModelResource):
                 other_user = None
                 print("USER DIDN'T EXIST") #TODO: EMAIL USER
             if other_user is not None:
-                collaboration, created = Collaboration.objects.get_or_create(from_user=request.user,
-                                                                             to_user=other_user)
-        return self.get_detail(request, pk=request.user.pk)
+                collaboration, created = Collaboration.objects.get_or_create(
+                    from_user=request.user, to_user=other_user
+                )
+
+        return self.get_detail(request, id=request.user.pk)
 
     def reject_invite(self, request, **kwargs):
         self.method_check(request, allowed=['post', ])
@@ -251,7 +253,8 @@ class UserResource(ModelResource):
             if other_user is not None:
                 Collaboration.objects.filter(from_user=request.user, to_user=other_user).delete()
                 Collaboration.objects.filter(from_user=other_user, to_user=request.user).delete()
-        return self.get_detail(request, pk=request.user.pk)
+
+        return self.get_detail(request, id=request.user.pk)
 
     def dehydrate_temporary(self, bundle):
         # This method gets the associated Profile for this User, and returns
@@ -463,11 +466,11 @@ class GenesetResource(ModelResource):
     make sure that authorization and such remains in force after the search query.
     http://django-tastypie.readthedocs.org/en/latest/resources.html#advanced-filtering
     """
-    def build_filters(self, filters=None):
+    def build_filters(self, filters=None, ignore_bad_filters=False):
         if filters is None:
             filters = {}
 
-        orm_filters = super(GenesetResource, self).build_filters(filters)
+        orm_filters = super(GenesetResource, self).build_filters(filters, ignore_bad_filters)
         logger.info("Starting ORM Filters.")
         if "query" in filters:
             if filters["query"]:  # don't search if the string is empty
@@ -590,7 +593,7 @@ class GenesetResource(ModelResource):
                     share = Share(from_user=request.user, to_user=other_user, geneset=bundle.obj)
                     logger.info("Added share from %s to %s for geneset %s", share.from_user.username, share.to_user.username, bundle.obj.title)
                     share.save()
-        return self.get_detail(request, pk=bundle.obj.pk)  # return the object (modified if a share got added)
+        return self.get_detail(request, id=bundle.obj.pk)  # return the object (modified if a share got added)
 
     """
     Only allow updates to the title or abstract of an existing geneset.
@@ -685,7 +688,7 @@ class GenesetResource(ModelResource):
             # the prior versions
 
             # Disable commit date so we preserve original dates of versions
-            commit_date = Version._meta.get_field_by_name('commit_date')[0]
+            commit_date = Version._meta.get_field('commit_date')
             commit_date.auto_now_add = False
 
             # We have to make the first version in that geneset (the one with
