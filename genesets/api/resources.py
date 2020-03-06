@@ -27,6 +27,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from django.template.defaultfilters import slugify
 from django.http import HttpResponse
+from django.utils import timezone
 
 # Tribe imports
 from organisms.api import OrganismResource
@@ -40,7 +41,6 @@ from publications.utils import load_pmids
 from collaborations.models import Collaboration, Share
 from collaborations.utils import get_collaborators, get_invites, get_inviteds
 from profiles.models import Profile
-
 
 # Tastypie is the RESTful API which manages the JavaScript serialization
 from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS, convert_post_to_put
@@ -402,10 +402,16 @@ def filter_geneset_versions(bundle):
     modified_before = bundle.request.GET.get('modified_before', None)
     if modified_before:
         modified_before = datetime.strptime(modified_before, "%m-%d-%y")
-        versions = (Version.objects
-                    .filter(geneset=bundle.obj)
-                    .filter(commit_date__lte=modified_before)
-                    .order_by('-commit_date'))
+        current_tz = timezone.get_current_timezone()
+        # Add timezone to modified_before
+        modified_before = current_tz.localize(modified_before)
+        versions = (
+            Version.objects.filter(
+                geneset=bundle.obj
+            ).filter(
+                commit_date__lte=modified_before
+            ).order_by('-commit_date')
+        )
     else:
         versions = (Version.objects
                     .filter(geneset=bundle.obj)
@@ -806,10 +812,14 @@ class GenesetResource(ModelResource):
         modified_before = request.GET.get('modified_before', None)
         if modified_before:
             modified_before = datetime.strptime(modified_before, "%m-%d-%y")
-
-            eligible_geneset_ids = (Version.objects
-                                    .filter(commit_date__lte=modified_before)
-                                    .values_list('geneset_id', flat=True))
+            current_tz = timezone.get_current_timezone()
+            # Add timezone to modified_before
+            modified_before = current_tz.localize(modified_before)
+            eligible_geneset_ids = (
+                Version.objects.filter(
+                    commit_date__lte=modified_before
+                ).values_list('geneset_id', flat=True)
+            )
             gs_id_set = set(eligible_geneset_ids)
 
             obj_list = obj_list.filter(id__in=gs_id_set)
