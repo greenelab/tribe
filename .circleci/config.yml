@@ -27,7 +27,7 @@ jobs:
           name: Backend tests
           command: |
             apt update && apt upgrade -y
-            apt install postgresql-client rabbitmq-server python-pip git -y
+            apt install postgresql-client libpq-dev rabbitmq-server python-pip git -y
             /etc/init.d/rabbitmq-server start
             createuser -h localhost --superuser tribe
             createdb -h localhost circleci_test
